@@ -59,7 +59,7 @@ export default function PetugasHistoryPage() {
     try {
       // Get user's node first
       const { data: userData, error: userError } = await supabase
-        .from('users')
+        .from('user')
         .select('node_id')
         .eq('user_id', userId)
         .single()

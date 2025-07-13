@@ -35,12 +35,20 @@ export default function PetugasScannerPage() {
     isModalOpen: false,
     itemInstanceId: ''
   })
+  const [outgoingFormData, setOutgoingFormData] = useState({
+    isModalOpen: false,
+    destinationNodeId: '',
+    courierName: '',
+    courierPhone: ''
+  })
+  const [nodes, setNodes] = useState<any[]>([])
   const supabase = createClient()
 
   useEffect(() => {
     // Get current user's node ID from session
     getCurrentUserNode()
     fetchUserScanHistory()
+    fetchNodes()
   }, [])
 
   const getCurrentUserNode = async () => {
@@ -48,7 +56,7 @@ export default function PetugasScannerPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data, error } = await supabase
-          .from('users')
+          .from('user')
           .select('node_id')
           .eq('user_id', user.id)
           .single()
@@ -58,6 +66,21 @@ export default function PetugasScannerPage() {
       }
     } catch (error) {
       console.error('Error getting user node:', error)
+    }
+  }
+
+  const fetchNodes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('node')
+        .select('node_id, node_name, node_type')
+        .eq('status', 'active')
+        .order('node_name')
+      
+      if (error) throw error
+      setNodes(data || [])
+    } catch (error) {
+      console.error('Error fetching nodes:', error)
     }
   }
 
@@ -157,16 +180,28 @@ export default function PetugasScannerPage() {
     if (scanMode === 'incoming') {
       processIncomingScan(qrInput, currentNodeId)
     } else {
-      // For outgoing, you'd need additional form inputs for destination and courier
-      // This is a simplified version
-      const scanData: QRScanData = {
-        qrData: qrInput,
-        itemInstanceId: qrInput, // In real app, this would be parsed differently
-        destinationNodeId: '', // Would come from form
-        courierData: { name: '', phone: '' } // Would come from form
-      }
-      processOutgoingScan(scanData)
+      // For outgoing, open the form modal
+      setOutgoingFormData({ ...outgoingFormData, isModalOpen: true })
     }
+  }
+
+  const handleOutgoingScan = () => {
+    const scanData: QRScanData = {
+      qrData: qrInput,
+      itemInstanceId: qrInput, // In real app, this would be the actual item instance ID
+      destinationNodeId: outgoingFormData.destinationNodeId,
+      courierData: { 
+        name: outgoingFormData.courierName, 
+        phone: outgoingFormData.courierPhone 
+      }
+    }
+    processOutgoingScan(scanData)
+    setOutgoingFormData({
+      isModalOpen: false,
+      destinationNodeId: '',
+      courierName: '',
+      courierPhone: ''
+    })
   }
 
   return (
@@ -310,6 +345,82 @@ export default function PetugasScannerPage() {
                 className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
               >
                 Submit Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Outgoing Scan Form Modal */}
+      {outgoingFormData.isModalOpen && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Outgoing Item Details</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Item ID/QR Code</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100"
+                  value={qrInput}
+                  disabled
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Destination Node</label>
+                <select
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  value={outgoingFormData.destinationNodeId}
+                  onChange={(e) => setOutgoingFormData({ ...outgoingFormData, destinationNodeId: e.target.value })}
+                  required
+                >
+                  <option value="">Select destination node</option>
+                  {nodes.filter(node => node.node_id !== currentNodeId).map((node) => (
+                    <option key={node.node_id} value={node.node_id}>
+                      {node.node_name} ({node.node_type})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Courier Name</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  value={outgoingFormData.courierName}
+                  onChange={(e) => setOutgoingFormData({ ...outgoingFormData, courierName: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Courier Phone</label>
+                <input
+                  type="tel"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  value={outgoingFormData.courierPhone}
+                  onChange={(e) => setOutgoingFormData({ ...outgoingFormData, courierPhone: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2 mt-6">
+              <button
+                onClick={() => setOutgoingFormData({
+                  isModalOpen: false,
+                  destinationNodeId: '',
+                  courierName: '',
+                  courierPhone: ''
+                })}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleOutgoingScan}
+                disabled={!outgoingFormData.destinationNodeId || !outgoingFormData.courierName || !outgoingFormData.courierPhone}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              >
+                Send Item
               </button>
             </div>
           </div>

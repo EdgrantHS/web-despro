@@ -25,7 +25,7 @@ export default function AdminDashboard() {
       // Multiple queries to get system statistics
       const [nodesResult, usersResult, itemsResult, reportsResult] = await Promise.all([
         supabase.from('node').select('*', { count: 'exact', head: true }),
-        supabase.from('users').select('*', { count: 'exact', head: true }),
+        supabase.from('user').select('*', { count: 'exact', head: true }),
         supabase.from('item_instance').select('*', { count: 'exact', head: true }),
         supabase.from('report').select('*', { count: 'exact', head: true })
       ])

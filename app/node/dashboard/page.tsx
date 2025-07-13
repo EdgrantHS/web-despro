@@ -32,7 +32,7 @@ export default function NodeDashboard() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data, error } = await supabase
-          .from('users')
+          .from('user')
           .select(`
             node_id,
             node:node_id (

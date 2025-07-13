@@ -50,7 +50,7 @@ export default function PetugasCookPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data, error } = await supabase
-          .from('users')
+          .from('user')
           .select('node_id')
           .eq('user_id', user.id)
           .single()

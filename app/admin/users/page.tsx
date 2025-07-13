@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
     setLoading(true)
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('user')
         .select(`
           *,
           node:node_id (node_name, node_type),
@@ -110,7 +110,7 @@ export default function AdminUsersPage() {
 
       // Then create user profile
       const { data, error } = await supabase
-        .from('users')
+        .from('user')
         .insert([{
           user_id: authData.user?.id,
           email: userData.email,
@@ -131,7 +131,7 @@ export default function AdminUsersPage() {
   const updateUserPrivilege = async (userId: string, newPrivilegeId: number) => {
     try {
       const { error } = await supabase
-        .from('users')
+        .from('user')
         .update({ privilege_id: newPrivilegeId })
         .eq('user_id', userId)
       
