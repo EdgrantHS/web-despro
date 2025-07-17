@@ -13,36 +13,38 @@ export default function LoginPage() {
   const router = useRouter()
 
   const handleLogin = async (email: string, password: string) => {
-    setLoading(true)
-    setError('')
+    // suggested implementation: authenticate user and redirect based on role
+    // setLoading(true)
+    // setError('')
     
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      
-      if (error) {
-        setError(error.message)
-        return null
-      }
-      
-      // Redirect based on user role - you'll need to implement role checking
-      router.push('/dashboard')
-      return data.session
-    } catch (err) {
-      setError('Login failed')
-      return null
-    } finally {
-      setLoading(false)
-    }
+    // try {
+    //   const { data, error } = await supabase.auth.signInWithPassword({
+    //     email,
+    //     password,
+    //   })
+    //   
+    //   if (error) {
+    //     setError(error.message)
+    //     return null
+    //   }
+    //   
+    //   // Redirect based on user role - you'll need to implement role checking
+    //   router.push('/dashboard')
+    //   return data.session
+    // } catch (err) {
+    //   setError('Login failed')
+    //   return null
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      setError(error.message)
-    }
+    // suggested implementation: sign out user
+    // const { error } = await supabase.auth.signOut()
+    // if (error) {
+    //   setError(error.message)
+    // }
   }
 
   const onSubmit = (e: React.FormEvent) => {

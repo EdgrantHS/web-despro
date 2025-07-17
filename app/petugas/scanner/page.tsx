@@ -52,126 +52,130 @@ export default function PetugasScannerPage() {
   }, [])
 
   const getCurrentUserNode = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data, error } = await supabase
-          .from('user')
-          .select('node_id')
-          .eq('user_id', user.id)
-          .single()
+    // suggested implementation: get current user's node ID
+    // try {
+    //   const { data: { user } } = await supabase.auth.getUser()
+    //   if (user) {
+    //     const { data, error } = await supabase
+    //       .from('user')
+    //       .select('node_id')
+    //       .eq('user_id', user.id)
+    //       .single()
         
-        if (error) throw error
-        setCurrentNodeId(data.node_id)
-      }
-    } catch (error) {
-      console.error('Error getting user node:', error)
-    }
+    //     if (error) throw error
+    //     setCurrentNodeId(data.node_id)
+    //   }
+    // } catch (error) {
+    //   console.error('Error getting user node:', error)
+    // }
   }
 
   const fetchNodes = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('node')
-        .select('node_id, node_name, node_type')
-        .eq('status', 'active')
-        .order('node_name')
+    // suggested implementation: get all active nodes for destination selection
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('node')
+    //     .select('node_id, node_name, node_type')
+    //     .eq('status', 'active')
+    //     .order('node_name')
       
-      if (error) throw error
-      setNodes(data || [])
-    } catch (error) {
-      console.error('Error fetching nodes:', error)
-    }
+    //   if (error) throw error
+    //   setNodes(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching nodes:', error)
+    // }
   }
 
   const fetchUserScanHistory = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data, error } = await supabase
-          .from('item_transit')
-          .select('*')
-          .or(`origin_node_id.eq.${currentNodeId},destination_node_id.eq.${currentNodeId}`)
-          .order('created_at', { ascending: false })
-          .limit(20)
+    // suggested implementation: get transit history for user's node
+    // try {
+    //   const { data: { user } } = await supabase.auth.getUser()
+    //   if (user) {
+    //     const { data, error } = await supabase
+    //       .from('item_transit')
+    //       .select('*')
+    //       .or(`origin_node_id.eq.${currentNodeId},destination_node_id.eq.${currentNodeId}`)
+    //       .order('created_at', { ascending: false })
+    //       .limit(20)
         
-        if (error) throw error
-        setScanHistory(data || [])
-      }
-    } catch (error) {
-      console.error('Error fetching scan history:', error)
-    }
+    //     if (error) throw error
+    //     setScanHistory(data || [])
+    //   }
+    // } catch (error) {
+    //   console.error('Error fetching scan history:', error)
+    // }
   }
 
   const processIncomingScan = async (qrData: string, nodeId: string) => {
-    setLoading(true)
-    try {
-      // Call Postgres function to handle incoming item
-      const { data, error } = await supabase.rpc('receive_item', {
-        transit_id: qrData,
-        receiver_node_id: nodeId
-      })
+    // suggested implementation: use Postgres function for complex transaction
+    // setLoading(true)
+    // try {
+    //   const { data, error } = await supabase.rpc('receive_item', {
+    //     transit_id: qrData,
+    //     receiver_node_id: nodeId
+    //   })
       
-      if (error) throw error
+    //   if (error) throw error
       
-      alert('Item received successfully!')
-      fetchUserScanHistory()
-      setQrInput('')
-    } catch (error) {
-      console.error('Error processing incoming scan:', error)
-      alert('Error processing scan. Please check the QR code.')
-    } finally {
-      setLoading(false)
-    }
+    //   alert('Item received successfully!')
+    //   fetchUserScanHistory()
+    //   setQrInput('')
+    // } catch (error) {
+    //   console.error('Error processing incoming scan:', error)
+    //   alert('Error processing scan. Please check the QR code.')
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const processOutgoingScan = async (scanData: QRScanData) => {
-    setLoading(true)
-    try {
-      // Call Postgres function to handle outgoing item
-      const { data, error } = await supabase.rpc('send_item', {
-        item_instance_id: scanData.itemInstanceId,
-        destination_node_id: scanData.destinationNodeId,
-        courier_name: scanData.courierData?.name,
-        courier_phone: scanData.courierData?.phone,
-        origin_node_id: currentNodeId
-      })
+    // suggested implementation: use Postgres function for complex transaction
+    // setLoading(true)
+    // try {
+    //   const { data, error } = await supabase.rpc('send_item', {
+    //     item_instance_id: scanData.itemInstanceId,
+    //     destination_node_id: scanData.destinationNodeId,
+    //     courier_name: scanData.courierData?.name,
+    //     courier_phone: scanData.courierData?.phone,
+    //     origin_node_id: currentNodeId
+    //   })
       
-      if (error) throw error
+    //   if (error) throw error
       
-      alert('Item sent successfully! QR code generated for courier.')
-      fetchUserScanHistory()
-      setQrInput('')
-    } catch (error) {
-      console.error('Error processing outgoing scan:', error)
-      alert('Error processing scan.')
-    } finally {
-      setLoading(false)
-    }
+    //   alert('Item sent successfully! QR code generated for courier.')
+    //   fetchUserScanHistory()
+    //   setQrInput('')
+    // } catch (error) {
+    //   console.error('Error processing outgoing scan:', error)
+    //   alert('Error processing scan.')
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const createDiscrepancyReport = async (reportData: any) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      const { error } = await supabase
-        .from('report')
-        .insert([{
-          user_id: user?.id,
-          item_instance_id: reportData.itemInstanceId,
-          report_node_id: currentNodeId,
-          reported_node_id: currentNodeId,
-          report_description: reportData.description,
-          report_status: 'pending'
-        }])
+    // suggested implementation: insert new report record
+    // try {
+    //   const { data: { user } } = await supabase.auth.getUser()
+    //   const { error } = await supabase
+    //     .from('report')
+    //     .insert([{
+    //       user_id: user?.id,
+    //       item_instance_id: reportData.itemInstanceId,
+    //       report_node_id: currentNodeId,
+    //       reported_node_id: currentNodeId,
+    //       report_description: reportData.description,
+    //       report_status: 'pending'
+    //     }])
       
-      if (error) throw error
+    //   if (error) throw error
       
-      alert('Discrepancy report filed successfully!')
-      setReportData({ description: '', isModalOpen: false, itemInstanceId: '' })
-    } catch (error) {
-      console.error('Error creating report:', error)
-      alert('Error filing report.')
-    }
+    //   alert('Discrepancy report filed successfully!')
+    //   setReportData({ description: '', isModalOpen: false, itemInstanceId: '' })
+    // } catch (error) {
+    //   console.error('Error creating report:', error)
+    //   alert('Error filing report.')
+    // }
   }
 
   const handleScan = () => {

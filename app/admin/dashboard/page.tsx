@@ -20,27 +20,27 @@ export default function AdminDashboard() {
   }, [])
 
   const fetchSystemOverview = async () => {
-    setLoading(true)
-    try {
-      // Multiple queries to get system statistics
-      const [nodesResult, usersResult, itemsResult, reportsResult] = await Promise.all([
-        supabase.from('node').select('*', { count: 'exact', head: true }),
-        supabase.from('user').select('*', { count: 'exact', head: true }),
-        supabase.from('item_instance').select('*', { count: 'exact', head: true }),
-        supabase.from('report').select('*', { count: 'exact', head: true })
-      ])
+    // suggested implementation: get system-wide statistics with multiple queries or RPC
+    // setLoading(true)
+    // try {
+    //   const [nodesResult, usersResult, itemsResult, reportsResult] = await Promise.all([
+    //     supabase.from('node').select('*', { count: 'exact', head: true }),
+    //     supabase.from('user').select('*', { count: 'exact', head: true }),
+    //     supabase.from('item_instance').select('*', { count: 'exact', head: true }),
+    //     supabase.from('report').select('*', { count: 'exact', head: true })
+    //   ])
 
-      setOverview({
-        totalNodes: nodesResult.count || 0,
-        totalUsers: usersResult.count || 0,
-        totalItems: itemsResult.count || 0,
-        totalReports: reportsResult.count || 0
-      })
-    } catch (error) {
-      console.error('Error fetching system overview:', error)
-    } finally {
-      setLoading(false)
-    }
+    //   setOverview({
+    //     totalNodes: nodesResult.count || 0,
+    //     totalUsers: usersResult.count || 0,
+    //     totalItems: itemsResult.count || 0,
+    //     totalReports: reportsResult.count || 0
+    //   })
+    // } catch (error) {
+    //   console.error('Error fetching system overview:', error)
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   if (loading) {

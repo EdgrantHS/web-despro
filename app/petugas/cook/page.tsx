@@ -46,88 +46,92 @@ export default function PetugasCookPage() {
   }, [currentNodeId])
 
   const getCurrentUserNode = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data, error } = await supabase
-          .from('user')
-          .select('node_id')
-          .eq('user_id', user.id)
-          .single()
-        
-        if (error) throw error
-        setCurrentNodeId(data.node_id)
-      }
-    } catch (error) {
-      console.error('Error getting user node:', error)
-    }
+    // suggested implementation: get current user's node for filtering recipes
+    // try {
+    //   const { data: { user } } = await supabase.auth.getUser()
+    //   if (user) {
+    //     const { data, error } = await supabase
+    //       .from('user')
+    //       .select('node_id')
+    //       .eq('user_id', user.id)
+    //       .single()
+    //     
+    //     if (error) throw error
+    //     setCurrentNodeId(data.node_id)
+    //   }
+    // } catch (error) {
+    //   console.error('Error getting user node:', error)
+    // }
   }
 
   const fetchAvailableMenus = async (nodeId: string) => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('recipe')
-        .select('*')
-        .or(`status.eq.confirmed,node_id.is.null,node_id.eq.${nodeId}`)
-        .order('menu_name')
-      
-      if (error) throw error
-      setRecipes(data || [])
-    } catch (error) {
-      console.error('Error fetching menus:', error)
-    } finally {
-      setLoading(false)
-    }
+    // suggested implementation: get available recipes for cooking at this node
+    // setLoading(true)
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('recipe')
+    //     .select('*')
+    //     .or(`status.eq.confirmed,node_id.is.null,node_id.eq.${nodeId}`)
+    //     .order('menu_name')
+    //   
+    //   if (error) throw error
+    //   setRecipes(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching menus:', error)
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const cookRecipe = async (recipeId: number, portions: number, nodeId: string) => {
-    try {
-      const { data, error } = await supabase.rpc('cook_recipe', {
-        recipe_id: recipeId,
-        portion_count: portions,
-        node_id: nodeId
-      })
-      
-      if (error) throw error
-      
-      alert(`Successfully cooked ${portions} portions!`)
-      setCookingModal({ isOpen: false, recipe: null, portions: 1 })
-    } catch (error) {
-      console.error('Error cooking recipe:', error)
-      alert('Error cooking recipe. Please check ingredient availability.')
-    }
+    // suggested implementation: cook a recipe and consume ingredients
+    // try {
+    //   const { data, error } = await supabase.rpc('cook_recipe', {
+    //     recipe_id: recipeId,
+    //     portion_count: portions,
+    //     node_id: nodeId
+    //   })
+    //   
+    //   if (error) throw error
+    //   
+    //   alert(`Successfully cooked ${portions} portions!`)
+    //   setCookingModal({ isOpen: false, recipe: null, portions: 1 })
+    // } catch (error) {
+    //   console.error('Error cooking recipe:', error)
+    //   alert('Error cooking recipe. Please check ingredient availability.')
+    // }
   }
 
   const createTemporaryMenu = async (menuData: any, nodeId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('recipe')
-        .insert([{
-          ...menuData,
-          node_id: nodeId,
-          status: 'temporary'
-        }])
-        .select()
-      
-      if (error) throw error
-      
-      alert('Temporary menu created successfully! Awaiting admin confirmation.')
-      setNewMenuModal({
-        isOpen: false,
-        formData: {
-          menu_name: '',
-          menu_description: '',
-          ingredients: '',
-          preparation_steps: '',
-          portions: 1
-        }
-      })
-      fetchAvailableMenus(nodeId)
-    } catch (error) {
-      console.error('Error creating temporary menu:', error)
-      alert('Error creating menu.')
-    }
+    // suggested implementation: create a temporary menu awaiting admin confirmation
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('recipe')
+    //     .insert([{
+    //       ...menuData,
+    //       node_id: nodeId,
+    //       status: 'temporary'
+    //     }])
+    //     .select()
+    //   
+    //   if (error) throw error
+    //   
+    //   alert('Temporary menu created successfully! Awaiting admin confirmation.')
+    //   setNewMenuModal({
+    //     isOpen: false,
+    //     formData: {
+    //       menu_name: '',
+    //       menu_description: '',
+    //       ingredients: '',
+    //       preparation_steps: '',
+    //       portions: 1
+    //     }
+    //   })
+    //   fetchAvailableMenus(nodeId)
+    // } catch (error) {
+    //   console.error('Error creating temporary menu:', error)
+    //   alert('Error creating menu.')
+    // }
   }
 
   const handleCook = () => {

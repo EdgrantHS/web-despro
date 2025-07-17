@@ -28,53 +28,56 @@ export default function AdminItemsPage() {
   }, [])
 
   const fetchAllItemTypes = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('item_type')
-        .select('*')
-        .order('item_name')
-      
-      if (error) throw error
-      setItemTypes(data || [])
-    } catch (error) {
-      console.error('Error fetching item types:', error)
-    } finally {
-      setLoading(false)
-    }
+    // suggested implementation: get all item types from database
+    // setLoading(true)
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('item_type')
+    //     .select('*')
+    //     .order('item_name')
+    //   
+    //   if (error) throw error
+    //   setItemTypes(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching item types:', error)
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const createItemType = async (itemTypeData: Omit<ItemType, 'item_type_id' | 'created_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('item_type')
-        .insert([itemTypeData])
-        .select()
-      
-      if (error) throw error
-      fetchAllItemTypes()
-      return data[0]
-    } catch (error) {
-      console.error('Error creating item type:', error)
-      throw error
-    }
+    // suggested implementation: create new item type
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('item_type')
+    //     .insert([itemTypeData])
+    //     .select()
+    //   
+    //   if (error) throw error
+    //   fetchAllItemTypes()
+    //   return data[0]
+    // } catch (error) {
+    //   console.error('Error creating item type:', error)
+    //   throw error
+    // }
   }
 
   const updateItemType = async (itemTypeId: string, updatedData: Partial<ItemType>) => {
-    try {
-      const { data, error } = await supabase
-        .from('item_type')
-        .update(updatedData)
-        .eq('item_type_id', itemTypeId)
-        .select()
-      
-      if (error) throw error
-      fetchAllItemTypes()
-      return data[0]
-    } catch (error) {
-      console.error('Error updating item type:', error)
-      throw error
-    }
+    // suggested implementation: update existing item type
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('item_type')
+    //     .update(updatedData)
+    //     .eq('item_type_id', itemTypeId)
+    //     .select()
+    //   
+    //   if (error) throw error
+    //   fetchAllItemTypes()
+    //   return data[0]
+    // } catch (error) {
+    //   console.error('Error updating item type:', error)
+    //   throw error
+    // }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

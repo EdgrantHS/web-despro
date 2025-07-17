@@ -49,97 +49,102 @@ export default function AdminUsersPage() {
   }, [])
 
   const fetchAllUsers = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('user')
-        .select(`
-          *,
-          node:node_id (node_name, node_type),
-          privilege:privilege_id (privilege_name)
-        `)
-        .order('created_at', { ascending: false })
+    // suggested implementation: get all users with their node and privilege details
+    // setLoading(true)
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('user')
+    //     .select(`
+    //       *,
+    //       node:node_id (node_name, node_type),
+    //       privilege:privilege_id (privilege_name)
+    //     `)
+    //     .order('created_at', { ascending: false })
       
-      if (error) throw error
-      setUsers(data || [])
-    } catch (error) {
-      console.error('Error fetching users:', error)
-    } finally {
-      setLoading(false)
-    }
+    //   if (error) throw error
+    //   setUsers(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching users:', error)
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const fetchNodes = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('node')
-        .select('node_id, node_name')
-        .eq('status', 'active')
-        .order('node_name')
-      
-      if (error) throw error
-      setNodes(data || [])
-    } catch (error) {
-      console.error('Error fetching nodes:', error)
-    }
+    // suggested implementation: get all active nodes for user assignment
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('node')
+    //     .select('node_id, node_name')
+    //     .eq('status', 'active')
+    //     .order('node_name')
+    //   
+    //   if (error) throw error
+    //   setNodes(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching nodes:', error)
+    // }
   }
 
   const fetchPrivileges = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('privilege')
-        .select('*')
-        .order('privilege_id')
-      
-      if (error) throw error
-      setPrivileges(data || [])
-    } catch (error) {
-      console.error('Error fetching privileges:', error)
-    }
+    // suggested implementation: get all privilege levels for assignment
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('privilege')
+    //     .select('*')
+    //     .order('privilege_id')
+    //   
+    //   if (error) throw error
+    //   setPrivileges(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching privileges:', error)
+    // }
   }
 
   const createUser = async (userData: typeof formData) => {
-    try {
-      // First create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-      })
-      
-      if (authError) throw authError
+    // suggested implementation: create new user with auth and profile
+    // try {
+    //   // First create auth user
+    //   const { data: authData, error: authError } = await supabase.auth.signUp({
+    //     email: userData.email,
+    //     password: userData.password,
+    //   })
+    //   
+    //   if (authError) throw authError
 
-      // Then create user profile
-      const { data, error } = await supabase
-        .from('user')
-        .insert([{
-          user_id: authData.user?.id,
-          email: userData.email,
-          node_id: userData.node_id,
-          privilege_id: userData.privilege_id
-        }])
-        .select()
-      
-      if (error) throw error
-      fetchAllUsers()
-      return data[0]
-    } catch (error) {
-      console.error('Error creating user:', error)
-      throw error
-    }
+    //   // Then create user profile
+    //   const { data, error } = await supabase
+    //     .from('user')
+    //     .insert([{
+    //       user_id: authData.user?.id,
+    //       email: userData.email,
+    //       node_id: userData.node_id,
+    //       privilege_id: userData.privilege_id
+    //     }])
+    //     .select()
+    //   
+    //   if (error) throw error
+    //   fetchAllUsers()
+    //   return data[0]
+    // } catch (error) {
+    //   console.error('Error creating user:', error)
+    //   throw error
+    // }
   }
 
   const updateUserPrivilege = async (userId: string, newPrivilegeId: number) => {
-    try {
-      const { error } = await supabase
-        .from('user')
-        .update({ privilege_id: newPrivilegeId })
-        .eq('user_id', userId)
-      
-      if (error) throw error
-      fetchAllUsers()
-    } catch (error) {
-      console.error('Error updating user privilege:', error)
-    }
+    // suggested implementation: update user privilege level
+    // try {
+    //   const { error } = await supabase
+    //     .from('user')
+    //     .update({ privilege_id: newPrivilegeId })
+    //     .eq('user_id', userId)
+    //   
+    //   if (error) throw error
+    //   fetchAllUsers()
+    // } catch (error) {
+    //   console.error('Error updating user privilege:', error)
+    // }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

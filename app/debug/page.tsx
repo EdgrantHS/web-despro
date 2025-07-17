@@ -14,40 +14,41 @@ export default function DebugPage() {
   }, [])
 
   const testDatabaseConnection = async () => {
-    setLoading(true)
-    const testResults: string[] = []
+    // suggested implementation: test database connectivity and table access
+    // setLoading(true)
+    // const testResults: string[] = []
 
-    // Test each table we're using
-    const tablesToTest = [
-      'node',
-      'user', 
-      'users', // test both singular and plural
-      'item_instance',
-      'item_type',
-      'report',
-      'privilege',
-      'recipe',
-      'item_transit'
-    ]
+    // // Test each table we're using
+    // const tablesToTest = [
+    //   'node',
+    //   'user', 
+    //   'users', // test both singular and plural
+    //   'item_instance',
+    //   'item_type',
+    //   'report',
+    //   'privilege',
+    //   'recipe',
+    //   'item_transit'
+    // ]
 
-    for (const tableName of tablesToTest) {
-      try {
-        const { data, error } = await supabase
-          .from(tableName)
-          .select('*', { count: 'exact', head: true })
-        
-        if (error) {
-          testResults.push(`❌ ${tableName}: ${error.message}`)
-        } else {
-          testResults.push(`✅ ${tableName}: Table exists and accessible`)
-        }
-      } catch (err) {
-        testResults.push(`❌ ${tableName}: ${err}`)
-      }
-    }
+    // for (const tableName of tablesToTest) {
+    //   try {
+    //     const { data, error } = await supabase
+    //       .from(tableName)
+    //       .select('*', { count: 'exact', head: true })
+    //     
+    //     if (error) {
+    //       testResults.push(`❌ ${tableName}: ${error.message}`)
+    //     } else {
+    //       testResults.push(`✅ ${tableName}: Table exists and accessible`)
+    //     }
+    //   } catch (err) {
+    //     testResults.push(`❌ ${tableName}: ${err}`)
+    //   }
+    // }
 
-    setErrors(testResults)
-    setLoading(false)
+    // setErrors(testResults)
+    // setLoading(false)
   }
 
   if (loading) {

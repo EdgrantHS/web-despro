@@ -34,39 +34,41 @@ export default function AdminReportsPage() {
   }, [])
 
   const fetchAllReports = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('report')
-        .select(`
-          *,
-          user:user_id (email),
-          report_node:report_node_id (node_name),
-          reported_node:reported_node_id (node_name)
-        `)
-        .order('created_at', { ascending: false })
-      
-      if (error) throw error
-      setReports(data || [])
-    } catch (error) {
-      console.error('Error fetching reports:', error)
-    } finally {
-      setLoading(false)
-    }
+    // suggested implementation: get all discrepancy reports with related data
+    // setLoading(true)
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('report')
+    //     .select(`
+    //       *,
+    //       user:user_id (email),
+    //       report_node:report_node_id (node_name),
+    //       reported_node:reported_node_id (node_name)
+    //     `)
+    //     .order('created_at', { ascending: false })
+    //   
+    //   if (error) throw error
+    //   setReports(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching reports:', error)
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const updateReportStatus = async (reportId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase
-        .from('report')
-        .update({ report_status: newStatus })
-        .eq('report_id', reportId)
-      
-      if (error) throw error
-      fetchAllReports()
-    } catch (error) {
-      console.error('Error updating report status:', error)
-    }
+    // suggested implementation: update report status (pending, investigating, resolved, dismissed)
+    // try {
+    //   const { error } = await supabase
+    //     .from('report')
+    //     .update({ report_status: newStatus })
+    //     .eq('report_id', reportId)
+    //   
+    //   if (error) throw error
+    //   fetchAllReports()
+    // } catch (error) {
+    //   console.error('Error updating report status:', error)
+    // }
   }
 
   const filteredReports = reports.filter(report => {

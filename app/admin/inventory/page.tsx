@@ -34,46 +34,48 @@ export default function AdminInventoryPage() {
   }, [])
 
   const fetchAllItemInstances = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('item_instance')
-        .select(`
-          *,
-          item_type:item_type_id (
-            item_name,
-            item_type,
-            item_description
-          ),
-          node:node_id (
-            node_name,
-            node_type
-          )
-        `)
-        .order('expire_date', { ascending: true })
-      
-      if (error) throw error
-      setItemInstances(data || [])
-    } catch (error) {
-      console.error('Error fetching item instances:', error)
-    } finally {
-      setLoading(false)
-    }
+    // suggested implementation: get all item instances across all nodes
+    // setLoading(true)
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('item_instance')
+    //     .select(`
+    //       *,
+    //       item_type:item_type_id (
+    //         item_name,
+    //         item_type,
+    //         item_description
+    //       ),
+    //       node:node_id (
+    //         node_name,
+    //         node_type
+    //       )
+    //     `)
+    //     .order('expire_date', { ascending: true })
+    //   
+    //   if (error) throw error
+    //   setItemInstances(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching item instances:', error)
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const fetchNodes = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('node')
-        .select('node_id, node_name, node_type')
-        .eq('status', 'active')
-        .order('node_name')
-      
-      if (error) throw error
-      setNodes(data || [])
-    } catch (error) {
-      console.error('Error fetching nodes:', error)
-    }
+    // suggested implementation: get all active nodes for filtering
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('node')
+    //     .select('node_id, node_name, node_type')
+    //     .eq('status', 'active')
+    //     .order('node_name')
+    //   
+    //   if (error) throw error
+    //   setNodes(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching nodes:', error)
+    // }
   }
 
   const filteredItems = itemInstances.filter(item => {

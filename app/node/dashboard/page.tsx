@@ -28,66 +28,68 @@ export default function NodeDashboard() {
   }, [currentNodeId])
 
   const getCurrentUserNode = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data, error } = await supabase
-          .from('user')
-          .select(`
-            node_id,
-            node:node_id (
-              node_name,
-              node_type,
-              node_address
-            )
-          `)
-          .eq('user_id', user.id)
-          .single()
-        
-        if (error) throw error
-        setCurrentNodeId(data.node_id)
-        setNodeInfo(data.node)
-      }
-    } catch (error) {
-      console.error('Error getting user node:', error)
-    }
+    // suggested implementation: get current user's assigned node
+    // try {
+    //   const { data: { user } } = await supabase.auth.getUser()
+    //   if (user) {
+    //     const { data, error } = await supabase
+    //       .from('user')
+    //       .select(`
+    //         node_id,
+    //         node:node_id (
+    //           node_name,
+    //           node_type,
+    //           node_address
+    //         )
+    //       `)
+    //       .eq('user_id', user.id)
+    //       .single()
+    //     
+    //     if (error) throw error
+    //     setCurrentNodeId(data.node_id)
+    //     setNodeInfo(data.node)
+    //   }
+    // } catch (error) {
+    //   console.error('Error getting user node:', error)
+    // }
   }
 
   const fetchNodeDashboardData = async (nodeId: string) => {
-    setLoading(true)
-    try {
-      // You could replace this with a single RPC call: get_node_dashboard
-      const [inventoryResult, reportsResult, transfersResult] = await Promise.all([
-        supabase
-          .from('item_instance')
-          .select('item_count', { count: 'exact' })
-          .eq('node_id', nodeId),
-        supabase
-          .from('report')
-          .select('*', { count: 'exact', head: true })
-          .or(`report_node_id.eq.${nodeId},reported_node_id.eq.${nodeId}`)
-          .eq('report_status', 'pending'),
-        supabase
-          .from('item_transit')
-          .select('*', { count: 'exact', head: true })
-          .or(`origin_node_id.eq.${nodeId},destination_node_id.eq.${nodeId}`)
-          .gte('created_at', new Date().toISOString().split('T')[0])
-      ])
+    // suggested implementation: get dashboard statistics for current node
+    // setLoading(true)
+    // try {
+    //   // You could replace this with a single RPC call: get_node_dashboard
+    //   const [inventoryResult, reportsResult, transfersResult] = await Promise.all([
+    //     supabase
+    //       .from('item_instance')
+    //       .select('item_count', { count: 'exact' })
+    //       .eq('node_id', nodeId),
+    //     supabase
+    //       .from('report')
+    //       .select('*', { count: 'exact', head: true })
+    //       .or(`report_node_id.eq.${nodeId},reported_node_id.eq.${nodeId}`)
+    //       .eq('report_status', 'pending'),
+    //     supabase
+    //       .from('item_transit')
+    //       .select('*', { count: 'exact', head: true })
+    //       .or(`origin_node_id.eq.${nodeId},destination_node_id.eq.${nodeId}`)
+    //       .gte('created_at', new Date().toISOString().split('T')[0])
+    //   ])
 
-      // Calculate total inventory
-      const totalInventory = inventoryResult.data?.reduce((sum, item) => sum + item.item_count, 0) || 0
+    //   // Calculate total inventory
+    //   const totalInventory = inventoryResult.data?.reduce((sum, item) => sum + item.item_count, 0) || 0
 
-      setDashboardData({
-        totalInventory,
-        pendingReports: reportsResult.count || 0,
-        todayTransfers: transfersResult.count || 0,
-        lowStockItems: 0 // You'd implement logic to determine low stock
-      })
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-    } finally {
-      setLoading(false)
-    }
+    //   setDashboardData({
+    //     totalInventory,
+    //     pendingReports: reportsResult.count || 0,
+    //     todayTransfers: transfersResult.count || 0,
+    //     lowStockItems: 0 // You'd implement logic to determine low stock
+    //   })
+    // } catch (error) {
+    //   console.error('Error fetching dashboard data:', error)
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   if (loading) {

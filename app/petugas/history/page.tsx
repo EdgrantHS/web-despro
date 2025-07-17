@@ -44,49 +44,51 @@ export default function PetugasHistoryPage() {
   }, [currentUserId])
 
   const getCurrentUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setCurrentUserId(user.id)
-      }
-    } catch (error) {
-      console.error('Error getting current user:', error)
-    }
+    // suggested implementation: get current authenticated user
+    // try {
+    //   const { data: { user } } = await supabase.auth.getUser()
+    //   if (user) {
+    //     setCurrentUserId(user.id)
+    //   }
+    // } catch (error) {
+    //   console.error('Error getting current user:', error)
+    // }
   }
 
   const fetchUserScanHistory = async (userId: string) => {
-    setLoading(true)
-    try {
-      // Get user's node first
-      const { data: userData, error: userError } = await supabase
-        .from('user')
-        .select('node_id')
-        .eq('user_id', userId)
-        .single()
+    // suggested implementation: get scan/transit history for user's node
+    // setLoading(true)
+    // try {
+    //   // Get user's node first
+    //   const { data: userData, error: userError } = await supabase
+    //     .from('user')
+    //     .select('node_id')
+    //     .eq('user_id', userId)
+    //     .single()
 
-      if (userError) throw userError
+    //   if (userError) throw userError
 
-      // Fetch transit history for user's node
-      const { data, error } = await supabase
-        .from('item_transit')
-        .select(`
-          *,
-          origin_node:origin_node_id (node_name),
-          destination_node:destination_node_id (node_name),
-          item_instance:item_instance_id (
-            item_type:item_type_id (item_name)
-          )
-        `)
-        .or(`origin_node_id.eq.${userData.node_id},destination_node_id.eq.${userData.node_id}`)
-        .order('created_at', { ascending: false })
-      
-      if (error) throw error
-      setScanHistory(data || [])
-    } catch (error) {
-      console.error('Error fetching scan history:', error)
-    } finally {
-      setLoading(false)
-    }
+    //   // Fetch transit history for user's node
+    //   const { data, error } = await supabase
+    //     .from('item_transit')
+    //     .select(`
+    //       *,
+    //       origin_node:origin_node_id (node_name),
+    //       destination_node:destination_node_id (node_name),
+    //       item_instance:item_instance_id (
+    //         item_type:item_type_id (item_name)
+    //       )
+    //     `)
+    //     .or(`origin_node_id.eq.${userData.node_id},destination_node_id.eq.${userData.node_id}`)
+    //     .order('created_at', { ascending: false })
+    //   
+    //   if (error) throw error
+    //   setScanHistory(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching scan history:', error)
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const filteredHistory = scanHistory.filter(scan => {

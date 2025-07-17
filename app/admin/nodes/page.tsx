@@ -29,67 +29,71 @@ export default function AdminNodesPage() {
   }, [])
 
   const fetchAllNodes = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from('node')
-        .select('*')
-        .order('node_name')
+    // suggested implementation: get all nodes in the system
+    // setLoading(true)
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('node')
+    //     .select('*')
+    //     .order('node_name')
       
-      if (error) throw error
-      setNodes(data || [])
-    } catch (error) {
-      console.error('Error fetching nodes:', error)
-    } finally {
-      setLoading(false)
-    }
+    //   if (error) throw error
+    //   setNodes(data || [])
+    // } catch (error) {
+    //   console.error('Error fetching nodes:', error)
+    // } finally {
+    //   setLoading(false)
+    // }
   }
 
   const createNode = async (nodeData: Omit<Node, 'node_id'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('node')
-        .insert([nodeData])
-        .select()
+    // suggested implementation: add new node to database
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('node')
+    //     .insert([nodeData])
+    //     .select()
       
-      if (error) throw error
-      fetchAllNodes()
-      return data[0]
-    } catch (error) {
-      console.error('Error creating node:', error)
-      throw error
-    }
+    //   if (error) throw error
+    //   fetchAllNodes()
+    //   return data[0]
+    // } catch (error) {
+    //   console.error('Error creating node:', error)
+    //   throw error
+    // }
   }
 
   const updateNode = async (nodeId: string, updatedData: Partial<Node>) => {
-    try {
-      const { data, error } = await supabase
-        .from('node')
-        .update(updatedData)
-        .eq('node_id', nodeId)
-        .select()
+    // suggested implementation: update node details
+    // try {
+    //   const { data, error } = await supabase
+    //     .from('node')
+    //     .update(updatedData)
+    //     .eq('node_id', nodeId)
+    //     .select()
       
-      if (error) throw error
-      fetchAllNodes()
-      return data[0]
-    } catch (error) {
-      console.error('Error updating node:', error)
-      throw error
-    }
+    //   if (error) throw error
+    //   fetchAllNodes()
+    //   return data[0]
+    // } catch (error) {
+    //   console.error('Error updating node:', error)
+    //   throw error
+    // }
   }
 
   const flagNodeAsInactive = async (nodeId: string) => {
-    try {
-      const { error } = await supabase
-        .from('node')
-        .update({ status: 'inactive' })
-        .eq('node_id', nodeId)
+    // suggested implementation: flag node as inactive instead of deleting
+    // try {
+    //   const { error } = await supabase
+    //     .from('node')
+    //     .update({ status: 'inactive' })
+    //     .eq('node_id', nodeId)
       
-      if (error) throw error
-      fetchAllNodes()
-    } catch (error) {
-      console.error('Error flagging node as inactive:', error)
-    }
+    //   if (error) throw error
+    //   fetchAllNodes()
+    // } catch (error) {
+    //   console.error('Error flagging node as inactive:', error)
+    // }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
