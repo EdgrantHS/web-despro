@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useEffect, useState } from 'react'
 
 interface QRScanData {
-  qrData: string
+  qrURL: string
   itemInstanceId?: string
   destinationNodeId?: string
   courierData?: {
@@ -191,7 +191,7 @@ export default function PetugasScannerPage() {
 
   const handleOutgoingScan = () => {
     const scanData: QRScanData = {
-      qrData: qrInput,
+      qrURL: qrInput,
       itemInstanceId: qrInput, // In real app, this would be the actual item instance ID
       destinationNodeId: outgoingFormData.destinationNodeId,
       courierData: { 
