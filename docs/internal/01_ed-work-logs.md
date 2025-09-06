@@ -23,5 +23,5 @@ This document chronicles my daily activities and progress during the development
 
 **📝 Daily Logs:**
 
-- `15:30-17:00`: [2. Creating 10 week roadmap for the project](02_roadmap.md)
-- `17:00-17:30`: [1. Making mermaid architecture diagram]()
+- `15:30-17:00`: [2. Creating 10 week roadmap for the project](https://github.com/EdgrantHS/web-despro/blob/5fedd9eae427e5d94c5ad81a69ef0175a9b31777/docs/internal/02_roadmap.md)
+- `17:00-17:30`: [1. Making mermaid architecture diagram](https://github.com/EdgrantHS/web-despro/blob/5fedd9eae427e5d94c5ad81a69ef0175a9b31777/docs/high-level-overview.md)
