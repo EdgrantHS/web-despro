@@ -31,7 +31,12 @@ The project will be displayed at a workshop on mid December 2025. The following 
 - **Tasks:**
   - **PM:** Oversee architecture, and code structure.
   - **FE:** Build and connect UI for public scanning, integrate QR code scanner library.
+    - Login page
+    - QR Scan Page 
   - **BE:** Integrate pre-defined Supabase schema. Create public API for scanning.
+    - Login API: Accepts: username and password; Return: node and user priviledge
+    - QR Scan API: Accepts: username (tentative); Return: modify transit and item_instance table
+
 
 ### Phase 2 (Week 3): QR code generation
 
@@ -87,3 +92,4 @@ The project will be displayed at a workshop on mid December 2025. The following 
   - Formulate presentation plan.
   - Create presentation materials.
   - Perpare materials for demo.
+
