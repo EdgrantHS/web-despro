@@ -8,6 +8,8 @@ This document chronicles my daily activities and progress during the development
   - [Table of Contents](#table-of-contents)
   - [📆 Progress Logs](#-progress-logs)
     - [2025/09/05](#20250905)
+    - [2025/09/07](#20250907)
+    - [2025/09/09](#20250909)
 
 ---
 
@@ -25,3 +27,25 @@ This document chronicles my daily activities and progress during the development
 
 - `15:30-17:00`: [2. Creating 10 week roadmap for the project](https://github.com/EdgrantHS/web-despro/blob/5fedd9eae427e5d94c5ad81a69ef0175a9b31777/docs/internal/02_roadmap.md)
 - `17:00-17:30`: [1. Making mermaid architecture diagram](https://github.com/EdgrantHS/web-despro/blob/5fedd9eae427e5d94c5ad81a69ef0175a9b31777/docs/high-level-overview.md)
+
+---
+
+### 2025/09/07
+
+**🎯 Short-term Goal:**
+
+1. Meetings
+
+**📝 Daily Logs:**
+
+- `22:00-23:00`: [1. Meeting with the team](03_meeting-minutes.md#rapat-progress-internal-1---20250907)
+
+### 2025/09/09
+
+**🎯 Short-term Goal:**
+
+1. Compiling Meetings
+
+**📝 Daily Logs:**
+
+- `19:30-20:30`: [1. Compiling Meeting Notes](03_meeting-minutes.md#progress-update-meeting-1---20250907)
