@@ -7,6 +7,8 @@ This document chronicles my daily activities and progress during the development
 - [Edgrant H. S. - Work Logs](#edgrant-h-s---work-logs)
   - [Table of Contents](#table-of-contents)
   - [📆 Progress Logs](#-progress-logs)
+    - [2025/09/11](#20250911)
+    - [2025/09/10](#20250910)
     - [2025/09/05](#20250905)
     - [2025/09/07](#20250907)
     - [2025/09/09](#20250909)
@@ -14,6 +16,29 @@ This document chronicles my daily activities and progress during the development
 ---
 
 ## 📆 Progress Logs
+
+### 2025/09/11
+
+**🎯 Short-term Goal:**
+
+1. Meeting with team
+2. Creating API documentation
+
+**📝 Daily Logs:**
+
+- `21:00-22:00`: 1. Presenting progress and plan
+
+---
+
+### 2025/09/10
+
+**🎯 Short-term Goal:**
+
+1. Meeting with Pak Alfan
+
+**📝 Daily Logs:**
+
+- `15:00-15:30`: 1. Presenting progress and plan
 
 ### 2025/09/05
 
