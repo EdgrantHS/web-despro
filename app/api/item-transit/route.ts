@@ -11,7 +11,7 @@ import {
 } from '@/lib/api-helpers';
 import { CreateItemTransitRequest } from '@/lib/api-types';
 
-// POST /api/transit - Create Item Transit (rename to /api/item-transit)
+// POST /api/item-transit - Create Item Transit
 export async function POST(request: NextRequest) {
   return handleApiError(async () => {
     const body: CreateItemTransitRequest = await request.json();
@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
         time_departure: body.time_departure,
         courier_name: body.courier_name || null,
         courier_phone: body.courier_phone || null,
-        qr_url: body.qr_url || null,
-        status: body.status || 'Active'
+        qr_url: body.qr_url || null
+        // status: body.status || 'Active' // Temporarily disabled - column may not exist
       })
       .select()
       .single();
