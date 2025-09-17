@@ -27,7 +27,8 @@ This document chronicles my daily activities and progress during the development
 
 **📝 daily logs:**
 
-- `19:00-19:30`: [2. creating api documentation for qr scanning and login](../api/02_qr_scanning.md)
+- `19:00-19:30`: [1. Updating Supabase table to match documentation](../../app/api)
+- `20:00-21:30`: [2. Creating and testing basic CRUD API](../api/postman/DesproCrud.postman_collection.json)
 
 ---
 
