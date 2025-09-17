@@ -9,75 +9,73 @@ This document defines the parameters and responses for the basic CRUD operations
 
 - [All basic CRUD Operations](#all-basic-crud-operations)
   - [Table of Contents](#table-of-contents)
-  - [Node CRUD Endpoints](#node-crud-endpoints)
+  - [Overview](#overview)
+    - [Node CRUD Endpoints](#node-crud-endpoints)
+    - [Item Type CRUD Endpoints](#item-type-crud-endpoints)
+    - [Item Instance CRUD Endpoints](#item-instance-crud-endpoints)
+    - [Item Transit CRUD Endpoints](#item-transit-crud-endpoints)
+  - [Node CRUD Endpoints](#node-crud-endpoints-1)
     - [Create Node](#create-node)
-      - [Request Parameters](#request-parameters)
-      - [Response Format:](#response-format)
     - [Read Node](#read-node)
-      - [Request Parameters](#request-parameters-1)
-      - [Response Format:](#response-format-1)
     - [Update Node](#update-node)
-      - [Request Parameters](#request-parameters-2)
-      - [Response Format:](#response-format-2)
     - [Delete Node](#delete-node)
-      - [Request Parameters](#request-parameters-3)
-      - [Response Format:](#response-format-3)
     - [List All Nodes](#list-all-nodes)
-      - [Request Parameters](#request-parameters-4)
-      - [Response Format:](#response-format-4)
-  - [Item Type CRUD Endpoints](#item-type-crud-endpoints)
+  - [Item Type CRUD Endpoints](#item-type-crud-endpoints-1)
     - [Create Item Type](#create-item-type)
-      - [Request Parameters](#request-parameters-5)
-      - [Response Format:](#response-format-5)
     - [Read Item Type](#read-item-type)
-      - [Request Parameters](#request-parameters-6)
-      - [Response Format:](#response-format-6)
     - [Update Item Type](#update-item-type)
-      - [Request Parameters](#request-parameters-7)
-      - [Response Format:](#response-format-7)
     - [Delete Item Type](#delete-item-type)
-      - [Request Parameters](#request-parameters-8)
-      - [Response Format:](#response-format-8)
     - [List All Item Types](#list-all-item-types)
-      - [Request Parameters](#request-parameters-9)
-      - [Response Format:](#response-format-9)
-  - [Item Instance CRUD Endpoints](#item-instance-crud-endpoints)
+  - [Item Instance CRUD Endpoints](#item-instance-crud-endpoints-1)
     - [Create Item Instance](#create-item-instance)
-      - [Request Parameters](#request-parameters-10)
-      - [Response Format:](#response-format-10)
     - [Read Item Instance](#read-item-instance)
-      - [Request Parameters](#request-parameters-11)
-      - [Response Format:](#response-format-11)
     - [Read All Active Items](#read-all-active-items)
-      - [Request Parameters](#request-parameters-12)
-      - [Response Format:](#response-format-12)
     - [Update Item Instance](#update-item-instance)
-      - [Request Parameters](#request-parameters-13)
-      - [Response Format:](#response-format-13)
     - [Delete Item Instance](#delete-item-instance)
-      - [Request Parameters](#request-parameters-14)
-      - [Response Format:](#response-format-14)
     - [List Item Instances by Node](#list-item-instances-by-node)
-      - [Request Parameters](#request-parameters-15)
-      - [Response Format:](#response-format-15)
-  - [Item Transit CRUD Endpoints](#item-transit-crud-endpoints)
+  - [Item Transit CRUD Endpoints](#item-transit-crud-endpoints-1)
     - [Create Item Transit](#create-item-transit)
-      - [Request Parameters](#request-parameters-16)
-      - [Response Format:](#response-format-16)
     - [Read Item Transit](#read-item-transit)
-      - [Request Parameters](#request-parameters-17)
-      - [Response Format:](#response-format-17)
     - [Update Item Transit](#update-item-transit)
-      - [Request Parameters](#request-parameters-18)
-      - [Response Format:](#response-format-18)
     - [Complete Item Transit](#complete-item-transit)
-      - [Request Parameters](#request-parameters-19)
-      - [Response Format:](#response-format-19)
     - [List Active Transits](#list-active-transits)
-      - [Request Parameters](#request-parameters-20)
-      - [Response Format:](#response-format-20)
 
 ---
+
+## Overview
+
+### Node CRUD Endpoints
+
+- POST /api/node - Create new node
+- GET /api/node/[id] - Get specific node by ID
+- PUT /api/node/[id] - Update node
+- DELETE /api/node/[id] - Soft delete node (sets status to disabled)
+- GET /api/nodes - List all nodes with filtering and pagination
+
+### Item Type CRUD Endpoints
+
+- POST /api/item-type - Create new item type
+- GET /api/item-type/[id] - Get specific item type by ID
+- PUT /api/item-type/[id] - Update item type
+- DELETE /api/item-type/[id] - Soft delete item type
+- GET /api/item-types - List all item types with filtering and pagination
+
+### Item Instance CRUD Endpoints
+
+- POST /api/item-instance - Create new item instance
+- GET /api/item-instance/[id] - Get specific item instance with relations
+- PUT /api/item-instance/[id] - Update item instance
+- DELETE /api/item-instance/[id] - Soft delete item instance
+- GET /api/items/active - Get all active items with summary statistics
+- GET /api/item-instances - List item instances with filtering
+
+### Item Transit CRUD Endpoints
+
+- POST /api/item-transit - Create new item transit (with automatic item location update)
+- GET /api/item-transit/[id] - Get specific transit with relations
+- PUT /api/item-transit/[id] - Update item transit
+- POST /api/item-transit/[id]/complete - Complete transit and update item location
+- GET /api/item-transits - List transits with filtering and summary statistics
 
 ## Node CRUD Endpoints
 
@@ -89,7 +87,7 @@ CRUD operations for managing nodes in the system.
 
 **Description:** Creates a new node in the system.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter    | Type   | Location | Required | Description                           |
 | ------------ | ------ | -------- | -------- | ------------------------------------- |
@@ -113,7 +111,7 @@ CRUD operations for managing nodes in the system.
 }
 ```
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -138,13 +136,13 @@ CRUD operations for managing nodes in the system.
 
 **Description:** Retrieves details of a specific node by its ID.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter | Type   | Location | Required | Description           |
 | --------- | ------ | -------- | -------- | --------------------- |
 | node_id   | string | params   | Yes      | UUID of the node      |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -169,7 +167,7 @@ CRUD operations for managing nodes in the system.
 
 **Description:** Updates an existing node's information.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter      | Type   | Location | Required | Description                           |
 | -------------- | ------ | -------- | -------- | ------------------------------------- |
@@ -191,7 +189,7 @@ CRUD operations for managing nodes in the system.
 }
 ```
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -216,13 +214,13 @@ CRUD operations for managing nodes in the system.
 
 **Description:** Soft deletes a node by setting its status to inactive.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter | Type   | Location | Required | Description           |
 | --------- | ------ | -------- | -------- | --------------------- |
 | node_id   | string | params   | Yes      | UUID of the node      |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -242,16 +240,16 @@ CRUD operations for managing nodes in the system.
 
 **Description:** Retrieves a list of all nodes with optional filtering.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter   | Type   | Location | Required | Description                    |
 | ----------- | ------ | -------- | -------- | ------------------------------ |
 | node_type   | string | query    | No       | Filter by node type            |
-| status      | string | query    | No       | Filter by status               |
+| status      | string | query    | No       | Filter by status (default: Active)               |
 | page_size   | number | query    | No       | Items per page (default: 50)  |
 | page        | number | query    | No       | Page number (default: 1)      |
 
-#### Response Format:
+Response Format:**
 
 ```json
 {
@@ -294,7 +292,7 @@ CRUD operations for managing item types in the system.
 
 **Description:** Creates a new item type in the system.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter         | Type   | Location | Required | Description                      |
 | ----------------- | ------ | -------- | -------- | -------------------------------- |
@@ -316,7 +314,7 @@ CRUD operations for managing item types in the system.
 }
 ```
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -340,13 +338,13 @@ CRUD operations for managing item types in the system.
 
 **Description:** Retrieves details of a specific item type by its ID.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter | Type   | Location | Required | Description              |
 | --------- | ------ | -------- | -------- | ------------------------ |
 | item_id   | string | params   | Yes      | UUID of the item type    |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -370,7 +368,7 @@ CRUD operations for managing item types in the system.
 
 **Description:** Updates an existing item type's information.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter         | Type   | Location | Required | Description                      |
 | ----------------- | ------ | -------- | -------- | -------------------------------- |
@@ -381,7 +379,7 @@ CRUD operations for managing item types in the system.
 | item_image        | string | body     | No       | URL/path to item image           |
 | status            | string | body     | No       | Status (Active, Inactive)        |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -405,13 +403,13 @@ CRUD operations for managing item types in the system.
 
 **Description:** Soft deletes an item type by setting its status to inactive.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter | Type   | Location | Required | Description              |
 | --------- | ------ | -------- | -------- | ------------------------ |
 | item_id   | string | params   | Yes      | UUID of the item type    |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -431,16 +429,16 @@ CRUD operations for managing item types in the system.
 
 **Description:** Retrieves a list of all item types with optional filtering.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter  | Type   | Location | Required | Description                    |
 | ---------- | ------ | -------- | -------- | ------------------------------ |
 | item_type  | string | query    | No       | Filter by category             |
-| status     | string | query    | No       | Filter by status               |
+| status     | string | query    | No       | Filter by status (default: Active)               |
 | page_size  | number | query    | No       | Items per page (default: 50)  |
 | page       | number | query    | No       | Page number (default: 1)      |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -482,7 +480,7 @@ CRUD operations for managing item instances in the system.
 
 **Description:** Creates a new item instance in the system.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter      | Type   | Location | Required | Description                           |
 | -------------- | ------ | -------- | -------- | ------------------------------------- |
@@ -504,7 +502,7 @@ CRUD operations for managing item instances in the system.
 }
 ```
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -528,13 +526,13 @@ CRUD operations for managing item instances in the system.
 
 **Description:** Retrieves details of a specific item instance by its ID.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter          | Type   | Location | Required | Description                    |
 | ------------------ | ------ | -------- | -------- | ------------------------------ |
 | item_instance_id   | string | params   | Yes      | UUID of the item instance      |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -569,7 +567,7 @@ CRUD operations for managing item instances in the system.
 
 **Description:** Retrieves all active item instances across the system with their details.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter    | Type   | Location | Required | Description                           |
 | ------------ | ------ | -------- | -------- | ------------------------------------- |
@@ -579,7 +577,7 @@ CRUD operations for managing item instances in the system.
 | page_size    | number | query    | No       | Items per page (default: 50)         |
 | page         | number | query    | No       | Page number (default: 1)             |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -656,7 +654,7 @@ CRUD operations for managing item instances in the system.
 
 **Description:** Updates an existing item instance's information.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter          | Type   | Location | Required | Description                           |
 | ------------------ | ------ | -------- | -------- | ------------------------------------- |
@@ -666,7 +664,7 @@ CRUD operations for managing item instances in the system.
 | expire_date        | string | body     | No       | Expiration date (ISO format)          |
 | status             | string | body     | No       | Status (Active, Inactive)             |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -690,13 +688,13 @@ CRUD operations for managing item instances in the system.
 
 **Description:** Soft deletes an item instance by setting its status to inactive.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter          | Type   | Location | Required | Description                    |
 | ------------------ | ------ | -------- | -------- | ------------------------------ |
 | item_instance_id   | string | params   | Yes      | UUID of the item instance      |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -716,18 +714,18 @@ CRUD operations for managing item instances in the system.
 
 **Description:** Retrieves item instances with optional filtering by node.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter    | Type   | Location | Required | Description                    |
 | ------------ | ------ | -------- | -------- | ------------------------------ |
 | node_id      | string | query    | No       | Filter by node ID              |
 | item_type_id | string | query    | No       | Filter by item type            |
-| status       | string | query    | No       | Filter by status               |
+| status       | string | query    | No       | Filter by status (default: Active)               |
 | expired      | boolean| query    | No       | Show expired items only        |
 | page_size    | number | query    | No       | Items per page (default: 50)  |
 | page         | number | query    | No       | Page number (default: 1)      |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -777,7 +775,7 @@ CRUD operations for managing item transits in the system.
 
 **Description:** Creates a new item transit record when item starts moving between nodes.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter         | Type   | Location | Required | Description                           |
 | ----------------- | ------ | -------- | -------- | ------------------------------------- |
@@ -805,7 +803,7 @@ CRUD operations for managing item transits in the system.
 }
 ```
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -833,13 +831,13 @@ CRUD operations for managing item transits in the system.
 
 **Description:** Retrieves details of a specific item transit by its ID.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter         | Type   | Location | Required | Description                    |
 | ----------------- | ------ | -------- | -------- | ------------------------------ |
 | item_transit_id   | string | params   | Yes      | UUID of the transit record     |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -882,7 +880,7 @@ CRUD operations for managing item transits in the system.
 
 **Description:** Updates an existing item transit's information.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter         | Type   | Location | Required | Description                           |
 | ----------------- | ------ | -------- | -------- | ------------------------------------- |
@@ -893,7 +891,7 @@ CRUD operations for managing item transits in the system.
 | courier_phone     | string | body     | No       | Phone number of courier               |
 | status            | string | body     | No       | Status (Active, Inactive, Completed)  |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -916,14 +914,14 @@ CRUD operations for managing item transits in the system.
 
 **Description:** Marks an item transit as completed and updates arrival time.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter        | Type   | Location | Required | Description                    |
 | ---------------- | ------ | -------- | -------- | ------------------------------ |
 | item_transit_id  | string | params   | Yes      | UUID of the transit record     |
 | time_arrival     | string | body     | Yes      | Arrival time (ISO format)      |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {
@@ -953,18 +951,18 @@ CRUD operations for managing item transits in the system.
 
 **Description:** Retrieves active transit records with optional filtering.
 
-#### Request Parameters
+**Request Parameters:**
 
 | Parameter        | Type   | Location | Required | Description                    |
 | ---------------- | ------ | -------- | -------- | ------------------------------ |
 | source_node_id   | string | query    | No       | Filter by source node          |
 | dest_node_id     | string | query    | No       | Filter by destination node     |
-| status           | string | query    | No       | Filter by status               |
+| status           | string | query    | No       | Filter by status (default: Active)               |
 | courier_name     | string | query    | No       | Filter by courier name         |
 | page_size        | number | query    | No       | Items per page (default: 50)  |
 | page             | number | query    | No       | Page number (default: 1)      |
 
-#### Response Format:
+**Response Format:**
 
 ```json
 {

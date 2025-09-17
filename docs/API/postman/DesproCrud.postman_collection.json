@@ -1,0 +1,157 @@
+{
+	"info": {
+		"_postman_id": "58b77c92-dc4f-488f-9114-db4ab15a3419",
+		"name": "DesproCrud",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31046090"
+	},
+	"item": [
+		{
+			"name": "Node",
+			"item": [
+				{
+					"name": "List Node",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/nodes?status=inactive",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"nodes"
+							],
+							"query": [
+								{
+									"key": "node_type",
+									"value": null,
+									"description": "Filter by node type",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "inactive",
+									"description": "Filter by status (default: active)"
+								},
+								{
+									"key": "page_size",
+									"value": null,
+									"description": "Items per page (default: 50)",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": null,
+									"description": "Page number (default: 1)  ",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Node",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"node_name\": \"Node B\",\r\n  \"node_type\": \"Source\",\r\n  \"node_address\": \"Jalan Merdeka No. 123, Jakarta\",\r\n  \"node_latitude\": -20.000000,\r\n  \"node_longitude\": 100.000000,\r\n  \"node_status\": \"Active\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/node",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"node"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read Node",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/node/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"node",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "eee2b3a2-67b2-4611-a07c-17a5f0594fe5"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "List Transit",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/api/item-transits",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"api",
+						"item-transits"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}
