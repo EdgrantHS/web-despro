@@ -7,26 +7,56 @@ This document chronicles my daily activities and progress during the development
 - [Edgrant H. S. - Work Logs](#edgrant-h-s---work-logs)
   - [Table of Contents](#table-of-contents)
   - [📆 Progress Logs](#-progress-logs)
+    - [2025/09/17](#20250917)
+    - [2025/09/14](#20250914)
     - [2025/09/11](#20250911)
     - [2025/09/10](#20250910)
-    - [2025/09/05](#20250905)
-    - [2025/09/07](#20250907)
     - [2025/09/09](#20250909)
+    - [2025/09/07](#20250907)
+    - [2025/09/05](#20250905)
 
 ---
 
 ## 📆 Progress Logs
 
+### 2025/09/17
+
+**🎯 short-term goal:**
+
+1. Creating basic CRUD API
+
+**📝 daily logs:**
+
+- `19:00-19:30`: [2. creating api documentation for qr scanning and login](../api/02_qr_scanning.md)
+
+---
+
+
+### 2025/09/14
+
+**🎯 short-term goal:**
+
+1. meetings
+2. creating api documentation
+
+**📝 daily logs:**
+
+- `21:00-22:00`: [2. creating api documentation for qr scanning and login](../api/02_qr_scanning.md)
+- `22:00-22:30`: 1. meeting with the team
+
+---
+
 ### 2025/09/11
 
 **🎯 Short-term Goal:**
 
-1. Meeting with team
+1. Meeting
 2. Creating API documentation
 
 **📝 Daily Logs:**
 
-- `21:00-22:00`: 1. Presenting progress and plan
+- `21:00-22:00`: [2. Creating API Documentation for QR Scanning and Login](../API/02_QR_Scanning.md)
+- `22:00-22:30`: 1. Progress update meeting with the team
 
 ---
 
@@ -39,6 +69,32 @@ This document chronicles my daily activities and progress during the development
 **📝 Daily Logs:**
 
 - `15:00-15:30`: 1. Presenting progress and plan
+
+---
+
+### 2025/09/09
+
+**🎯 Short-term Goal:**
+
+1. Compiling Meetings
+
+**📝 Daily Logs:**
+
+- `19:30-20:30`: [1. Compiling Meeting Notes](03_meeting-minutes.md#progress-update-meeting-1---20250907)
+
+---
+
+### 2025/09/07
+
+**🎯 Short-term Goal:**
+
+1. Meetings
+
+**📝 Daily Logs:**
+
+- `22:00-23:00`: [1. Meeting with the team](03_meeting-minutes.md#rapat-progress-internal-1---20250907)
+
+---
 
 ### 2025/09/05
 
@@ -54,23 +110,3 @@ This document chronicles my daily activities and progress during the development
 - `17:00-17:30`: [1. Making mermaid architecture diagram](https://github.com/EdgrantHS/web-despro/blob/5fedd9eae427e5d94c5ad81a69ef0175a9b31777/docs/high-level-overview.md)
 
 ---
-
-### 2025/09/07
-
-**🎯 Short-term Goal:**
-
-1. Meetings
-
-**📝 Daily Logs:**
-
-- `22:00-23:00`: [1. Meeting with the team](03_meeting-minutes.md#rapat-progress-internal-1---20250907)
-
-### 2025/09/09
-
-**🎯 Short-term Goal:**
-
-1. Compiling Meetings
-
-**📝 Daily Logs:**
-
-- `19:30-20:30`: [1. Compiling Meeting Notes](03_meeting-minutes.md#progress-update-meeting-1---20250907)
