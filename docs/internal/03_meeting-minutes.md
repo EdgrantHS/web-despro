@@ -231,8 +231,9 @@ MEETING TRANSCRIPTION:
       - _After meeting notes: Online Meeting is scheduled for October 8th at 16:00 WIB_
 
 - *Action Items*:
-  - Haris:
+  - Nadhif:
     - [ ] Refine the `user` table structure to align `user ID` with Supabase authentication and remove redundant columns.
+  - Haris:
     - [ ] Develop the backend API logic for QR scanning, ensuring correct identification of sending (creating active transit) or receiving (soft-deleting/inactivating active transit) based on item transit status.
   - Edgrant:
     - [x] Coordinate and schedule the online meeting with Pak Alfan (targeting early October) to discuss hardware procurement.
