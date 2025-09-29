@@ -55,6 +55,7 @@ MEETING TRANSCRIPTION:
   - [Progress Update Meeting 1 - 2025/09/07](#progress-update-meeting-1---20250907)
   - [Progress Update Meeting 2 - 2025/09/14](#progress-update-meeting-2---20250914)
   - [Progress Update Meeting 3 - 2025/09/21](#progress-update-meeting-3---20250921)
+  - [Progress Update Meeting 4 - 2025/09/28](#progress-update-meeting-4---20250928)
 
 ## Progress Update Meeting 1 - 2025/09/07
 
@@ -237,3 +238,51 @@ MEETING TRANSCRIPTION:
     - [x] Coordinate and schedule the online meeting with Pak Alfan (targeting early October) to discuss hardware procurement.
   - Bima:
     - [ ] Prepare for the meeting with Pak Alfan to discuss and finalize the hardware purchases (scanner and printer).
+
+## Progress Update Meeting 4 - 2025/09/28
+
+- *Recording*: https://drive.google.com/file/d/1bNskItPOfTmgZ717433bddmBYf5oVaQG/view?usp=sharing
+- *Attendees*: Edgrant, Haris, Nadhif
+- *Topic*: Phase 1 Progress Review (QR Scan & Auth Integration) and Phase 2 Planning (Admin Pages & QR Generation)
+- *Summary*: The meeting primarily focused on Haris's update regarding Phase 1 QR Scan functionality, where the backend logic is complete, but a critical front-end issue remains in parsing the QR code string (which contains JSON) into a usable JSON object. The team then planned Phase 2, which involves three new pages: Item Instance Admin, Superadmin CRUD page, and QR Generation. Haris was assigned the QR Generation feature. Phase 2 is targeted for completion before October 5th. Hardware procurement is pending a proposal to Pak Alfan.
+
+- *Discussion Points*
+  - **Phase 1 Progress: Authentication Integration**
+    - Nadhif has not yet completed the task of integrating the authentication publish with the new user table. This relates to the Phase 1 requirement to manage user role and node data in a custom `user` table alongside Supabase authentication.
+  - **Phase 1 Progress: QR Scan Functionality**
+    - The backend API for the QR scan functionality is successfully returning responses.
+    - **Critical Frontend Issue:** A problem exists on the frontend (FE) where the string received from the QR code (which is meant to contain JSON data) cannot be successfully parsed into a JSON object, currently resulting in "undefined" data. This appears to be a front-end algorithmic issue. This parsing issue currently prevents testing with the actual camera/QR code.
+    - **Backend Logic Confirmation:** Haris demonstrated the backend flow: if a QR code is new, the system creates a new active item instance; if the QR code already exists, the system updates the item instance from active to inactive, indicating the item has arrived at a node. This logic aligns with the previous definition that scanning an existing active transit record should inactivate it.
+  - **QR Scan Edge Cases**
+    - The team discussed the need to handle accidental double scanning by the sending node.
+    - If a QR code is already marked as in transit, and the source node (the same node that sent it) scans it again, it should have no effect. This check should be performed based on the source node.
+    - Handling this double-scan case is a secondary priority.
+  - **Phase 2 Planning: New Pages**
+    - Phase 2 will introduce three new pages: a Superadmin CRUD page, an Item Instance Admin page, and a QR Generation page.
+    - **Item Instance Admin Page:** This page allows for the administration of item instances. It requires specialized APIs to handle filtering nodes for URL creation. The Figma design for this page is currently not available.
+    - **Super admin CRUD Page:** This page should allow easy administration using buttons for 'add new item', 'edit', and 'delete'.
+  - **Phase 2 Planning: QR Generation Page Logic**
+    - The QR generation page is considered the most difficult page in Phase 2, as the others are mostly table-based.
+    - **Input Requirements:** The page requires input for the item name.
+    - **Item Name Logic:** When the user types the item name, additional logic is needed to suggest existing item names from a list (e.g., a search bar feature).
+    - **Auto-Fill Data:** The origin/source node must be automatically filled based on the node of the logged-in user (admin node). The quantity/item count (`item count`) _will be auto filled according to the last item instance count_. The destination node is chosen by the user.
+  - **Timeline and Scheduling**
+    - The target for Phase 2 completion is before Sunday, which is before October 5th.
+    - A meeting with Pak Alfan are scheduled for October 8th.
+  - **Task Allocation**
+    - Haris will take the QR generation task (which was part of the initial Phase 2 plan) to maintain continuity.
+
+- *Action Items*:
+  - Haris:
+    - [ ] Resolve the front-end parsing issue preventing the QR code string (containing JSON) from being successfully converted into a JSON object.
+    - [ ] Complete the integration of authentication publish with the new user table.
+    - [ ] Start development on the QR Generation page (Phase 2), including the item name suggestion logic.
+  - Bima:
+    - [ ] Prepare a proposal (Eg. slides) for hardware procurement (scanner and printer) to present to Pak Alfan in the upcoming meeting.
+  - Nadhif
+    - [ ] Assist Haris with the front-end parsing issue if needed.
+    - [ ] Complete the integration of authentication publish with the new user table.
+    - [ ] Work on the item instance admin and super CRUD admin pages.
+  - Edgrant
+    - [ ] (Secondary Priority) Implement logic to handle the case where the source node accidentally scans an item twice.
+    - [ ] End to end testing of Phase 1 
