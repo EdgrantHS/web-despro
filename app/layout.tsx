@@ -6,6 +6,7 @@ import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
+import Navigation from "@/components/navigation";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -14,8 +15,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Proyek Despro 13",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "Despro System - Supply Chain Management",
+  description: "Supply chain management system with CRUD operations",
 };
 
 const geistSans = Geist({
@@ -50,6 +51,7 @@ export default function RootLayout({
                   {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
                 </div>
               </nav>
+              <Navigation />
               <div className="flex flex-col gap-20 max-w-5xl p-5">
                 {children}
               </div>

@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
 
     const { data: nodes, error } = await supabase
       .from('nodes')
-      .select('id, node_name, node_type, node_address')
+      .select('node_id, node_name, node_type, node_address')
       .order('node_name')
 
     if (error) {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     const formattedNodes = nodes?.map(node => ({
-      id: node.id,
+      id: node.node_id,
       name: node.node_name,
       type: node.node_type,
       location: node.node_address

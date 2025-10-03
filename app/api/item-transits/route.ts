@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
     
     const { data, error, count } = await query
       .range(from, to)
-      .order('created_at', { ascending: false });
+      .order('time_departure', { ascending: false });
 
     if (error) {
       console.error('Transit records fetch error:', error);
@@ -121,3 +121,4 @@ export async function GET(request: NextRequest) {
     });
   });
 }
+
