@@ -7,6 +7,7 @@ This document chronicles my daily activities and progress during the development
 - [Edgrant H. S. - Work Logs](#edgrant-h-s---work-logs)
   - [Table of Contents](#table-of-contents)
   - [📆 Progress Logs](#-progress-logs)
+    - [2025/10/03](#20251003)
     - [2025/09/29](#20250929)
     - [2025/09/28](#20250928)
     - [2025/09/25](#20250925)
@@ -22,7 +23,21 @@ This document chronicles my daily activities and progress during the development
 ---
 
 ## 📆 Progress Logs
-End to end testing of Phase 1 
+
+### 2025/10/03
+
+**🎯 short-term goal:**
+
+1. Front end
+2. Meeting
+
+**📝 daily logs:**
+
+- `06:00-06:30`: 2. Reimbursement procedure meeting with Pak Yan
+- `09:00-10:30`: 1. Working on front end (dashboard and nodes page)
+
+---
+
 ### 2025/09/29
 
 **🎯 short-term goal:**
@@ -31,7 +46,9 @@ End to end testing of Phase 1
 
 **📝 daily logs:**
 
-- `12:00-12:30`: [1. Recapping Meeting](03_meeting-minutes.md#progress-update-meeting-4---20250928  )
+- `12:00-12:30`: [1. Recapping Meeting](03_meeting-minutes.md#progress-update-meeting-4---20250928)
+
+---
 
 ### 2025/09/28
 
