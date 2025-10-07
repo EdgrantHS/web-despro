@@ -20,7 +20,17 @@ export default function LoginPage() {
     const result = await login(email, password)
     
     if (result) {
-      router.push('/dashboard')
+      const role = result.data.user.role
+      if (role === 'admin_pusat') {
+        router.push('/super-admin')
+        return
+      }
+      if (role === 'admin_node') {
+        router.push('/node-admin')
+        return
+      }
+      // Petugas default to QR Scan
+      router.push('/qr-scan')
     } else {
       setError('Login failed. Please check your credentials.')
     }

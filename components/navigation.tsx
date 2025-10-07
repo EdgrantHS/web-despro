@@ -2,33 +2,51 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard' },
-  { name: 'QR Scan', href: '/qr-scan' },
-  { 
-    name: 'Super Admin', 
-    href: '#',
-    children: [
-      { name: 'Nodes', href: '/super-admin/nodes' },
-      { name: 'Item Types', href: '/super-admin/item-types' },
-      { name: 'Item Instances', href: '/super-admin/item-instances' },
-      { name: 'Item Transits', href: '/super-admin/item-transits' },
-    ]
-  },
-  { 
-    name: 'Node Admin', 
-    href: '#',
-    children: [
-      { name: 'My Item Instances', href: '/node-admin/item-instances' },
-    ]
-  },
-];
+import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@/lib/useAuth';
 
 export default function Navigation() {
   const pathname = usePathname();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const { user, isSuperAdmin } = useAuth();
+
+  const role = user?.role;
+
+  const navigation = useMemo(() => {
+    if (!user) return [] as any[];
+
+    const items: any[] = [];
+
+    // QR Scan available for all authenticated roles
+    items.push({ name: 'QR Scan', href: '/qr-scan' });
+
+    // Super Admin menu for Admin Pusat
+    if (role === 'admin_pusat' || isSuperAdmin) {
+      items.push({
+        name: 'Super Admin',
+        href: '#',
+        children: [
+          { name: 'Nodes', href: '/super-admin/nodes' },
+          { name: 'Item Types', href: '/super-admin/item-types' },
+          { name: 'Item Instances', href: '/super-admin/item-instances' },
+          { name: 'Item Transits', href: '/super-admin/item-transits' },
+        ],
+      });
+    }
+
+    // Node Admin menu
+    if (role === 'admin_node') {
+      items.push({
+        name: 'Node Admin',
+        href: '#',
+        children: [
+          { name: 'My Item Instances', href: '/node-admin/item-instances' },
+        ],
+      });
+    }
+
+    return items;
+  }, [user, role, isSuperAdmin]);
 
   const isActive = (item: any) => {
     if (item.children) {
@@ -40,6 +58,11 @@ export default function Navigation() {
   const handleDropdownToggle = (itemName: string) => {
     setOpenDropdown(openDropdown === itemName ? null : itemName);
   };
+
+  // Hide entire navigation when not authenticated
+  if (!user) {
+    return null;
+  }
 
   return (
     <nav className="bg-white shadow-lg border-b">
@@ -78,7 +101,7 @@ export default function Navigation() {
                       </button>
                       {openDropdown === item.name && (
                         <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                          {item.children.map((child) => (
+                          {item.children.map((child: any) => (
                             <Link
                               key={child.name}
                               href={child.href}
