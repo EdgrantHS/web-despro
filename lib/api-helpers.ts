@@ -148,6 +148,14 @@ export const ITEM_TRANSIT_FIELD_MAPPING = {
   // 'created_at': 'created_at' // Temporarily commented out - column may not exist
 };
 
+// // cek lagi table qr_scan di db
+// export const QR_SCAN_FIELD_MAPPING = {
+//   'item_instance_id': 'item_instance_id',
+//   'source_node_id': 'source_node_id',
+//   'dest_node_id': 'dest_node_id',
+//   'qr_url': 'qr_url',
+// }
+
 // Error handling wrapper
 export async function handleApiError<T>(
   operation: () => Promise<T>
