@@ -7,6 +7,11 @@ This document chronicles my daily activities and progress during the development
 - [Edgrant H. S. - Work Logs](#edgrant-h-s---work-logs)
   - [Table of Contents](#table-of-contents)
   - [📆 Progress Logs](#-progress-logs)
+    - [2025/10/03](#20251003)
+    - [2025/09/29](#20250929)
+    - [2025/09/28](#20250928)
+    - [2025/09/25](#20250925)
+    - [2025/09/21](#20250921)
     - [2025/09/17](#20250917)
     - [2025/09/14](#20250914)
     - [2025/09/11](#20250911)
@@ -18,6 +23,67 @@ This document chronicles my daily activities and progress during the development
 ---
 
 ## 📆 Progress Logs
+
+### 2025/10/03
+
+**🎯 short-term goal:**
+
+1. Front end
+2. Meeting
+
+**📝 daily logs:**
+
+- `06:00-06:30`: 2. Reimbursement procedure meeting with Pak Yan
+- `09:00-10:30`: 1. Working on front end (dashboard and nodes page)
+
+---
+
+### 2025/09/29
+
+**🎯 short-term goal:**
+
+1. Recap Meeting 
+
+**📝 daily logs:**
+
+- `12:00-12:30`: [1. Recapping Meeting](03_meeting-minutes.md#progress-update-meeting-4---20250928)
+
+---
+
+### 2025/09/28
+
+**🎯 short-term goal:**
+
+1. Meeting 
+
+**📝 daily logs:**
+
+- `21:30-22:00`: [1. Preparing for meeting with the team](03_meeting-minutes.md#progress-update-meeting-4---20250928)
+- `22:00-23:00`: [2. Meeting with the team](03_meeting-minutes.md#progress-update-meeting-4---20250928)
+
+---
+
+### 2025/09/25
+
+**🎯 short-term goal:**
+
+1. Meeting recap
+
+**📝 daily logs:**
+
+- `08:00-09:00`: [1. Recaping 09/21 and 09/14 Meetings and updating group](03_meeting-minutes.md#progress-update-meeting-3---20250921)
+
+### 2025/09/21
+
+**🎯 short-term goal:**
+
+1. Meeting
+
+**📝 daily logs:**
+
+- `22:00-23:00`: [1. meeting with the team](03_meeting-minutes.md#progress-update-meeting-3---20250921)
+
+---
 
 ### 2025/09/17
 

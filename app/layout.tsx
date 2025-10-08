@@ -3,9 +3,11 @@ import { EnvVarWarning } from "@/components/env-var-warning";
 import HeaderAuth from "@/components/header-auth";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
+import { createClient } from "@/utils/supabase/server";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
+import Navigation from "@/components/navigation";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -14,8 +16,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Proyek Despro 13",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "Despro System - Supply Chain Management",
+  description: "Supply chain management system with CRUD operations",
 };
 
 const geistSans = Geist({
@@ -23,11 +25,16 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
@@ -38,19 +45,24 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <main className="min-h-screen flex flex-col items-center">
-            <div className="flex-1 w-full flex flex-col items-center">
-              <nav className="sticky top-0 z-30 w-full flex justify-center border-b border-b-foreground/10 h-16 bg-background bg-opacity-90 backdrop-blur">
-                <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-                  <div className="flex gap-5 items-center font-semibold">
-                    <Link href={"/"}>Project Despro 13</Link>
-                    <div className="flex items-center gap-2">
-                      {/* <DeployButton /> */}
+            <div className="flex-1 w-full flex flex-col gap-20 items-center">
+              {user && (
+                <>
+                  <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
+                    <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
+                      <div className="flex gap-5 items-center font-semibold">
+                        <Link href={"/"}>Project Despro 13</Link>
+                        <div className="flex items-center gap-2">
+                          {/* <DeployButton /> */}
+                        </div>
+                      </div>
+                      {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
                     </div>
-                  </div>
-                  {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
-                </div>
-              </nav>
-              <div className="flex flex-col gap-20 w-full lg:max-w-5xl px-5">
+                  </nav>
+                  <Navigation />
+                </>
+              )}
+              <div className="flex flex-col gap-20 max-w-5xl p-5">
                 {children}
               </div>
 
