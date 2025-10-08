@@ -333,12 +333,12 @@ MEETING TRANSCRIPTION:
     - [ ] Execute the next development step: **Integration** of all existing components/developer work.
     - [ ] Finalize the decision on purchasing the **scanner**, prioritizing the scanner based on current discussion.
       - _After the meeting, Purchase plan:_
-        - _Scanner: $\text{600,000}$_
-        - _Banner: $\text{150,000}$_
-        - _Flyers: $\text{50,000}$_
-        - _Workshop food: $\text{500,000}$_
-        - _Miniature: $\text{500,000}$_
-        - _Emergency: $\text{200,000}$_
+        - _Scanner: $\text{600,000}$ _
+        - _Banner: $\text{150,000}$ _
+        - _Flyers: $\text{50,000}$ _
+        - _Workshop food: $\text{500,000}$ _
+        - _Miniature: $\text{500,000}$ _
+        - _Emergency: $\text{200,000}$ _
 
     - [ ] Prepare visual aids (poster/standing banner) to clearly illustrate the **business process flow** and the **unique value proposition** of the QR-based logistics system.
     - [ ] Develop a clear **demonstration narrative/story** (e.g., the Pop Ice simulation) that focuses on inventory transformation.
