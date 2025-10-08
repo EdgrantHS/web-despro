@@ -152,8 +152,8 @@ const QRCodeCreate = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
+        <div className="w-full min-h-screen bg-white flex-1 flex items-center justify-center p-4">
+            <div className="w-full max-w-md flex flex-col gap-20">
                 {/* Header with Icon */}
                 <div className="flex flex-col items-center mb-8">
                     <Image src={assets.create_icon} className='w-20 h-20 flex items-center justify-center mb-4' alt="Create QR Code" />

@@ -133,7 +133,7 @@ const Page = () => {
             }
         }
         setIsScanning(false);
-        
+
         // Ambil qrId dari path terakhir
         let qrId = "";
         try {
@@ -208,7 +208,7 @@ const Page = () => {
     return (
         <div className=''>
             {/* Content */}
-            <div className='flex-1 flex flex-col justify-between items-center gap-28 px-6 py-20 relative'>
+            <div className='flex-1 flex flex-col justify-between items-center gap-20 px-6 py-32 relative'>
 
                 {/* Title */}
                 <div className='text-center mb-8'>

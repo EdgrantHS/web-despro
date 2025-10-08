@@ -33,6 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .single();
 
     if (findError && findError.code !== 'PGRST116') {
+      console.log("Error: ", findError)
       return createErrorResponse('Database error saat mencari entry', 500);
     }
 
