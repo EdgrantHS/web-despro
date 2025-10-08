@@ -56,6 +56,7 @@ MEETING TRANSCRIPTION:
   - [Progress Update Meeting 2 - 2025/09/14](#progress-update-meeting-2---20250914)
   - [Progress Update Meeting 3 - 2025/09/21](#progress-update-meeting-3---20250921)
   - [Progress Update Meeting 4 - 2025/09/28](#progress-update-meeting-4---20250928)
+  - [Bimbingan Despro - 2025/10/08](#bimbingan-despro---20251008)
 
 ## Progress Update Meeting 1 - 2025/09/07
 
@@ -287,3 +288,58 @@ MEETING TRANSCRIPTION:
   - Edgrant
     - [ ] (Secondary Priority) Implement logic to handle the case where the source node accidentally scans an item twice.
     - [ ] End to end testing of Phase 1 
+
+## Bimbingan Despro - 2025/10/08
+
+- *Recording*: [https://drive.google.com/file/d/1FSiYzLg9yrHMg3VJ8rBBeL6hXHvp206x/view?usp=sharing](https://drive.google.com/file/d/1FSiYzLg9yrHMg3VJ8rBBeL6hXHvp206x/view?usp=sharing)
+ - *Attendees*: Edgrant: Group 13 representative, Pak Alfan (advisor/supervisor)
+- *Topic*: Project Development Update (Group 13), Financial/Reimbursement Policy, Budget Optimization, and Presentation Strategy. 
+- *Summary*: Pak Alfan (supervisor) provided guidelines regarding the one-month reimbursement deadline, budget optimization beyond technical components (focusing on packaging, presentation, and services like soldering), and a strong emphasis on presentation quality and audience engagement. Group 13 presented an update on their logistics system using QR scanning, noted they are one week behind schedule but within buffer, and plan to prioritize purchasing a scanner. The speaker stressed the need for Group 13 to clarify their **unique value proposition** and **business process flow** for the demonstration.
+
+- *Discussion Points*
+  - **Reimbursement and Finance Policy**
+    - The maximum period for **reimbursement** of purchased items is **one month** from the purchase date. Purchases made past this deadline **cannot be reimbursed**.
+    - It is strongly advised to **expedite the purchase** of necessary equipment, especially items with consequences like long lead times (**inden**) or long shipping waits, to avoid development delays.
+    - If a service, such as professional soldering, is hired, a formal receipt (**kuitansi**) must be created and signed by the service provider as proof of transaction for reimbursement.
+  - **Budget Optimization and Utilization**
+    - The utilization of the maximum $\text{2,000,000}$ budget in previous years was not optimal. Groups should **optimize** their budget utilization.
+    - Budget should be allocated beyond just technical components, specifically for **packaging** and **presentation** to make the final product more convincing. Examples include:
+      - Tidy up the prototype (e.g., replacing messy cabling/jumpers).
+      - Designing and creating a tidy enclosure (e.g., via **3D printing** for a box).
+      - Using services for professional **soldering** and neat wiring.
+      - Creating visual aids for the presentation, such as a **poster** or **standing banner** that explains the product's function and mechanism.
+  - **Group 13 Project Update (Logistics System with QR)**
+    - **Concept:** Creating a logistics system using **QR scanning** as the main functionality for inventory transformation and access control (admin and user).
+    - **Progress:** They are between Phase 2 and Phase 3, one week behind the initial timeline, but still within the buffer. Current features include QR scanning (currently hardcoded), API creation, and an admin dashboard. Integration between the various developer-created components is the next immediate step.
+    - **Purchases:** They plan to purchase a **printer** ($\text{800,000}$) or a **scanner** ($\text{600,000}$). They prioritize the scanner because integrating the printer would require modifying the printer's proprietary application, making it more complex.
+    - **Presentation Focus:** Group 13 intends to focus the demonstration on **inventory transformation** rather than inter-unit logistics. Their proposed demonstration concept is to simulate the **"cooking"** process, changing ingredients (like powder and cups) into a final product (like **Pop Ice**) to show the inventory update in the system.
+    - **Technical/Presentation Concerns:** The speaker noted that QR scanning applications are common. Group 13 must clearly present **what is unique** about their solution and thoroughly explain the **business process flow**.
+  - **Demonstration and Presentation Strategy**
+    - The current evaluation emphasis is on **demonstration** and **audience engagement**, not just a written report.
+    - Presentation must be **clear, convincing, and engaging** for people with limited time and potentially non-technical backgrounds.
+    - **Visual aids** should be used, such as posters or standing banners, to illustrate the product's function, mechanism, or workflow.
+    - Suggestions for improving the presentation:
+      - Labeling the process during the demonstration (e.g., Process 1: Using the Phone, Process 2: System Update).
+      - Creating a small, conceptual **demonstrator** (e.g., using toy cars/miniatures) to physically show the supply chain process.
+      - Develop a **narrative/story** to frame the demonstration and explain the problem/solution (e.g., Pop Ice making as a simulation).
+    - **Goal:** Make the presentation attractive, with a clear flow, so people can quickly understand the overall solution being offered.
+    - **Next Step:** Plan an in-person, physical demonstration of the early prototype/UI with the instructor to discuss the demonstration flow and story.
+
+- *Action Items*:
+  - **All Groups**:
+    - [ ] Expedite the purchase of all necessary components, especially those requiring a long lead or shipping time.
+    - [ ] Ensure all reimbursement claims are submitted within **one month** of the purchase date.
+  - **Group 13 (Edgrant)**:
+    - [ ] Execute the next development step: **Integration** of all existing components/developer work.
+    - [ ] Finalize the decision on purchasing the **scanner**, prioritizing the scanner based on current discussion.
+      - _After the meeting, Purchase plan:_
+        - _Scanner: $\text{600,000}$_
+        - _Banner: $\text{150,000}$_
+        - _Flyers: $\text{50,000}$_
+        - _Workshop food: $\text{500,000}$_
+        - _Miniature: $\text{500,000}$_
+        - _Emergency: $\text{200,000}$_
+
+    - [ ] Prepare visual aids (poster/standing banner) to clearly illustrate the **business process flow** and the **unique value proposition** of the QR-based logistics system.
+    - [ ] Develop a clear **demonstration narrative/story** (e.g., the Pop Ice simulation) that focuses on inventory transformation.
+    - [ ] Arrange an in-person meeting with the instructor to demonstrate the early prototype and discuss the presentation flow.
