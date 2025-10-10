@@ -43,7 +43,8 @@ interface ItemTransit {
 }
 
 interface ItemInstance {
-  item_instance_id: string;
+  id?: string; // Support new field mapping
+  item_instance_id?: string; // Support old field mapping for compatibility
   item_count: number;
   item_type?: {
     item_name: string;
@@ -102,17 +103,20 @@ export default function SuperAdminItemTransitsPage() {
         nodesRes.json()
       ]);
       
-      if (transitsData.success) {
+      if (transitsData.success && transitsData.data.transits) {
         setItemTransits(transitsData.data.transits);
       }
-      if (instancesData.success) {
+      if (instancesData.success && instancesData.data.item_instances) {
         setItemInstances(instancesData.data.item_instances);
       }
-      if (nodesData.success) {
-        setNodes(nodesData.data);
+      if (nodesData.success && nodesData.data.nodes) {
+        setNodes(nodesData.data.nodes);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      setItemTransits([]);
+      setItemInstances([]);
+      setNodes([]);
     } finally {
       setIsLoading(false);
     }
@@ -226,8 +230,8 @@ export default function SuperAdminItemTransitsPage() {
                 required
               >
                 <option value="">Select Item Instance</option>
-                {itemInstances.map((instance) => (
-                  <option key={instance.item_instance_id} value={instance.item_instance_id}>
+                {Array.isArray(itemInstances) && itemInstances.map((instance) => (
+                  <option key={instance.id || instance.item_instance_id} value={instance.id || instance.item_instance_id}>
                     {instance.item_type?.item_name || 'Unknown'} (Count: {instance.item_count})
                   </option>
                 ))}
@@ -243,7 +247,7 @@ export default function SuperAdminItemTransitsPage() {
                 required
               >
                 <option value="">Select Source Node</option>
-                {nodes.map((node) => (
+                {Array.isArray(nodes) && nodes.map((node) => (
                   <option key={node.id} value={node.id}>
                     {node.name} ({node.type})
                   </option>
@@ -259,7 +263,7 @@ export default function SuperAdminItemTransitsPage() {
                 className="w-full p-2 border rounded"
               >
                 <option value="">Select Destination Node (Optional)</option>
-                {nodes.map((node) => (
+                {Array.isArray(nodes) && nodes.map((node) => (
                   <option key={node.id} value={node.id}>
                     {node.name} ({node.type})
                   </option>
@@ -327,7 +331,7 @@ export default function SuperAdminItemTransitsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {itemTransits.map((transit) => (
+            {Array.isArray(itemTransits) && itemTransits.map((transit) => (
               <TableRow key={transit.item_transit_id}>
                 <TableCell className="font-medium">
                   {transit.item_instance?.item_type?.item_name || 'Unknown'}
@@ -382,7 +386,7 @@ export default function SuperAdminItemTransitsPage() {
         </Table>
       </div>
 
-      {itemTransits.length === 0 && (
+      {(!Array.isArray(itemTransits) || itemTransits.length === 0) && (
         <div className="text-center py-8 text-gray-500">
           No transits found. Click "Add New Transit" to create one.
         </div>

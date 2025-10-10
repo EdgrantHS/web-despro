@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 
 interface ItemInstance {
-  item_instance_id: string;
+  id: string; // Changed from item_instance_id to id
   item_type_id: string;
   node_id?: string;
   item_count: number;
@@ -85,14 +85,14 @@ export default function SuperAdminItemInstancesPage() {
         nodesRes.json()
       ]);
       
-      if (instancesData.success) {
+      if (instancesData.success && instancesData.data.item_instances) {
         setItemInstances(instancesData.data.item_instances);
       }
-      if (itemTypesData.success) {
+      if (itemTypesData.success && itemTypesData.data.item_types) {
         setItemTypes(itemTypesData.data.item_types);
       }
-      if (nodesData.success) {
-        setNodes(nodesData.data);
+      if (nodesData.success && nodesData.data.nodes) {
+        setNodes(nodesData.data.nodes);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -112,7 +112,7 @@ export default function SuperAdminItemInstancesPage() {
     };
 
     try {
-      const url = editingItem ? `/api/item-instance/${editingItem.item_instance_id}` : '/api/item-instance';
+      const url = editingItem ? `/api/item-instance/${editingItem.id}` : '/api/item-instance';
       const method = editingItem ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
@@ -267,8 +267,8 @@ export default function SuperAdminItemInstancesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {itemInstances.map((item) => (
-              <TableRow key={item.item_instance_id}>
+            {itemInstances.map((item, index) => (
+              <TableRow key={item.id || `item-${index}`}>
                 <TableCell className="font-medium">
                   {item.item_type ? `${item.item_type.item_name} (${item.item_type.item_type})` : 'N/A'}
                 </TableCell>
@@ -301,7 +301,7 @@ export default function SuperAdminItemInstancesPage() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleDelete(item.item_instance_id)}
+                      onClick={() => handleDelete(item.id)}
                     >
                       Delete
                     </Button>

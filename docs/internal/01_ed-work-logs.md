@@ -7,6 +7,7 @@ This document chronicles my daily activities and progress during the development
 - [Edgrant H. S. - Work Logs](#edgrant-h-s---work-logs)
   - [Table of Contents](#table-of-contents)
   - [📆 Progress Logs](#-progress-logs)
+    - [2025/10/10](#20251010)
     - [2025/10/07](#20251007)
     - [2025/10/07](#20251007-1)
     - [2025/10/03](#20251003)
@@ -26,6 +27,19 @@ This document chronicles my daily activities and progress during the development
 
 ## 📆 Progress Logs
 
+### 2025/10/10
+
+**🎯 short-term goal:**
+
+1. Meeting
+2. Testing QR Features
+
+**📝 daily logs:**
+
+- `09:30-11:00`: [2. Testing qr features and fixing bugs](../../app/super-admin/nodes/page.tsx)
+
+---
+
 ### 2025/10/07
 
 **🎯 short-term goal:**
@@ -34,7 +48,7 @@ This document chronicles my daily activities and progress during the development
 
 **📝 daily logs:**
 
-- `17:30-18:30`: [1. Progress report meeting with Pak Alfan and creating summary]()
+- `17:30-19:00`: [1. Progress report meeting with Pak Alfan and creating summary](./03_meeting-minutes.md#bimbingan-despro---20251008)
 
 ---
 

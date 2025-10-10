@@ -57,6 +57,7 @@ MEETING TRANSCRIPTION:
   - [Progress Update Meeting 3 - 2025/09/21](#progress-update-meeting-3---20250921)
   - [Progress Update Meeting 4 - 2025/09/28](#progress-update-meeting-4---20250928)
   - [Bimbingan Despro - 2025/10/08](#bimbingan-despro---20251008)
+  - [QR Scan Feature Discussion - 2025/10/10-10](#qr-scan-feature-discussion---20251010-10)
 
 ## Progress Update Meeting 1 - 2025/09/07
 
@@ -343,3 +344,53 @@ MEETING TRANSCRIPTION:
     - [ ] Prepare visual aids (poster/standing banner) to clearly illustrate the **business process flow** and the **unique value proposition** of the QR-based logistics system.
     - [ ] Develop a clear **demonstration narrative/story** (e.g., the Pop Ice simulation) that focuses on inventory transformation.
     - [ ] Arrange an in-person meeting with the instructor to demonstrate the early prototype and discuss the presentation flow.
+
+## QR Scan Feature Discussion - 2025/10/10-10
+
+- *Recording*: https://drive.google.com/file/d/1SNBnvazm1aD4RO4By-wADlSRQHbmGlbH/view?usp=sharing
+- *Attendees*: Edgrant, Haris
+- *Topic*: QR Scan Feature Development, Item Instance/Stock Management Logic, and Courier Data Flow
+- *Summary*: The meeting focused on finalizing the logic for QR code generation, item instance tracking, and stock reduction functionality within the system. Key decisions involved determining when the stock count should decrease (upon first scan/shipment), refining the form workflow (Node selection before Item selection), and addressing the technical challenges of using dynamic URLs versus hardcoded ports for the QR API scan. The issue of capturing courier data efficiently was tabled for further discussion.
+
+- *Discussion Points*
+
+  - **QR Code Structure and Update Logic**
+    - _The QR implementation has two pages: QR scan page and QR generation._
+    - The QR is designed to **store only a string ID**.
+    - This ID is combined with the API scan base URL to create the full URL for the item transit check.
+    - When the QR is scanned, the system searches for the URL in `item transit`; if not found, a new entry is created; if found, the status is updated to active or inactive.
+    - The QR code itself is created during the packaging phase.
+
+  - **Item Instance and Stock Management**
+    - The final decision is that **one item instance will represent stock**, meaning one instance entry is tied to one node.
+    - The instance entry contain a `count` field.
+    - If there is stock addition, the count is updated; a new row is not created. (This differs from a previous concept where a new entry was created for temporary stock ready to be shipped).
+    - An item instance is tied to a specific item type for a specific node (e.g., Indomie Goreng at Node A). Different nodes can have the same item type, resulting in separate item instances.
+    - The item count should **decrease only upon the first scan** (when it transitions from inactive to active/in-transit status).
+    - Stock reduction occurs **during shipment (scanning)**, not during packaging (QR creation).
+    - Handling is needed for situations where an item is selected but is not available in the source node.
+
+  - **Workflow and Node Selection**
+    - Originally, the filter for the source field only allowed 'source' type nodes, and the destination field only allowed 'distribution' type nodes.
+    - _Both the source and destination fields should allow all types of nodes._
+    - The agreed-upon sequence for the delivery form is to select the **Source node first, then the Destination node, and finally the Item Name**. The item list shown must be constrained by the selected source node.
+
+  - **Courier Data and Scanning Process**
+    - The initial plan involves the courier logging in, and their current account data (email, name, phone number, etc.) is automatically linked when they scan.
+    - The person performing the scan is assumed to be the courier/delivery staff.
+    - A complication arises if the scanner is not the person delivering, leading to a need to capture sender data without requiring manual input.
+    - The detailed discussion regarding how to handle non-scanning couriers/sender data capture will be postponed until Sunday.
+
+  - **API URL Configuration and Port Handling**
+    - The API scan functionality was designed so that the QR URL equals the API URL, allowing it to be directly posted/accessed.
+    - Currently, the API uses a hardcoded port (e.g., 3000) for development purposes.
+    - **The issue with dynamic URLs:** If the port changes (e.g., from 3000 to 2020) after the QR is created, the system may fail to find the item in `item transit` because the full URL (which includes the port) is used in the search.
+    - **Resolution:** The URL should only use the QR ID. For now, the system will use a hardcoded URL (3000). When a proper domain is acquired, the hardcoded value will be replaced with the domain name.
+
+- *Action Items*:
+  - Haris:
+    - [ ] Reconfigure the form workflow so that node selection (Source and Destination) precedes item name selection.
+    - [ ] _Change the item instance count when the QR is scanned: decrease the count only upon the first scan and increase it when the item is scanned on arrival._
+
+  - Other:
+    - [ ] Implement the logic for reducing the item count upon the first scan (when the item instance transitions from inactive to active/in-transit).

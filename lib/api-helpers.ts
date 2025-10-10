@@ -104,13 +104,13 @@ export function transformDbToApi<T extends Record<string, any>>(
 
 // Common database field mappings
 export const NODE_FIELD_MAPPING = {
-  'node_id': 'node_id', // Database uses node_id, not id
-  'node_name': 'node_name',
-  'node_type': 'node_type',
-  'node_address': 'node_address',
-  'node_latitude': 'node_latitude',
-  'node_longitude': 'node_longitude',
-  'node_status': 'node_status',
+  'id': 'node_id', // Map frontend 'id' to database 'node_id'
+  'name': 'node_name', // Map frontend 'name' to database 'node_name'
+  'type': 'node_type', // Map frontend 'type' to database 'node_type'
+  'location': 'node_address', // Map frontend 'location' to database 'node_address'
+  'latitude': 'node_latitude',
+  'longitude': 'node_longitude',
+  'status': 'node_status',
   'created_at': 'created_at'
 };
 
@@ -125,7 +125,7 @@ export const ITEM_TYPE_FIELD_MAPPING = {
 };
 
 export const ITEM_INSTANCE_FIELD_MAPPING = {
-  'item_instance_id': 'item_instance_id', // Likely uses item_instance_id, not id
+  'id': 'item_instance_id', // Map frontend 'id' to database 'item_instance_id'
   'item_type_id': 'item_type_id',
   'node_id': 'node_id',
   'item_count': 'item_count',
