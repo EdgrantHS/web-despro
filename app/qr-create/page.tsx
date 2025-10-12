@@ -30,19 +30,22 @@ const QRCodeCreate = () => {
 
     // Handler fetch data (siapkan, tinggal isi logic fetch)
     useEffect(() => {
-        fetchItemInstances();
         fetchSourceNodes();
         fetchDistributionNodes();
 
-        console.log('QR Data:', qrData);
+        // console.log('QR Data:', qrData);
 
-    }, [qrData]);
+    }, []);
+
+    useEffect(() => {
+        fetchItemInstances();
+    }, [formData.sourceId])
 
 
     // Fetch item instances dari API
     const fetchItemInstances = async () => {
         try {
-            const response = await fetch('/api/item-instances');
+            const response = await fetch(`/api/item-instances?node_id=${formData.sourceId}`);
             const result = await response.json();
             // Pastikan response sukses dan ada data
             if (result.success && result.data && Array.isArray(result.data.item_instances)) {
@@ -162,26 +165,6 @@ const QRCodeCreate = () => {
 
                 {/* Form */}
                 <div className="space-y-5">
-                    {/* ID Barang */}
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-2">
-                            Nama Barang
-                        </label>
-                        <select
-                            name="itemInstanceId"
-                            value={formData.itemInstanceId}
-                            onChange={handleChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white cursor-pointer"
-                        >
-                            <option value="">Pilih Barang</option>
-                            {itemInstanceList.map(item => (
-                                <option key={item.id} value={item.id}>
-                                    {item.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
                     {/* Asal */}
                     <div>
                         <label className="block text-sm font-medium text-black mb-2">
@@ -201,6 +184,33 @@ const QRCodeCreate = () => {
                             ))}
                         </select>
                     </div>
+
+                    {/* ID Barang */}
+                    <div>
+                        <label className="block text-sm font-medium text-black mb-2">
+                            Nama Barang
+                        </label>
+                        <select
+                            name="itemInstanceId"
+                            value={formData.itemInstanceId}
+                            onChange={handleChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white cursor-pointer"
+                        >
+                            {
+                                itemInstanceList.length === 0 ?
+                                (
+                                    <option disabled>-- Tidak ada barang tersedia di node yang dipilih --</option>
+                                ) :
+                                <option value="">-- Pilih Barang-- </option>
+                            }
+                            {itemInstanceList.map(item => (
+                                <option key={item.id} value={item.id}>
+                                    {item.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
 
                     {/* Tujuan */}
                     <div>
