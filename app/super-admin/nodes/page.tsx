@@ -19,6 +19,10 @@ interface Node {
   name: string;
   type: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
+  status?: string;
+  created_at?: string;
 }
 
 interface NodeFormData {
@@ -50,11 +54,14 @@ export default function SuperAdminNodesPage() {
     try {
       const response = await fetch('/api/nodes');
       const data = await response.json();
-      if (data.success) {
-        setNodes(data.data);
+      if (data.success && data.data.nodes) {
+        setNodes(data.data.nodes);
+      } else {
+        setNodes([]);
       }
     } catch (error) {
       console.error('Error fetching nodes:', error);
+      setNodes([]);
     } finally {
       setIsLoading(false);
     }
@@ -112,8 +119,8 @@ export default function SuperAdminNodesPage() {
       node_name: node.name,
       node_type: node.type,
       node_address: node.location || '',
-      node_latitude: '',
-      node_longitude: ''
+      node_latitude: node.latitude?.toString() || '',
+      node_longitude: node.longitude?.toString() || ''
     });
     setShowForm(true);
   };
@@ -227,20 +234,20 @@ export default function SuperAdminNodesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {nodes.map((node) => (
-              <TableRow key={node.id}>
+            {Array.isArray(nodes) && nodes.map((node, index) => (
+              <TableRow key={node.id || `node-${index}`}>
                 <TableCell className="font-medium">{node.name}</TableCell>
                 <TableCell>{node.type}</TableCell>
                 <TableCell>{node.location || 'N/A'}</TableCell>
                 <TableCell>
-                  N/A
+                  {node.latitude && node.longitude ? `${node.latitude}, ${node.longitude}` : 'N/A'}
                 </TableCell>
                 <TableCell>
                   <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800">
-                    Active
+                    {node.status || 'Active'}
                   </span>
                 </TableCell>
-                <TableCell>-</TableCell>
+                <TableCell>{node.created_at ? new Date(node.created_at).toLocaleDateString() : 'N/A'}</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
@@ -265,7 +272,7 @@ export default function SuperAdminNodesPage() {
         </Table>
       </div>
 
-      {nodes.length === 0 && (
+      {(!Array.isArray(nodes) || nodes.length === 0) && (
         <div className="text-center py-8 text-gray-500">
           No nodes found. Click "Add New Node" to create one.
         </div>

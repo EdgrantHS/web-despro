@@ -51,7 +51,7 @@ const QRCodeCreate = () => {
             if (result.success && result.data && Array.isArray(result.data.item_instances)) {
                 setItemInstanceList(
                     result.data.item_instances.map((item: any) => ({
-                        id: item.item_instance_id,
+                        id: item.id, // Use 'id' since we fixed the field mapping
                         name: item.item_types?.item_name || item.item_type?.item_name || "Unknown"
                     }))
                 );
@@ -71,10 +71,10 @@ const QRCodeCreate = () => {
             if (result.success && result.data && Array.isArray(result.data.nodes)) {
                 setSourceList(
                     result.data.nodes.map((node: any) => ({
-                        id: node.node_id,
-                        name: node.node_name,
-                        type: node.node_type,
-                        address: node.address || ""
+                        id: node.id, // Use 'id' since we fixed the field mapping
+                        name: node.name, // Use 'name' since we fixed the field mapping
+                        type: node.type, // Use 'type' since we fixed the field mapping
+                        address: node.location || "" // Use 'location' since we fixed the field mapping
                     }))
                 );
             }
@@ -92,10 +92,10 @@ const QRCodeCreate = () => {
             if (result.success && result.data && Array.isArray(result.data.nodes)) {
                 setDestinationList(
                     result.data.nodes.map((node: any) => ({
-                        id: node.node_id,
-                        name: node.node_name,
-                        type: node.node_type,
-                        address: node.address || ""
+                        id: node.id, // Use 'id' since we fixed the field mapping
+                        name: node.name, // Use 'name' since we fixed the field mapping
+                        type: node.type, // Use 'type' since we fixed the field mapping
+                        address: node.location || "" // Use 'location' since we fixed the field mapping
                     }))
                 );
             }

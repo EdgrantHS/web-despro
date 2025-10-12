@@ -7,6 +7,9 @@ This document chronicles my daily activities and progress during the development
 - [Edgrant H. S. - Work Logs](#edgrant-h-s---work-logs)
   - [Table of Contents](#table-of-contents)
   - [📆 Progress Logs](#-progress-logs)
+    - [2025/10/10](#20251010)
+    - [2025/10/07](#20251007)
+    - [2025/10/07](#20251007-1)
     - [2025/10/03](#20251003)
     - [2025/09/29](#20250929)
     - [2025/09/28](#20250928)
@@ -23,6 +26,45 @@ This document chronicles my daily activities and progress during the development
 ---
 
 ## 📆 Progress Logs
+
+### 2025/10/10
+
+**🎯 short-term goal:**
+
+1. Meeting
+2. Testing QR Features
+
+**📝 daily logs:**
+
+- `09:30-11:00`: [2. Testing qr features and fixing bugs](../../app/super-admin/nodes/page.tsx)
+
+---
+
+### 2025/10/07
+
+**🎯 short-term goal:**
+
+1. Meeting
+
+**📝 daily logs:**
+
+- `17:30-19:00`: [1. Progress report meeting with Pak Alfan and creating summary](./03_meeting-minutes.md#bimbingan-despro---20251008)
+
+---
+
+### 2025/10/07
+
+**🎯 short-term goal:**
+
+1. Meeting
+2. Making Presentation Slides
+
+**📝 daily logs:**
+
+- `21:00-21:30`: 1. Working on front end (login page) with Nadhif
+- `21:30-22:30`: [2. Making Progress Report Presentation Slides](https://docs.google.com/presentation/d/1ZEiAr9Waa8B91dfAzwyoLitD_RE1U_ak3ZueXOmTxgs/edit?slide=id.g38f1d742912_0_286#slide=id.g38f1d742912_0_286)
+
+---
 
 ### 2025/10/03
 

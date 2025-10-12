@@ -56,6 +56,8 @@ MEETING TRANSCRIPTION:
   - [Progress Update Meeting 2 - 2025/09/14](#progress-update-meeting-2---20250914)
   - [Progress Update Meeting 3 - 2025/09/21](#progress-update-meeting-3---20250921)
   - [Progress Update Meeting 4 - 2025/09/28](#progress-update-meeting-4---20250928)
+  - [Bimbingan Despro - 2025/10/08](#bimbingan-despro---20251008)
+  - [QR Scan Feature Discussion - 2025/10/10-10](#qr-scan-feature-discussion---20251010-10)
 
 ## Progress Update Meeting 1 - 2025/09/07
 
@@ -287,3 +289,108 @@ MEETING TRANSCRIPTION:
   - Edgrant
     - [ ] (Secondary Priority) Implement logic to handle the case where the source node accidentally scans an item twice.
     - [ ] End to end testing of Phase 1 
+
+## Bimbingan Despro - 2025/10/08
+
+- *Recording*: [https://drive.google.com/file/d/1FSiYzLg9yrHMg3VJ8rBBeL6hXHvp206x/view?usp=sharing](https://drive.google.com/file/d/1FSiYzLg9yrHMg3VJ8rBBeL6hXHvp206x/view?usp=sharing)
+ - *Attendees*: Edgrant: Group 13 representative, Pak Alfan (advisor/supervisor)
+- *Topic*: Project Development Update (Group 13), Financial/Reimbursement Policy, Budget Optimization, and Presentation Strategy. 
+- *Summary*: Pak Alfan (supervisor) provided guidelines regarding the one-month reimbursement deadline, budget optimization beyond technical components (focusing on packaging, presentation, and services like soldering), and a strong emphasis on presentation quality and audience engagement. Group 13 presented an update on their logistics system using QR scanning, noted they are one week behind schedule but within buffer, and plan to prioritize purchasing a scanner. The speaker stressed the need for Group 13 to clarify their **unique value proposition** and **business process flow** for the demonstration.
+
+- *Discussion Points*
+  - **Reimbursement and Finance Policy**
+    - The maximum period for **reimbursement** of purchased items is **one month** from the purchase date. Purchases made past this deadline **cannot be reimbursed**.
+    - It is strongly advised to **expedite the purchase** of necessary equipment, especially items with consequences like long lead times (**inden**) or long shipping waits, to avoid development delays.
+    - If a service, such as professional soldering, is hired, a formal receipt (**kuitansi**) must be created and signed by the service provider as proof of transaction for reimbursement.
+  - **Budget Optimization and Utilization**
+    - The utilization of the maximum $\text{2,000,000}$ budget in previous years was not optimal. Groups should **optimize** their budget utilization.
+    - Budget should be allocated beyond just technical components, specifically for **packaging** and **presentation** to make the final product more convincing. Examples include:
+      - Tidy up the prototype (e.g., replacing messy cabling/jumpers).
+      - Designing and creating a tidy enclosure (e.g., via **3D printing** for a box).
+      - Using services for professional **soldering** and neat wiring.
+      - Creating visual aids for the presentation, such as a **poster** or **standing banner** that explains the product's function and mechanism.
+  - **Group 13 Project Update (Logistics System with QR)**
+    - **Concept:** Creating a logistics system using **QR scanning** as the main functionality for inventory transformation and access control (admin and user).
+    - **Progress:** They are between Phase 2 and Phase 3, one week behind the initial timeline, but still within the buffer. Current features include QR scanning (currently hardcoded), API creation, and an admin dashboard. Integration between the various developer-created components is the next immediate step.
+    - **Purchases:** They plan to purchase a **printer** ($\text{800,000}$) or a **scanner** ($\text{600,000}$). They prioritize the scanner because integrating the printer would require modifying the printer's proprietary application, making it more complex.
+    - **Presentation Focus:** Group 13 intends to focus the demonstration on **inventory transformation** rather than inter-unit logistics. Their proposed demonstration concept is to simulate the **"cooking"** process, changing ingredients (like powder and cups) into a final product (like **Pop Ice**) to show the inventory update in the system.
+    - **Technical/Presentation Concerns:** The speaker noted that QR scanning applications are common. Group 13 must clearly present **what is unique** about their solution and thoroughly explain the **business process flow**.
+  - **Demonstration and Presentation Strategy**
+    - The current evaluation emphasis is on **demonstration** and **audience engagement**, not just a written report.
+    - Presentation must be **clear, convincing, and engaging** for people with limited time and potentially non-technical backgrounds.
+    - **Visual aids** should be used, such as posters or standing banners, to illustrate the product's function, mechanism, or workflow.
+    - Suggestions for improving the presentation:
+      - Labeling the process during the demonstration (e.g., Process 1: Using the Phone, Process 2: System Update).
+      - Creating a small, conceptual **demonstrator** (e.g., using toy cars/miniatures) to physically show the supply chain process.
+      - Develop a **narrative/story** to frame the demonstration and explain the problem/solution (e.g., Pop Ice making as a simulation).
+    - **Goal:** Make the presentation attractive, with a clear flow, so people can quickly understand the overall solution being offered.
+    - **Next Step:** Plan an in-person, physical demonstration of the early prototype/UI with the instructor to discuss the demonstration flow and story.
+
+- *Action Items*:
+  - **All Groups**:
+    - [ ] Expedite the purchase of all necessary components, especially those requiring a long lead or shipping time.
+    - [ ] Ensure all reimbursement claims are submitted within **one month** of the purchase date.
+  - **Group 13 (Edgrant)**:
+    - [ ] Execute the next development step: **Integration** of all existing components/developer work.
+    - [ ] Finalize the decision on purchasing the **scanner**, prioritizing the scanner based on current discussion.
+      - _After the meeting, Purchase plan:_
+        - _Scanner: $\text{600,000}$ _
+        - _Banner: $\text{150,000}$ _
+        - _Flyers: $\text{50,000}$ _
+        - _Workshop food: $\text{500,000}$ _
+        - _Miniature: $\text{500,000}$ _
+        - _Emergency: $\text{200,000}$ _
+
+    - [ ] Prepare visual aids (poster/standing banner) to clearly illustrate the **business process flow** and the **unique value proposition** of the QR-based logistics system.
+    - [ ] Develop a clear **demonstration narrative/story** (e.g., the Pop Ice simulation) that focuses on inventory transformation.
+    - [ ] Arrange an in-person meeting with the instructor to demonstrate the early prototype and discuss the presentation flow.
+
+## QR Scan Feature Discussion - 2025/10/10-10
+
+- *Recording*: https://drive.google.com/file/d/1SNBnvazm1aD4RO4By-wADlSRQHbmGlbH/view?usp=sharing
+- *Attendees*: Edgrant, Haris
+- *Topic*: QR Scan Feature Development, Item Instance/Stock Management Logic, and Courier Data Flow
+- *Summary*: The meeting focused on finalizing the logic for QR code generation, item instance tracking, and stock reduction functionality within the system. Key decisions involved determining when the stock count should decrease (upon first scan/shipment), refining the form workflow (Node selection before Item selection), and addressing the technical challenges of using dynamic URLs versus hardcoded ports for the QR API scan. The issue of capturing courier data efficiently was tabled for further discussion.
+
+- *Discussion Points*
+
+  - **QR Code Structure and Update Logic**
+    - _The QR implementation has two pages: QR scan page and QR generation._
+    - The QR is designed to **store only a string ID**.
+    - This ID is combined with the API scan base URL to create the full URL for the item transit check.
+    - When the QR is scanned, the system searches for the URL in `item transit`; if not found, a new entry is created; if found, the status is updated to active or inactive.
+    - The QR code itself is created during the packaging phase.
+
+  - **Item Instance and Stock Management**
+    - The final decision is that **one item instance will represent stock**, meaning one instance entry is tied to one node.
+    - The instance entry contain a `count` field.
+    - If there is stock addition, the count is updated; a new row is not created. (This differs from a previous concept where a new entry was created for temporary stock ready to be shipped).
+    - An item instance is tied to a specific item type for a specific node (e.g., Indomie Goreng at Node A). Different nodes can have the same item type, resulting in separate item instances.
+    - The item count should **decrease only upon the first scan** (when it transitions from inactive to active/in-transit status).
+    - Stock reduction occurs **during shipment (scanning)**, not during packaging (QR creation).
+    - Handling is needed for situations where an item is selected but is not available in the source node.
+
+  - **Workflow and Node Selection**
+    - Originally, the filter for the source field only allowed 'source' type nodes, and the destination field only allowed 'distribution' type nodes.
+    - _Both the source and destination fields should allow all types of nodes._
+    - The agreed-upon sequence for the delivery form is to select the **Source node first, then the Destination node, and finally the Item Name**. The item list shown must be constrained by the selected source node.
+
+  - **Courier Data and Scanning Process**
+    - The initial plan involves the courier logging in, and their current account data (email, name, phone number, etc.) is automatically linked when they scan.
+    - The person performing the scan is assumed to be the courier/delivery staff.
+    - A complication arises if the scanner is not the person delivering, leading to a need to capture sender data without requiring manual input.
+    - The detailed discussion regarding how to handle non-scanning couriers/sender data capture will be postponed until Sunday.
+
+  - **API URL Configuration and Port Handling**
+    - The API scan functionality was designed so that the QR URL equals the API URL, allowing it to be directly posted/accessed.
+    - Currently, the API uses a hardcoded port (e.g., 3000) for development purposes.
+    - **The issue with dynamic URLs:** If the port changes (e.g., from 3000 to 2020) after the QR is created, the system may fail to find the item in `item transit` because the full URL (which includes the port) is used in the search.
+    - **Resolution:** The URL should only use the QR ID. For now, the system will use a hardcoded URL (3000). When a proper domain is acquired, the hardcoded value will be replaced with the domain name.
+
+- *Action Items*:
+  - Haris:
+    - [ ] Reconfigure the form workflow so that node selection (Source and Destination) precedes item name selection.
+    - [ ] _Change the item instance count when the QR is scanned: decrease the count only upon the first scan and increase it when the item is scanned on arrival._
+
+  - Other:
+    - [ ] Implement the logic for reducing the item count upon the first scan (when the item instance transitions from inactive to active/in-transit).
