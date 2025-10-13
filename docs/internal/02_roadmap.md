@@ -40,7 +40,7 @@ The project will be displayed at a workshop on mid December 2025. The following 
 
 ### Phase 2 (Week 3): QR code generation
 
-- **Timeline:** 22 September 2025 - 28 September 2025
+- **Timeline:** 22 September **2025** - 28 September 2025
 - **Milestone:** QR codes can be generated for new items.
   - Admin can create new items, and generate QR codes for them.
   - QR codes can be printed and attached to physical items.
