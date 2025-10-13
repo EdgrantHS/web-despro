@@ -7,6 +7,7 @@ This document chronicles my daily activities and progress during the development
 - [Edgrant H. S. - Work Logs](#edgrant-h-s---work-logs)
   - [Table of Contents](#table-of-contents)
   - [📆 Progress Logs](#-progress-logs)
+    - [2025/10/13](#20251013)
     - [2025/10/12](#20251012)
     - [2025/10/10](#20251010)
     - [2025/10/07](#20251007)
@@ -27,6 +28,20 @@ This document chronicles my daily activities and progress during the development
 ---
 
 ## 📆 Progress Logs
+
+### 2025/10/13
+
+**🎯 short-term goal:**
+
+1. Meeting Recap
+2. Phase-3 Planning
+
+**📝 daily logs:**
+
+- `19:00-19:30`: [1. Recapping meeting with the team](03_meeting-minutes.md#progress-update-meeting-5---20251012)
+- `19:30-20:00`: [2. Work delegation and planning for phase-3](https://docs.google.com/spreadsheets/d/1hI3kZKCFJY0w1Xa3N3SdSUBMLgdSdJ6P3bwu26CKch8/edit?gid=563464061#gid=563464061)
+
+---
 
 ### 2025/10/12
 
