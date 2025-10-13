@@ -53,11 +53,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           *,
           item_instances (
             item_instance_id,
+            item_count,
             item_types (
               item_name,
               item_type
             )
           ),
+          item_transit_count,
           source_nodes:nodes!source_node_id (
             node_id,
             node_name
@@ -79,8 +81,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         item_instance: updated.item_instances ? {
           id: updated.item_instances.item_instance_id,
           item_name: updated.item_instances.item_types?.item_name,
-          item_type: updated.item_instances.item_types?.item_type
+          item_type: updated.item_instances.item_types?.item_type,
+          item_count: updated.item_instances.item_count
         } : null,
+        item_transit_count: updated.item_transit_count,
         source_node: updated.source_nodes ? {
           id: updated.source_nodes.node_id,
           name: updated.source_nodes.node_name
@@ -95,15 +99,52 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       // 2. Cari di qr_codes
       const { data: qrCode, error: qrError } = await supabase
         .from('qr_codes')
-        .select('item_instance_id, source_id, destination_id, qr_url')
+        .select('item_instance_id, source_id, destination_id, qr_url, item_count')
         .eq('id', qrId)
         .single();
 
       if (qrError || !qrCode) {
         console.log('QR Code Error:', qrCode);
-        
+
         return createErrorResponse("QR code not found", 404);
       }
+
+      // --- New: check & decrement item_instances.item_count by qrCode.item_count ---
+      const qty = Number(qrCode.item_count ?? 0);
+      const itemInstanceId = qrCode.item_instance_id;
+      if (qty > 0) {
+        const { data: itemInst, error: itemInstErr } = await supabase
+          .from('item_instances')
+          .select('item_instance_id, item_count')
+          .eq('item_instance_id', itemInstanceId)
+          .single();
+
+        if (itemInstErr || !itemInst) {
+          console.error('Item instance lookup error:', itemInstErr);
+          return createErrorResponse('Item instance not found', 500);
+        }
+
+        const currentCount = Number(itemInst.item_count ?? 0);
+        if (currentCount < qty) {
+          return createErrorResponse('Insufficient stock', 400);
+        }
+
+        const { data: updatedItemInst, error: updateItemErr } = await supabase
+          .from('item_instances')
+          .update({ item_count: currentCount - qty })
+          .eq('item_instance_id', itemInstanceId)
+          .select('item_instance_id, item_count')
+          .single();
+
+        if (updateItemErr) {
+          console.error('Update Item Instance Error:', updateItemErr);
+          return createErrorResponse('Failed to update item stock', 500);
+        }
+
+        // optional: you can log updatedItemInst
+        console.log('Item instance stock decremented:', updatedItemInst);
+      }
+      // --- end decrement ---
 
       // Insert ke item_transits
       const { data: inserted, error: insertError } = await supabase
@@ -116,17 +157,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           courier_name,
           courier_phone,
           qr_url: qrCode.qr_url,
-          status: 'active'
+          status: 'active',
+          item_transit_count: qrCode.item_count
         }])
         .select(`
           *,
           item_instances (
             item_instance_id,
+            item_count,
             item_types (
               item_name,
               item_type
             )
           ),
+          item_transit_count,
           source_nodes:nodes!source_node_id (
             node_id,
             node_name
@@ -148,8 +192,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         item_instance: inserted.item_instances ? {
           id: inserted.item_instances.item_instance_id,
           item_name: inserted.item_instances.item_types?.item_name,
-          item_type: inserted.item_instances.item_types?.item_type
+          item_type: inserted.item_instances.item_types?.item_type,
         } : null,
+        item_transit_count: inserted.item_transit_count,
         source_node: inserted.source_nodes ? {
           id: inserted.source_nodes.node_id,
           name: inserted.source_nodes.node_name

@@ -12,6 +12,7 @@ interface ScanResult {
     item_type?: string;
     source_node_name?: string;
     dest_node_name?: string;
+    item_count?: number;
     status?: string;
     [key: string]: any;
 }
@@ -156,12 +157,15 @@ const Page = () => {
             });
 
             const result = await res.json();
+            console.log("Result from fetch:", result);
+            
             if (result.success && result.data) {
                 setScanResult({
                     item_name: result.data.item_instance?.item_name,
                     item_type: result.data.item_instance?.item_type,
                     source_node_name: result.data.source_node?.name,
                     dest_node_name: result.data.destination_node?.name,
+                    item_count: result.data.item_transit_count,
                     status: result.data.status,
                 });
                 console.log("Result from API: ", result.data);
@@ -312,6 +316,10 @@ const Page = () => {
                             <div className="flex justify-between items-center">
                                 <span className="text-gray-600 text-sm">Destination Node</span>
                                 <span className="text-gray-800 font-medium">{scanResult.dest_node_name || '-'}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-600 text-sm">Item Count</span>
+                                <span className="text-gray-800 font-medium">{scanResult.item_count || '-'}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-gray-600 text-sm">Status</span>

@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
 
         // Ambil data dari body
-        const { item_instance_id, source_id, destination_id } = body;
+        const { item_instance_id, source_id, destination_id, item_count } = body;
 
         // Validasi sederhana
         if (!item_instance_id || !source_id || !destination_id) {
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
                 source_id,
                 destination_id,
                 qr_url,
+                item_count
             }])
             .select(`
                 *,
@@ -37,9 +38,9 @@ export async function POST(request: NextRequest) {
                     item_types (
                         item_name,
                         item_type
-                    ),
-                    item_count
+                    )
                 ),
+                item_count,
                 source_nodes:nodes!source_id (
                     node_id,
                     node_name,

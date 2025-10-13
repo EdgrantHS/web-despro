@@ -6,7 +6,8 @@ import React, { useEffect, useState } from 'react';
 
 const QRCodeCreate = () => {
     // State untuk data dropdown hasil fetch
-    const [itemInstanceList, setItemInstanceList] = useState<{ id: string; name: string }[]>([]);
+    // tambahkan 'count' pada tipe item instance
+    const [itemInstanceList, setItemInstanceList] = useState<{ id: string; name: string; count: number }[]>([]);
     const [sourceList, setSourceList] = useState<{ id: string; name: string; type: string; address: string }[]>([]);
     const [destinationList, setDestinationList] = useState<{ id: string; name: string }[]>([]);
 
@@ -14,7 +15,8 @@ const QRCodeCreate = () => {
     const [formData, setFormData] = useState({
         itemInstanceId: '',
         sourceId: '',
-        destinationId: ''
+        destinationId: '',
+        itemCount: 0
     });
 
     // State data untuk kebutuhan frontend
@@ -51,14 +53,17 @@ const QRCodeCreate = () => {
             if (result.success && result.data && Array.isArray(result.data.item_instances)) {
                 setItemInstanceList(
                     result.data.item_instances.map((item: any) => ({
-                        id: item.id, // Use 'id' since we fixed the field mapping
-                        name: item.item_types?.item_name || item.item_type?.item_name || "Unknown"
+                        id: item.id,
+                        name: item.item_types?.item_name || item.item_type?.item_name || "Unknown",
+                        count: item.item_count || 0
                     }))
                 );
-
+            } else {
+                setItemInstanceList([]);
             }
         } catch (err) {
             console.error("Failed to fetch item instances:", err);
+            setItemInstanceList([]);
         }
     };
 
@@ -105,18 +110,44 @@ const QRCodeCreate = () => {
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        if (name === 'itemCount') {
+            // number input -> parse int, limit handled by input attributes
+            setFormData(prev => ({ ...prev, itemCount: Number(value) }));
+            return;
+        }
+
+        if (name === 'itemInstanceId') {
+            // when selecting an item, set default itemCount = 1 (if available)
+            const selectedId = value;
+            const selected = itemInstanceList.find(i => i.id === selectedId);
+            const defaultCount = selected && selected.count > 0 ? 1 : 0;
+            setFormData(prev => ({ ...prev, itemInstanceId: selectedId, itemCount: defaultCount }));
+            return;
+        }
+
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async () => {
+        // Validasi jumlah sebelum submit
+        const selected = itemInstanceList.find(i => i.id === formData.itemInstanceId);
+        const max = selected ? selected.count : 0;
+        if (!formData.itemInstanceId) {
+            console.error('Pilih item terlebih dahulu');
+            return;
+        }
+        if (formData.itemCount < 1 || formData.itemCount > max) {
+            alert('Jumlah tidak valid, melebihi stok atau kurang dari 1');
+            return;
+        }
+
         // Parsing form data ke format API
         const parsedData = {
             item_instance_id: formData.itemInstanceId,
             source_id: formData.sourceId,
-            destination_id: formData.destinationId
+            destination_id: formData.destinationId,
+            item_count: formData.itemCount
         };
         console.log('Data to submit:', parsedData);
 
@@ -133,18 +164,20 @@ const QRCodeCreate = () => {
                 console.log('Response Data: ', result.data);
                 setQrData({
                     qr_url: result.data.qr_url,
-                    item_name: result.data.item_instance.name,
-                    item_type: result.data.item_instance.type,
-                    item_count: result.data.item_instance.count,
-                    source_name: result.data.source_node.name,
-                    destination_name: result.data.destination_node.name
+                    item_name: result.data.item_instance?.name || result.data.item_instance?.item_name || "-",
+                    item_type: result.data.item_instance?.type || result.data.item_instance?.item_type || "-",
+                    // gunakan nilai yang dikembalikan API jika ada, kalau tidak fallback ke parsedData.item_count
+                    item_count: result.data.item_instance?.count ?? parsedData.item_count,
+                    source_name: result.data.source_node?.name,
+                    destination_name: result.data.destination_node?.name
                 });
                 setModalOpen(true);
                 // Reset input form
                 setFormData({
                     itemInstanceId: '',
                     sourceId: '',
-                    destinationId: ''
+                    destinationId: '',
+                    itemCount: 0
                 });
             } else {
                 console.error('Failed to create new QR Code: ' + (result.message || 'Unknown error'));
@@ -205,12 +238,43 @@ const QRCodeCreate = () => {
                             }
                             {itemInstanceList.map(item => (
                                 <option key={item.id} value={item.id}>
-                                    {item.name}
+                                    {item.name} {item.count ? `(${item.count})` : ''}
                                 </option>
                             ))}
                         </select>
                     </div>
-
+                    
+                    {/* Jumlah Barang (number input, max dari selected item count) */}
+                    <div>
+                        <label className="block text-sm font-medium text-black mb-2">
+                            Jumlah Barang
+                        </label>
+                        <input
+                            type="number"
+                            name="itemCount"
+                            value={formData.itemCount}
+                            onChange={handleChange}
+                            min={1}
+                            max={ (() => {
+                                const sel = itemInstanceList.find(i => i.id === formData.itemInstanceId);
+                                return sel ? sel.count : 1;
+                            })() }
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white"
+                            disabled={!formData.itemInstanceId}
+                        />
+                        {/* VALIDATION MESSAGE: show normal helper or warning if over max */}
+                        {(() => {
+                            const sel = itemInstanceList.find(i => i.id === formData.itemInstanceId);
+                            if (!formData.itemInstanceId) {
+                                return <p className="text-xs text-gray-500 mt-1">Pilih barang untuk melihat stok</p>;
+                            }
+                            const max = sel ? sel.count : 0;
+                            if (formData.itemCount > max || formData.itemCount < 1) {
+                                return <p className="text-xs text-red-600 mt-1">Maks: {max} — jumlah melebihi stok</p>;
+                            }
+                            return <p className="text-xs text-gray-500 mt-1">Maks: {max}</p>;
+                        })()}
+                    </div>
 
                     {/* Tujuan */}
                     <div>
