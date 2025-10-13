@@ -58,6 +58,7 @@ MEETING TRANSCRIPTION:
   - [Progress Update Meeting 4 - 2025/09/28](#progress-update-meeting-4---20250928)
   - [Bimbingan Despro - 2025/10/08](#bimbingan-despro---20251008)
   - [QR Scan Feature Discussion - 2025/10/10-10](#qr-scan-feature-discussion---20251010-10)
+  - [Progress Update Meeting 5 - 2025/10/12](#progress-update-meeting-5---20251012)
 
 ## Progress Update Meeting 1 - 2025/09/07
 
@@ -165,7 +166,7 @@ MEETING TRANSCRIPTION:
     - **Nadhif** needs to explore **Supabase**, as the login system published uses `out user ID`.
       - The login process must accommodate three user types: Petugas, Admin Node, and Admin Pusat
       - The user database table currently only stores role data and node data.
-      - A decision must be made whether to implement detailed privilege levels or simplify roles into general categories (e.g., *petugas admin*, *note*, and *admin pusat*).
+      - A decision must be made whether to implement detailed privilege levels or simplify roles into general categories (e.g., *petugas admin*, *node*, and *admin pusat*).
   - **Timeline and Scheduling**
     - The development target completion date remains the **17th**.
     - A buffer period is added until the **19th** to ensure adequate time for testing before the subsequent meeting review, aiming for a completed Phase 1.
@@ -390,7 +391,51 @@ MEETING TRANSCRIPTION:
 - *Action Items*:
   - Haris:
     - [ ] Reconfigure the form workflow so that node selection (Source and Destination) precedes item name selection.
-    - [ ] _Change the item instance count when the QR is scanned: decrease the count only upon the first scan and increase it when the item is scanned on arrival._
+    - [ ]  _Change the item instance count when the QR is scanned: decrease the count only upon the first scan and increase it when the item is scanned on arrival._
 
   - Other:
     - [ ] Implement the logic for reducing the item count upon the first scan (when the item instance transitions from inactive to active/in-transit).
+  
+## Progress Update Meeting 5 - 2025/10/12
+
+- *Recording*: Despro 13 Weekly Meeting - https://drive.google.com/file/d/1f7WN64HVLDDwsasQySCM_7T-LWGxxWWl/view?usp=sharing
+- *Attendees*: Edgrant, Nadhif, Haris, and Bima
+- *Topic*: Project Progress Updates (Login, QR Page, Item Transit Courier Implementation), Access Management, and Next Steps (Scanner Procurement).
+- *Summary*: The team reviewed progress on the login functionality, confirming that API returns now include user role and node data. Haris demonstrated progress on the QR scanning page, including count reduction and source node matching. A significant discussion occurred regarding implementing courier data for item transit, resulting in the decision to create a separate "Courier" role but postponing immediate implementation to focus on access management. Approval from Pak Alfan is required for purchasing scanners and miniatures.
+
+- *Discussion Points*
+  - **Login and Access Management (Nadhif's Progress)**
+    - The API now successfully returns both the user's role and node information upon login.
+    - The login process is correctly based on the user's account and role. The returned data can be utilized by the application.
+    - It was confirmed that the node admin page already filters displayed information based on the user's assigned node.
+    - Nadif had made changes to the UI and role setup for a page that initially displayed tables. These changes involved the UI and role.
+    - A check is needed to ensure that when an admin logs in, their access management page only displays users/data related to their specific node.
+    
+  - **QR Page and Scanning Implementation (Haris's Progress)**
+    - Haris presented the progress on the QR page implementation.
+    - The nodes displayed on the page now align correctly with the instance of the source node.
+    - The item count should successfully decreases when an item is scanned.
+    - Haris explained the implementation mechanism: a column should be added to the item instance to track the count of selected items, and this count is retrieved during the scan process.
+    
+  - **Item Transit and Courier Role Discussion**
+    - The necessity for courier information in the item transit table was discussed.
+    - The initial implementation plan was to automatically use the logged-in user's data (name and phone number) if they were the scanner (i.e., the courier) to avoid manual data entry.
+    - A challenge was raised regarding scenarios where the scanner is *not* the courier.
+    - A temporary solution proposed was asking the scanner if they are the courier; if yes, use login data; if no, display a form.
+    - Implementing this structure requires creating a new Role Type specifically for "Courier".
+    - It was debated whether the "Courier" role should be a separate role or incorporated into the existing "Petugas" (Officer) role.
+    - The consensus was that roles should be separate because the "Petugas" role currently interacts with Node data, while the "Courier" role would not.
+    - **Decision:** The team decided to temporarily set aside the implementation of courier data for item transit, meaning courier data will be empty for now. The immediate focus should remain on management access implementation.
+    
+  - **Future Planning and Procurement**
+    - The plan to purchase scanners needs confirmation from Pak Alfan.
+    - Testing is required to verify if connecting a scanner via USB to a computer allows it to input text when reading a QR code.
+    - The purchase of action figures/miniatures must wait for Pak Alfan's approval.
+    - General system testing is planned, especially before scanner confirmation.
+
+- *Action Items*:
+  - [ ] Check if the admin access management page restricts viewing rights to only the admin's specific node.
+  - [ ] Plan to conduct system testing, particularly before the scanner implementation.
+  - [ ] Check with Pak Alfan regarding the plan to purchase scanners.
+  - [ ] Wait for Pak Alvan’s approval before purchasing action figures/miniatures.
+  - [ ] Test if using a scanner connected via USB to a computer can input text when reading a QR code.
