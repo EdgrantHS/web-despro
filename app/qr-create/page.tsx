@@ -67,10 +67,10 @@ const QRCodeCreate = () => {
         }
     };
 
-    // Fetch asal (source nodes)
+    // Fetch asal (source nodes) - now allows any node as source
     const fetchSourceNodes = async () => {
         try {
-            const response = await fetch('/api/nodes?node_type=Source&status=active');
+            const response = await fetch('/api/nodes?status=active');
             const result = await response.json();
 
             if (result.success && result.data && Array.isArray(result.data.nodes)) {
@@ -82,9 +82,12 @@ const QRCodeCreate = () => {
                         address: node.location || "" // Use 'location' since we fixed the field mapping
                     }))
                 );
+            } else {
+                setSourceList([]);
             }
         } catch (err) {
             console.error("Failed to fetch source nodes:", err);
+            setSourceList([]);
         }
     };
 
@@ -201,7 +204,7 @@ const QRCodeCreate = () => {
                     {/* Asal */}
                     <div>
                         <label className="block text-sm font-medium text-black mb-2">
-                            Asal (Node)
+                            Source Node (Any Node)
                         </label>
                         <select
                             name="sourceId"
@@ -209,10 +212,10 @@ const QRCodeCreate = () => {
                             onChange={handleChange}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white cursor-pointer"
                         >
-                            <option value="">Pilih Asal</option>
+                            <option value="">Choose Source Node</option>
                             {sourceList.map(node => (
                                 <option key={node.id} value={node.id}>
-                                    {node.name}
+                                    {node.name} ({node.type})
                                 </option>
                             ))}
                         </select>

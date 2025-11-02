@@ -45,6 +45,7 @@ interface ItemTransit {
 interface ItemInstance {
   id?: string; // Support new field mapping
   item_instance_id?: string; // Support old field mapping for compatibility
+  node_id?: string; // Add current node reference
   item_count: number;
   item_type?: {
     item_name: string;
@@ -65,7 +66,6 @@ interface ItemTransitFormData {
   time_departure: string;
   courier_name: string;
   courier_phone: string;
-  qr_url: string;
 }
 
 export default function SuperAdminItemTransitsPage() {
@@ -75,14 +75,15 @@ export default function SuperAdminItemTransitsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ItemTransit | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [selectedItemCurrentNode, setSelectedItemCurrentNode] = useState<string>('');
   const [formData, setFormData] = useState<ItemTransitFormData>({
     item_instance_id: '',
     source_node_id: '',
     dest_node_id: '',
     time_departure: '',
     courier_name: '',
-    courier_phone: '',
-    qr_url: ''
+    courier_phone: ''
   });
 
   useEffect(() => {
@@ -124,6 +125,7 @@ export default function SuperAdminItemTransitsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(''); // Clear previous errors
     
     const payload = {
       item_instance_id: formData.item_instance_id,
@@ -132,7 +134,6 @@ export default function SuperAdminItemTransitsPage() {
       time_departure: formData.time_departure,
       courier_name: formData.courier_name || undefined,
       courier_phone: formData.courier_phone || undefined,
-      qr_url: formData.qr_url || undefined,
     };
 
     try {
@@ -145,12 +146,17 @@ export default function SuperAdminItemTransitsPage() {
         body: JSON.stringify(payload)
       });
       
+      const result = await response.json();
+      
       if (response.ok) {
         fetchData();
         resetForm();
+      } else {
+        setErrorMessage(result.message || 'Failed to save item transit');
       }
     } catch (error) {
       console.error('Error saving item transit:', error);
+      setErrorMessage('An unexpected error occurred');
     }
   };
 
@@ -180,10 +186,26 @@ export default function SuperAdminItemTransitsPage() {
       dest_node_id: item.dest_node_id,
       time_departure: item.time_departure.split('T')[0] + 'T' + item.time_departure.split('T')[1]?.split('.')[0],
       courier_name: item.courier_name || '',
-      courier_phone: item.courier_phone || '',
-      qr_url: item.qr_url || ''
+      courier_phone: item.courier_phone || ''
     });
+    setSelectedItemCurrentNode(item.source_node_id);
     setShowForm(true);
+  };
+
+  const handleItemInstanceChange = (itemInstanceId: string) => {
+    // Find the selected item instance to get its current node
+    const selectedInstance = itemInstances.find(instance => 
+      (instance.id || instance.item_instance_id) === itemInstanceId
+    );
+    
+    if (selectedInstance && selectedInstance.node_id) {
+      setSelectedItemCurrentNode(selectedInstance.node_id);
+      // Auto-select the current node as source
+      setFormData({...formData, item_instance_id: itemInstanceId, source_node_id: selectedInstance.node_id});
+    } else {
+      setSelectedItemCurrentNode('');
+      setFormData({...formData, item_instance_id: itemInstanceId, source_node_id: ''});
+    }
   };
 
   const resetForm = () => {
@@ -193,11 +215,12 @@ export default function SuperAdminItemTransitsPage() {
       dest_node_id: '',
       time_departure: '',
       courier_name: '',
-      courier_phone: '',
-      qr_url: ''
+      courier_phone: ''
     });
     setEditingItem(null);
     setShowForm(false);
+    setErrorMessage(''); // Clear error message
+    setSelectedItemCurrentNode('');
   };
 
   if (isLoading) {
@@ -219,13 +242,18 @@ export default function SuperAdminItemTransitsPage() {
           <h2 className="text-lg font-semibold mb-4">
             {editingItem ? 'Edit Transit' : 'Add New Transit'}
           </h2>
+          {errorMessage && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {errorMessage}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="item_instance_id">Item Instance *</Label>
               <select
                 id="item_instance_id"
                 value={formData.item_instance_id}
-                onChange={(e) => setFormData({...formData, item_instance_id: e.target.value})}
+                onChange={(e) => handleItemInstanceChange(e.target.value)}
                 className="w-full p-2 border rounded"
                 required
               >
@@ -245,13 +273,18 @@ export default function SuperAdminItemTransitsPage() {
                 onChange={(e) => setFormData({...formData, source_node_id: e.target.value})}
                 className="w-full p-2 border rounded"
                 required
+                disabled={!selectedItemCurrentNode}
               >
-                <option value="">Select Source Node</option>
-                {Array.isArray(nodes) && nodes.map((node) => (
-                  <option key={node.id} value={node.id}>
-                    {node.name} ({node.type})
-                  </option>
-                ))}
+                <option value="">
+                  {selectedItemCurrentNode ? "Item's current node will be auto-selected" : "Select an item instance first"}
+                </option>
+                {selectedItemCurrentNode && Array.isArray(nodes) && nodes
+                  .filter(node => node.id === selectedItemCurrentNode)
+                  .map((node) => (
+                    <option key={node.id} value={node.id}>
+                      {node.name} ({node.type}) - Current Location
+                    </option>
+                  ))}
               </select>
             </div>
             <div>
@@ -297,12 +330,11 @@ export default function SuperAdminItemTransitsPage() {
               />
             </div>
             <div className="col-span-2">
-              <Label htmlFor="qr_url">QR URL</Label>
-              <Input
-                id="qr_url"
-                value={formData.qr_url}
-                onChange={(e) => setFormData({...formData, qr_url: e.target.value})}
-              />
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                <p className="text-sm text-blue-700">
+                  <strong>Note:</strong> A QR code will be automatically generated for this transit when a destination is selected.
+                </p>
+              </div>
             </div>
             <div className="col-span-2 flex gap-2">
               <Button type="submit">

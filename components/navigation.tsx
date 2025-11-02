@@ -1,14 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/lib/useAuth';
+import { useLoading } from '@/contexts/LoadingContext';
 
 export default function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const { user, isSuperAdmin } = useAuth();
+  const { setLoading } = useLoading();
 
   const role = user?.role;
 
@@ -59,6 +62,16 @@ export default function Navigation() {
     setOpenDropdown(openDropdown === itemName ? null : itemName);
   };
 
+  const handleNavigation = (href: string) => {
+    setLoading(true, 'Loading page...');
+    router.push(href);
+  };
+
+  // Hide loading overlay when route changes complete
+  useEffect(() => {
+    setLoading(false);
+  }, [pathname, setLoading]);
+
   // Hide entire navigation when not authenticated
   if (!user) {
     return null;
@@ -102,25 +115,27 @@ export default function Navigation() {
                       {openDropdown === item.name && (
                         <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                           {item.children.map((child: any) => (
-                            <Link
+                            <button
                               key={child.name}
-                              href={child.href}
-                              onClick={() => setOpenDropdown(null)}
-                              className={`block px-4 py-2 text-sm transition-colors ${
+                              onClick={() => {
+                                setOpenDropdown(null);
+                                handleNavigation(child.href);
+                              }}
+                              className={`block w-full text-left px-4 py-2 text-sm transition-colors ${
                                 pathname === child.href
                                   ? 'bg-blue-100 text-blue-700'
                                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                               }`}
                             >
                               {child.name}
-                            </Link>
+                            </button>
                           ))}
                         </div>
                       )}
                     </div>
                   ) : (
-                    <Link
-                      href={item.href}
+                    <button
+                      onClick={() => handleNavigation(item.href)}
                       className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         pathname === item.href
                           ? 'bg-blue-100 text-blue-700'
@@ -128,7 +143,7 @@ export default function Navigation() {
                       }`}
                     >
                       {item.name}
-                    </Link>
+                    </button>
                   )}
                 </div>
               ))}

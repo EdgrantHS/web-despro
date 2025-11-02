@@ -17,21 +17,31 @@ export default function LoginPage() {
   const handleLogin = async (email: string, password: string) => {
     setError('')
     
+    console.log('Login: Attempting login for:', email);
     const result = await login(email, password)
     
     if (result) {
       const role = result.data.user.role
+      console.log('Login: Success, user role:', role);
+      
+      // Small delay to ensure localStorage is set
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       if (role === 'admin_pusat') {
+        console.log('Login: Redirecting to super-admin');
         router.push('/super-admin')
         return
       }
       if (role === 'admin_node') {
+        console.log('Login: Redirecting to node-admin');
         router.push('/node-admin')
         return
       }
       // Petugas default to QR Scan
+      console.log('Login: Redirecting to qr-scan');
       router.push('/qr-scan')
     } else {
+      console.log('Login: Failed');
       setError('Login failed. Please check your credentials.')
     }
   }

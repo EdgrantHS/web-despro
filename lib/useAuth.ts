@@ -29,22 +29,43 @@ export const useAuth = () => {
   const [user, setUser] = useState<UserData | null>(null)
   const [node, setNode] = useState<NodeData | null>(null)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // Start with loading true
   const supabase = createClient()
 
   useEffect(() => {
-    const userData = localStorage.getItem('userData')
-    const superAdminStatus = localStorage.getItem('isSuperAdmin')
-    
-    if (userData) {
-      const parsedData = JSON.parse(userData)
-      setUser(parsedData.user)
-      setNode(parsedData.node)
+    const initializeAuth = () => {
+      try {
+        console.log('useAuth: Initializing authentication...');
+        const userData = localStorage.getItem('userData')
+        const superAdminStatus = localStorage.getItem('isSuperAdmin')
+        
+        console.log('useAuth: Raw localStorage data:', { userData: !!userData, superAdminStatus });
+        
+        if (userData) {
+          const parsedData = JSON.parse(userData)
+          console.log('useAuth: Setting user data:', parsedData.user);
+          setUser(parsedData.user)
+          setNode(parsedData.node)
+        }
+        
+        if (superAdminStatus) {
+          const isSuper = JSON.parse(superAdminStatus);
+          console.log('useAuth: Setting super admin status:', isSuper);
+          setIsSuperAdmin(isSuper)
+        }
+        
+        console.log('useAuth: Authentication initialized');
+      } catch (error) {
+        console.error('Error initializing auth:', error)
+        // Clear corrupted data
+        localStorage.removeItem('userData')
+        localStorage.removeItem('isSuperAdmin')
+      } finally {
+        setLoading(false)
+      }
     }
-    
-    if (superAdminStatus) {
-      setIsSuperAdmin(JSON.parse(superAdminStatus))
-    }
+
+    initializeAuth()
   }, [])
 
   const login = async (email: string, password: string): Promise<LoginResponse | null> => {
@@ -128,8 +149,13 @@ export const useAuth = () => {
       setNode(response.data.node)
       setIsSuperAdmin(!!isSuperAdmin)
       
+      console.log('useAuth: Login successful, setting localStorage data:', {
+        user: response.data.user,
+        isSuperAdmin: !!isSuperAdmin
+      });
+      
       localStorage.setItem('userData', JSON.stringify(response.data))
-      localStorage.setItem('isSuperAdmin', JSON.stringify(isSuperAdmin))
+      localStorage.setItem('isSuperAdmin', JSON.stringify(!!isSuperAdmin))
       
       return response
       

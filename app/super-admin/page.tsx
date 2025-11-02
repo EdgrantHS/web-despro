@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { LoadingLink } from '@/components/LoadingLink';
 
 export default function SuperAdminPage() {
   const adminModules = [
@@ -47,7 +47,11 @@ export default function SuperAdminPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {adminModules.map((module) => (
-            <Link key={module.title} href={module.href}>
+            <LoadingLink 
+              key={module.title} 
+              href={module.href}
+              loadingMessage={`Loading ${module.title}...`}
+            >
               <div className={`p-6 border-2 rounded-lg transition-all ${module.color}`}>
                 <div className="flex items-start space-x-4">
                   <div className="text-3xl">{module.icon}</div>
@@ -64,7 +68,7 @@ export default function SuperAdminPage() {
                   </div>
                 </div>
               </div>
-            </Link>
+            </LoadingLink>
           ))}
         </div>
 
