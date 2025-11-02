@@ -80,11 +80,14 @@ export default function NodeAdminItemInstancesPage() {
     try {
       const response = await fetch('/api/nodes');
       const data = await response.json();
-      if (data.success) {
-        setNodes(data.data);
+      if (data.success && data.data.nodes) {
+        setNodes(data.data.nodes);
+      } else {
+        setNodes([]);
       }
     } catch (error) {
       console.error('Error fetching nodes:', error);
+      setNodes([]);
     } finally {
       setIsLoading(false);
     }
@@ -193,7 +196,7 @@ export default function NodeAdminItemInstancesPage() {
     return node ? `${node.name} (${node.type})` : 'None';
   };
 
-  if (isLoading && nodes.length === 0) {
+  if (isLoading && (!Array.isArray(nodes) || nodes.length === 0)) {
     return <div className="p-6">Loading...</div>;
   }
 
@@ -215,7 +218,7 @@ export default function NodeAdminItemInstancesPage() {
               className="w-full p-3 border rounded-lg mt-2"
             >
               <option value="">Choose a node...</option>
-              {nodes.map((node) => (
+              {Array.isArray(nodes) && nodes.map((node) => (
                 <option key={node.id} value={node.id}>
                   {node.name} ({node.type}) - {node.location || 'No location'}
                 </option>
@@ -267,7 +270,7 @@ export default function NodeAdminItemInstancesPage() {
                 required
               >
                 <option value="">Select Item Type</option>
-                {itemTypes.map((type) => (
+                {Array.isArray(itemTypes) && itemTypes.map((type) => (
                   <option key={type.item_id} value={type.item_id}>
                     {type.item_name} ({type.item_type})
                   </option>
@@ -335,8 +338,8 @@ export default function NodeAdminItemInstancesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {itemInstances.map((item) => (
-                <TableRow key={item.item_instance_id}>
+              {Array.isArray(itemInstances) && itemInstances.map((item, index) => (
+                <TableRow key={item.id || item.item_instance_id || `item-${index}`}>
                   <TableCell className="font-medium">
                     {item.item_type ? `${item.item_type.item_name} (${item.item_type.item_type})` : 'N/A'}
                   </TableCell>
@@ -377,7 +380,7 @@ export default function NodeAdminItemInstancesPage() {
             </TableBody>
           </Table>
 
-          {itemInstances.length === 0 && (
+          {(!Array.isArray(itemInstances) || itemInstances.length === 0) && (
             <div className="text-center py-8 text-gray-500">
               No item instances found for this node. Click "Add New Item Instance" to create one.
             </div>
