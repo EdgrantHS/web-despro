@@ -1,0 +1,949 @@
+{
+	"info": {
+		"_postman_id": "58b77c92-dc4f-488f-9114-db4ab15a3419",
+		"name": "DesproCrud",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31046090"
+	},
+	"item": [
+		{
+			"name": "Node",
+			"item": [
+				{
+					"name": "List Node",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/nodes?status=inactive",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"nodes"
+							],
+							"query": [
+								{
+									"key": "node_type",
+									"value": null,
+									"description": "Filter by node type",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "inactive",
+									"description": "Filter by status (default: active)"
+								},
+								{
+									"key": "page_size",
+									"value": null,
+									"description": "Items per page (default: 50)",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": null,
+									"description": "Page number (default: 1)  ",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Node",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"node_name\": \"Node B\",\r\n  \"node_type\": \"Source\",\r\n  \"node_address\": \"Jalan Merdeka No. 123, Jakarta\",\r\n  \"node_latitude\": -20.000000,\r\n  \"node_longitude\": 100.000000,\r\n  \"node_status\": \"Active\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/node",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"node"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read Node",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/node/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"node",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "eee2b3a2-67b2-4611-a07c-17a5f0594fe5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Node",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"node_name\": \"Updated Node A\",\r\n  \"node_type\": \"Distribution\",\r\n  \"node_address\": \"New Address 456, Jakarta\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/node/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"node",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "eee2b3a2-67b2-4611-a07c-17a5f0594fe5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Node",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/node/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"node",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "54bdc548-fe92-4107-b522-b80af88fee48"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Item Type",
+			"item": [
+				{
+					"name": "List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/item-types",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-types"
+							],
+							"query": [
+								{
+									"key": "item_type",
+									"value": "",
+									"description": "Filter by Category",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "inactive",
+									"description": "Filter by status (default: active)",
+									"disabled": true
+								},
+								{
+									"key": "page_size",
+									"value": "",
+									"description": "Items per page (default: 50)",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "",
+									"description": "Page number (default: 1)  ",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"item_name\": \"Indomie Goreng\",\r\n  \"item_type\": \"Bahan baku\",\r\n  \"item_description\": \"\",\r\n  \"item_image\": \"https://example.com/images/indomie-goreng.jpg\",\r\n  \"status\": \"Active\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/item-type",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-type"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/item-type/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-type",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "7fff63c2-8590-4c77-9451-c627679e9ebf"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"item_name\": \"Updated Indomie Goreng\",\r\n    \"item_type\": \"Bahan baku\",\r\n    \"item_description\": \"Updated description\",\r\n    \"item_image\": \"\",\r\n    \"status\": \"Active\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/item-type/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-type",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "7fff63c2-8590-4c77-9451-c627679e9ebf"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/item-type/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-type",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "7fff63c2-8590-4c77-9451-c627679e9ebf"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Item Instance",
+			"item": [
+				{
+					"name": "List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/item-instances",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-instances"
+							],
+							"query": [
+								{
+									"key": "item_type",
+									"value": "",
+									"description": "Filter by Category",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "inactive",
+									"description": "Filter by status (default: active)",
+									"disabled": true
+								},
+								{
+									"key": "page_size",
+									"value": "",
+									"description": "Items per page (default: 50)",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "",
+									"description": "Page number (default: 1)  ",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"item_type_id\": \"8582579e-1371-4de4-8fe8-4efdd3d81307\",\r\n  \"node_id\": \"eee2b3a2-67b2-4611-a07c-17a5f0594fe5\",\r\n  \"item_count\": 10,\r\n  \"expire_date\": \"2025-12-31T00:00:00Z\",\r\n  \"status\": \"Active\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/item-instance",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-instance"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/item-instance/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-instance",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "96a69168-baf7-4180-867b-e6ab66c7c407"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"item_type_id\": \"8582579e-1371-4de4-8fe8-4efdd3d81307\",\r\n  \"node_id\": \"eee2b3a2-67b2-4611-a07c-17a5f0594fe5\",\r\n  \"item_count\": 15,\r\n  \"expire_date\": \"2025-12-31T00:00:00Z\",\r\n  \"status\": \"Active\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/item-instance/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-instance",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "96a69168-baf7-4180-867b-e6ab66c7c407"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/item-instance/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-instance",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "96a69168-baf7-4180-867b-e6ab66c7c407"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Item Transit",
+			"item": [
+				{
+					"name": "List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/item-transits",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-transits"
+							],
+							"query": [
+								{
+									"key": "item_type",
+									"value": "",
+									"description": "Filter by Category",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "inactive",
+									"description": "Filter by status (default: active)",
+									"disabled": true
+								},
+								{
+									"key": "page_size",
+									"value": "",
+									"description": "Items per page (default: 50)",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "",
+									"description": "Page number (default: 1)  ",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"item_instance_id\": \"96a69168-baf7-4180-867b-e6ab66c7c407\",\r\n  \"source_node_id\": \"cc183368-9f76-490e-bb99-7180d59890dd\",\r\n  \"dest_node_id\": \"eee2b3a2-67b2-4611-a07c-17a5f0594fe5\",\r\n  \"time_departure\": \"2025-09-14T10:00:00Z\",\r\n  \"courier_name\": \"John Doe\",\r\n  \"courier_phone\": \"+62812345678\",\r\n  \"qr_url\": \"https://example.com/qr/transit-uuid-98765\",\r\n  \"status\": \"Active\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/item-transit",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-transit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/item-transit/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-transit",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "1d2519eb-dadf-474b-a60d-15cd7cb18d58"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"item_type_id\": \"8582579e-1371-4de4-8fe8-4efdd3d81307\",\r\n  \"node_id\": \"eee2b3a2-67b2-4611-a07c-17a5f0594fe5\",\r\n  \"item_count\": 15,\r\n  \"expire_date\": \"2025-12-31T00:00:00Z\",\r\n  \"status\": \"Active\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/item-transit/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-transit",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "1d2519eb-dadf-474b-a60d-15cd7cb18d58"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/item-transit/:node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"item-transit",
+								":node_id"
+							],
+							"variable": [
+								{
+									"key": "node_id",
+									"value": "1d2519eb-dadf-474b-a60d-15cd7cb18d58"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Login",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"admin.node@despro.com\",\r\n  \"password\": \"admin123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "List User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/user",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"user"
+							],
+							"query": [
+								{
+									"key": "node_id",
+									"value": "",
+									"description": "Filter by node iid",
+									"disabled": true
+								},
+								{
+									"key": "role",
+									"value": "",
+									"description": "Filter by role",
+									"disabled": true
+								},
+								{
+									"key": "page_size",
+									"value": "",
+									"description": "Items per page (default: 50)",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "",
+									"description": "Page number (default: 1)  ",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Read User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/user/:user_node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								":user_node_id"
+							],
+							"variable": [
+								{
+									"key": "user_node_id",
+									"value": "0d2c97b0-dcd9-4b0f-9316-86d5e52890bf"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"user@example.com\",\r\n  \"password\": \"securepassword123\",\r\n  \"node_id\": \"dd024ed1-3593-486f-bc69-bba8929c9f6d\",\r\n  \"role\": \"admin_node\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/user",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/user/:user_node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								":user_node_id"
+							],
+							"variable": [
+								{
+									"key": "user_node_id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"user@example.com\",\r\n  \"password\": \"user123\",\r\n  \"node_id\": \"dd024ed1-3593-486f-bc69-bba8929c9f6d\",\r\n  \"role\": \"admin_node\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/api/node/:user_node_id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"node",
+								":user_node_id"
+							],
+							"variable": [
+								{
+									"key": "user_node_id",
+									"value": "c709d04c-f45c-4388-9a51-c697bf52110f"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Node",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/user",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}
