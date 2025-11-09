@@ -12,6 +12,11 @@ This document defines the authentication API endpoints for standardization betwe
     - [HTTP Response Codes \& Logic](#http-response-codes--logic)
       - [✅ 200 OK](#-200-ok)
       - [Error Responses](#error-responses)
+  - [User Node](#user-node)
+    - [Request Parameters](#request-parameters-1)
+    - [HTTP Response Codes \& Logic](#http-response-codes--logic-1)
+      - [✅ 200 OK](#-200-ok-1)
+      - [Error Responses](#error-responses-1)
 
 ---
 
@@ -71,7 +76,8 @@ This document defines the authentication API endpoints for standardization betwe
       "name": "Node A",
       "type": "Storage | Assembly | Distribution",
       "location": "Warehouse Building A"
-    }
+    },
+    "isSuperAdmin": true
   }
 }
 ```
@@ -81,3 +87,50 @@ This document defines the authentication API endpoints for standardization betwe
 - `401 Unauthorized` when credentials are invalid
 - `400 Bad Request` when request body is malformed
 - `500 Internal Server Error` for unexpected server issues
+
+## User Node
+
+**Endpoint:** `GET /api/user/node`
+**Description:** Retrieves the node information associated with the authenticated user.
+
+### Request Parameters
+
+| Parameter | Type | Location | Required | Description |
+| --------- | ---- | -------- | -------- | ----------- |
+| None      |      |          |          | This endpoint does not require any parameters. |
+
+### HTTP Response Codes & Logic
+
+#### ✅ 200 OK
+
+**When:** The authenticated user has an assigned node.
+**Logic:**
+
+- Retrieve the authenticated user from the Supabase session.
+- Query the `user` table to fetch the `node_id` associated with the user.
+- Query the `nodes` table to fetch details of the node using the `node_id`.
+- Return the node details in the response.
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "User node retrieved successfully",
+  "data": {
+    "user_id": "uuid-string",
+    "node": {
+      "id": "uuid-string",
+      "name": "Node A",
+      "type": "Storage | Assembly | Distribution",
+      "location": "Warehouse Building A"
+    }
+  }
+}
+```
+
+#### Error Responses
+
+- `401 Unauthorized` when the user is not authenticated.
+- `404 Not Found` when the user does not have an assigned node or the node does not exist.
+- `500 Internal Server Error` for unexpected server issues.

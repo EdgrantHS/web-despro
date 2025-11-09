@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
             item_instance_id: body.item_instance_id,
             source_id: body.source_node_id,
             destination_id: body.dest_node_id,
-            qr_url: qrUrl,
+            qr_url: qrUrl,  
             item_count: 1
           })
           .select()

@@ -43,7 +43,8 @@ export default function Navigation() {
         name: 'Node Admin',
         href: '#',
         children: [
-          { name: 'My Item Instances', href: '/node-admin/item-instances' },
+          { name: 'Item Instances', href: '/node-admin/item-instances' },
+          { name: 'Dev Item Instances', href: '/node-admin/item-instances-dev' },
         ],
       });
     }

@@ -17,32 +17,53 @@ export default function LoginPage() {
   const handleLogin = async (email: string, password: string) => {
     setError('')
     
-    console.log('Login: Attempting login for:', email);
-    const result = await login(email, password)
-    
-    if (result) {
-      const role = result.data.user.role
-      console.log('Login: Success, user role:', role);
+    try {
+      console.log('🌐 UI: Starting login process for:', email);
+      const result = await login(email, password)
       
-      // Small delay to ensure localStorage is set
-      await new Promise(resolve => setTimeout(resolve, 100));
+      if (result) {
+        const role = result.data.user.role
+        const userName = result.data.user.name
+        const nodeName = result.data.node.name
+        
+        console.log('🎉 UI: Login successful!', { 
+          role, 
+          user: userName, 
+          location: nodeName 
+        });
+        
+        // Small delay to ensure localStorage is set
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Role-based redirection with user feedback
+        // Using window.location.href to ensure full page reload and proper auth state update
+        if (role === 'admin_pusat') {
+          console.log('🏢 UI: Redirecting to super admin dashboard');
+          window.location.href = '/super-admin'
+          return
+        }
+        if (role === 'admin_node') {
+          console.log('📍 UI: Redirecting to node admin dashboard');
+          window.location.href = '/node-admin'
+          return
+        }
+        // Petugas default to QR Scan
+        console.log('📱 UI: Redirecting to QR scanner');
+        window.location.href = '/qr-scan'
+      } else {
+        console.log('❌ UI: Login failed - no result returned');
+        setError('Login failed for an unknown reason. Please try again or contact support.')
+      }
+    } catch (error) {
+      console.error('💥 UI: Login error caught:', error);
       
-      if (role === 'admin_pusat') {
-        console.log('Login: Redirecting to super-admin');
-        router.push('/super-admin')
-        return
-      }
-      if (role === 'admin_node') {
-        console.log('Login: Redirecting to node-admin');
-        router.push('/node-admin')
-        return
-      }
-      // Petugas default to QR Scan
-      console.log('Login: Redirecting to qr-scan');
-      router.push('/qr-scan')
-    } else {
-      console.log('Login: Failed');
-      setError('Login failed. Please check your credentials.')
+      // Display the detailed error message from useAuth
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'An unexpected error occurred during login. Please try again.'
+      
+      console.log('📋 UI: Displaying error to user:', errorMessage);
+      setError(errorMessage)
     }
   }
 
@@ -90,7 +111,17 @@ export default function LoginPage() {
             {loading ? 'Logging in...' : 'Login'}
           </button>
           {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 mt-2">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <span className="text-red-400 text-lg">⚠️</span>
+                </div>
+                <div className="ml-2">
+                  <p className="text-sm text-red-700 font-medium">Login Error</p>
+                  <p className="text-sm text-red-600 mt-1">{error}</p>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </form>

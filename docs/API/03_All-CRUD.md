@@ -39,6 +39,18 @@ This document defines the parameters and responses for the basic CRUD operations
     - [Update Item Transit](#update-item-transit)
     - [Complete Item Transit](#complete-item-transit)
     - [List Active Transits](#list-active-transits)
+  - [User CRUD Endpoints](#user-crud-endpoints)
+    - [Database Table Schema](#database-table-schema)
+      - [User Table](#user-table)
+      - [User Roles Table](#user-roles-table)
+    - [Create User](#create-user)
+    - [Read User](#read-user)
+    - [Update User](#update-user)
+    - [Delete User](#delete-user)
+    - [List All Users](#list-all-users)
+    - [Get User Role](#get-user-role)
+    - [Update User Role](#update-user-role)
+    - [Set User Role](#set-user-role)
 
 ---
 
@@ -1012,3 +1024,400 @@ CRUD operations for managing item transits in the system.
   }
 }
 ```
+
+## User CRUD Endpoints
+
+CRUD operations for managing users in the system.
+
+> [!NOTE]
+> **Single Role Per User**: Each user can only have ONE role assigned at a time. The role can be one of: `petugas`, `admin_node`, or `admin_pusat`.
+
+### Database Table Schema
+
+#### User Table
+
+**Name:** user  
+**Columns:**
+
+- user_node_id (UUID, generated, primary key)
+- user_id (UUID, foreign id to supabsase auth users table)
+- node_id (UUID, foreign key to node table)
+- created_at (timestamp, auto-generated)
+
+---
+
+#### User Roles Table
+
+**Name:** user_roles  
+**Columns:**
+
+- id (UUID, generated, primary key)
+- user_node_id (UUID, foreign key to user table)
+- role (string, [petugas, admin_node, admin_pusat])
+
+
+### Create User
+
+**Endpoint:** `POST /api/user`
+
+**Description:** Creates a new user with auth account, profile, and roles.
+
+**Request Parameters:**
+
+| Parameter | Type     | Location | Required | Description                           |
+| --------- | -------- | -------- | -------- | ------------------------------------- |
+| email     | string   | body     | Yes      | User's email address                  |
+| password  | string   | body     | Yes      | User's password                       |
+| node_id   | string   | body     | Yes      | UUID of the node to assign user       |
+| role      | string   | body     | Yes      | User role [petugas, admin_node, admin_pusat] |
+
+**Example Request Body:**
+
+```json
+{
+  "email": "user@example.com",
+  "password": "securepassword123",
+  "node_id": "node-uuid-12345",
+  "role": "admin_node"
+}
+```
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "User created successfully",
+  "data": {
+    "user_node_id": "user-node-uuid-12345",
+    "user_id": "auth-uuid-67890",
+    "email": "user@example.com",
+    "node_id": "node-uuid-12345",
+    "role": "admin_node",
+    "created_at": "2025-09-14T10:30:00Z"
+  }
+}
+```
+
+### Read User
+
+**Endpoint:** `GET /api/user/{user_node_id}`
+
+**Description:** Retrieves details of a specific user by user_node_id.
+
+**Request Parameters:**
+
+| Parameter    | Type   | Location | Required | Description                    |
+| ------------ | ------ | -------- | -------- | ------------------------------ |
+| user_node_id | string | params   | Yes      | UUID of the user profile       |
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "User retrieved successfully",
+  "data": {
+    "user_node_id": "user-node-uuid-12345",
+    "user_id": "auth-uuid-67890",
+    "email": "user@example.com",
+    "node": {
+      "id": "node-uuid-12345",
+      "name": "Node A",
+      "type": "Source",
+      "address": "Warehouse Building A"
+    },
+    "role": "admin_node",
+    "created_at": "2025-09-14T10:30:00Z"
+  }
+}
+```
+
+### Update User
+
+**Endpoint:** `PUT /api/user/{user_node_id}`
+
+**Description:** Updates an existing user's information including email, node, and roles.
+
+**Request Parameters:**
+
+| Parameter    | Type     | Location | Required | Description                           |
+| ------------ | -------- | -------- | -------- | ------------------------------------- |
+| user_node_id | string   | params   | Yes      | UUID of the user profile to update    |
+| email        | string   | body     | No       | New email address                     |
+| password     | string   | body     | No       | New password (min. 6 characters)      |
+| node_id      | string   | body     | No       | New node assignment                   |
+| role         | string   | body     | No       | New role (replaces existing role)     |
+
+**Example Request Body:**
+
+```json
+{
+  "email": "newemail@example.com",
+  "password": "newsecurepassword123",
+  "node_id": "node-uuid-67890",
+  "role": "admin_pusat"
+}
+```
+
+**Note:** All fields are optional. You can update any combination of email, password, node_id, and role.
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "User updated successfully",
+  "data": {
+    "user_node_id": "user-node-uuid-12345",
+    "user_id": "auth-uuid-67890",
+    "email": "newemail@example.com",
+    "node": {
+      "id": "node-uuid-67890",
+      "name": "Node B",
+      "type": "Distribution",
+      "address": "Distribution Center B"
+    },
+    "role": "admin_pusat",
+    "created_at": "2025-09-14T10:30:00Z",
+    "updated_at": "2025-09-14T11:00:00Z"
+  }
+}
+```
+
+**Error Responses:**
+
+```json
+// Password too short
+{
+  "success": false,
+  "message": "Password must be at least 6 characters long"
+}
+
+// Invalid role
+{
+  "success": false,
+  "message": "Invalid role: invalid_role. Valid roles are: petugas, admin_node, admin_pusat"
+}
+
+// Invalid node_id
+{
+  "success": false,
+  "message": "Invalid node_id. Node does not exist."
+}
+
+// User not found
+{
+  "success": false,
+  "message": "User not found"
+}
+```
+
+### Delete User
+
+**Endpoint:** `DELETE /api/user/{user_node_id}`
+
+**Description:** Deletes a user completely (auth account, profile, and roles).
+
+**Request Parameters:**
+
+| Parameter    | Type   | Location | Required | Description              |
+| ------------ | ------ | -------- | -------- | ------------------------ |
+| user_node_id | string | params   | Yes      | UUID of the user profile |
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "User deleted successfully",
+  "data": {
+    "user_node_id": "user-node-uuid-12345",
+    "deleted_at": "2025-09-14T11:15:00Z"
+  }
+}
+```
+
+### List All Users
+
+**Endpoint:** `GET /api/user`
+
+**Description:** Retrieves a list of all users with profiles and their role completion status.
+
+> [!NOTE]
+> Due to API limitations, only users with existing profiles are shown. Users who exist only in Supabase Auth without profiles are not visible.
+
+**Response includes:**
+- `is_valid`: Boolean indicating if user has both profile and role
+- `status`: User completion status - `complete` or `missing_role`
+- `statistics`: Summary of user completion status for profiled users
+
+**Request Parameters:**
+
+| Parameter | Type   | Location | Required | Description                    |
+| --------- | ------ | -------- | -------- | ------------------------------ |
+| node_id   | string | query    | No       | Filter by node ID              |
+| role      | string | query    | No       | Filter by role                 |
+| page_size | number | query    | No       | Items per page (default: 50)  |
+| page      | number | query    | No       | Page number (default: 1)      |
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "Users retrieved successfully",
+  "data": {
+    "users": [
+      {
+        "user_id": "auth-uuid-67890",
+        "email": "user@example.com",
+        "user_node_id": "user-node-uuid-12345",
+        "node": {
+          "id": "node-uuid-12345",
+          "name": "Node A",
+          "type": "Source",
+          "address": "Warehouse Building A"
+        },
+        "role": "admin_node",
+        "created_at": "2025-09-14T10:30:00Z",
+        "is_valid": true,
+        "status": "complete"
+      },
+      {
+        "user_id": "auth-uuid-22222",
+        "email": "norole@example.com",
+        "user_node_id": "user-node-uuid-67890",
+        "node": {
+          "id": "node-uuid-67890",
+          "name": "Node B",
+          "type": "Distribution",
+          "address": "Distribution Center B"
+        },
+        "role": null,
+        "created_at": "2025-09-14T09:30:00Z",
+        "is_valid": false,
+        "status": "missing_role"
+      }
+    ],
+    "statistics": {
+      "total_profiles": 9,
+      "valid_users": 8,
+      "missing_roles": 1,
+      "note": "Only showing users with profiles. Auth-only users without profiles are not visible due to API limitations."
+    },
+    "pagination": {
+      "total_items": 9,
+      "current_page": 1,
+      "items_per_page": 50,
+      "total_pages": 1,
+      "has_next": false,
+      "has_previous": false
+    }
+  }
+}
+```
+
+### Get User Role
+
+**Endpoint:** `GET /api/user/{user_node_id}/roles`
+
+**Description:** Retrieves the role assigned to a specific user.
+
+**Request Parameters:**
+
+| Parameter    | Type   | Location | Required | Description              |
+| ------------ | ------ | -------- | -------- | ------------------------ |
+| user_node_id | string | params   | Yes      | UUID of the user profile |
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "User role retrieved successfully",
+  "data": {
+    "user_node_id": "user-node-uuid-12345",
+    "role": {
+      "id": "role-uuid-11111",
+      "role": "admin_node",
+      "created_at": "2025-09-14T10:30:00Z"
+    }
+  }
+}
+```
+
+### Update User Role
+
+**Endpoint:** `PUT /api/user/{user_node_id}/roles`
+
+**Description:** Replace the user's role (removes existing and sets new one).
+
+**Request Parameters:**
+
+| Parameter    | Type   | Location | Required | Description                           |
+| ------------ | ------ | -------- | -------- | ------------------------------------- |
+| user_node_id | string | params   | Yes      | UUID of the user profile              |
+| role         | string | body     | Yes      | New role to assign [petugas, admin_node, admin_pusat] |
+
+**Example Request Body:**
+
+```json
+{
+  "role": "admin_pusat"
+}
+```
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "User role updated successfully",
+  "data": {
+    "user_node_id": "user-node-uuid-12345",
+    "role": {
+      "id": "role-uuid-33333",
+      "role": "admin_pusat",
+      "created_at": "2025-09-14T11:00:00Z"
+    },
+    "updated_at": "2025-09-14T11:00:00Z"
+  }
+}
+```
+
+### Set User Role
+
+**Endpoint:** `POST /api/user/{user_node_id}/roles`
+
+**Description:** Sets a user's role (replaces existing role if any).
+
+**Request Parameters:**
+
+| Parameter    | Type   | Location | Required | Description                           |
+| ------------ | ------ | -------- | -------- | ------------------------------------- |
+| user_node_id | string | params   | Yes      | UUID of the user profile              |
+| role         | string | body     | Yes      | Role to set [petugas, admin_node, admin_pusat] |
+
+**Example Request Body:**
+
+```json
+{
+  "role": "admin_pusat"
+}
+```
+
+**Response Format:**
+
+```json
+{
+  "success": true,
+  "message": "Role set successfully",
+  "data": {
+    "id": "role-uuid-55555",
+    "role": "admin_pusat",
+    "created_at": "2025-09-14T11:05:00Z"
+  }
+}
+```
+

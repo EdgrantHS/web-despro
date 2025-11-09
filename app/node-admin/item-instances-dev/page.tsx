@@ -55,7 +55,8 @@ interface ItemInstanceFormData {
 export default function NodeAdminItemInstancesPage() {
   const [itemInstances, setItemInstances] = useState<ItemInstance[]>([]);
   const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
-  const [userNode, setUserNode] = useState<Node | null>(null);
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [selectedNodeId, setSelectedNodeId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ItemInstance | null>(null);
@@ -66,27 +67,39 @@ export default function NodeAdminItemInstancesPage() {
   });
 
   useEffect(() => {
-    fetchUserNodeAndData();
+    fetchNodes();
   }, []);
 
-  const fetchUserNodeAndData = async () => {
+  useEffect(() => {
+    if (selectedNodeId) {
+      fetchData();
+    }
+  }, [selectedNodeId]);
+
+  const fetchNodes = async () => {
+    try {
+      const response = await fetch('/api/nodes');
+      const data = await response.json();
+      if (data.success && data.data.nodes) {
+        setNodes(data.data.nodes);
+      } else {
+        setNodes([]);
+      }
+    } catch (error) {
+      console.error('Error fetching nodes:', error);
+      setNodes([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchData = async () => {
+    if (!selectedNodeId) return;
+    
     setIsLoading(true);
     try {
-      // First, get the user's assigned node
-      const nodeResponse = await fetch('/api/user/node');
-      const nodeData = await nodeResponse.json();
-      
-      if (!nodeData.success) {
-        console.error('Error fetching user node:', nodeData.message);
-        return;
-      }
-      
-      const userNodeInfo = nodeData.data.node;
-      setUserNode(userNodeInfo);
-      
-      // Now fetch item instances for this specific node and item types
       const [instancesRes, itemTypesRes] = await Promise.all([
-        fetch(`/api/item-instances?node_id=${userNodeInfo.id}`),
+        fetch(`/api/item-instances?node_id=${selectedNodeId}`),
         fetch('/api/item-types')
       ]);
       
@@ -111,14 +124,14 @@ export default function NodeAdminItemInstancesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!userNode) {
-      alert('User node information not available');
+    if (!selectedNodeId) {
+      alert('Please select a node first');
       return;
     }
     
     const payload = {
       item_type_id: formData.item_type_id,
-      node_id: userNode.id, // Auto-select current user's node
+      node_id: selectedNodeId, // Auto-select current node
       item_count: parseInt(formData.item_count),
       expire_date: formData.expire_date || undefined,
     };
@@ -134,7 +147,7 @@ export default function NodeAdminItemInstancesPage() {
       });
       
       if (response.ok) {
-        fetchUserNodeAndData();
+        fetchData();
         resetForm();
       }
     } catch (error) {
@@ -150,7 +163,7 @@ export default function NodeAdminItemInstancesPage() {
         });
         
         if (response.ok) {
-          fetchUserNodeAndData();
+          fetchData();
         }
       } catch (error) {
         console.error('Error deleting item instance:', error);
@@ -178,29 +191,42 @@ export default function NodeAdminItemInstancesPage() {
     setShowForm(false);
   };
 
-  const getUserNodeName = () => {
-    return userNode ? `${userNode.name} (${userNode.type})` : 'Loading...';
+  const getSelectedNodeName = () => {
+    const node = nodes.find(n => n.id === selectedNodeId);
+    return node ? `${node.name} (${node.type})` : 'None';
   };
 
-  if (isLoading) {
-    return <div className="p-6">Loading your node information and item instances...</div>;
+  if (isLoading && (!Array.isArray(nodes) || nodes.length === 0)) {
+    return <div className="p-6">Loading...</div>;
   }
 
-  if (!userNode) {
+  if (!selectedNodeId) {
     return (
       <div className="p-6">
         <div className="max-w-md mx-auto mt-10">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold mb-2">Node Admin - Item Instances</h1>
-            <p className="text-gray-600 text-red-600">
-              Unable to load your assigned node. Please contact an administrator.
-            </p>
+            <p className="text-gray-600">Select a node to manage its item instances</p>
           </div>
           
-          <div className="bg-red-50 p-6 rounded-lg border border-red-200 shadow-sm">
-            <p className="text-red-700 text-sm">
-              Your user account does not have a node assigned or the node information could not be retrieved.
-              Please contact your system administrator to resolve this issue.
+          <div className="bg-white p-6 rounded-lg border shadow-sm">
+            <Label htmlFor="node_select" className="text-base font-medium">Select Your Node</Label>
+            <select
+              id="node_select"
+              value={selectedNodeId}
+              onChange={(e) => setSelectedNodeId(e.target.value)}
+              className="w-full p-3 border rounded-lg mt-2"
+            >
+              <option value="">Choose a node...</option>
+              {Array.isArray(nodes) && nodes.map((node) => (
+                <option key={node.id} value={node.id}>
+                  {node.name} ({node.type}) - {node.location || 'No location'}
+                </option>
+              ))}
+            </select>
+            
+            <p className="text-sm text-gray-500 mt-2">
+              Note: In the future, this will be automatically selected based on your login.
             </p>
           </div>
         </div>
@@ -214,11 +240,16 @@ export default function NodeAdminItemInstancesPage() {
         <div>
           <h1 className="text-2xl font-bold">Node Admin - Item Instances</h1>
           <p className="text-gray-600">
-            Managing items for: <span className="font-semibold text-blue-600">{getUserNodeName()}</span>
+            Managing items for: <span className="font-semibold text-blue-600">{getSelectedNodeName()}</span>
           </p>
-          <p className="text-sm text-gray-500 mt-1">
-            Node automatically assigned based on your user account
-          </p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setSelectedNodeId('')}
+            className="mt-2"
+          >
+            Change Node
+          </Button>
         </div>
         <Button onClick={() => setShowForm(true)}>Add New Item Instance</Button>
       </div>
@@ -250,13 +281,13 @@ export default function NodeAdminItemInstancesPage() {
               <Label htmlFor="current_node">Current Node</Label>
               <Input
                 id="current_node"
-                value={getUserNodeName()}
+                value={getSelectedNodeName()}
                 disabled
                 className="bg-gray-100 cursor-not-allowed"
-                title="Node is automatically selected based on your user account"
+                title="Node is automatically selected based on your admin access"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Automatically assigned based on your user account
+                Auto-selected based on your node access
               </p>
             </div>
             <div>
@@ -308,7 +339,7 @@ export default function NodeAdminItemInstancesPage() {
             </TableHeader>
             <TableBody>
               {Array.isArray(itemInstances) && itemInstances.map((item, index) => (
-                <TableRow key={item.item_instance_id || `item-${index}`}>
+                <TableRow key={item.id || item.item_instance_id || `item-${index}`}>
                   <TableCell className="font-medium">
                     {item.item_type ? `${item.item_type.item_name} (${item.item_type.item_type})` : 'N/A'}
                   </TableCell>

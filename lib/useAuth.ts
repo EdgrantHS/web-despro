@@ -22,6 +22,7 @@ interface LoginResponse {
   data: {
     user: UserData
     node: NodeData
+    isSuperAdmin: boolean
   }
 }
 
@@ -35,26 +36,19 @@ export const useAuth = () => {
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        console.log('useAuth: Initializing authentication...');
         const userData = localStorage.getItem('userData')
         const superAdminStatus = localStorage.getItem('isSuperAdmin')
         
-        console.log('useAuth: Raw localStorage data:', { userData: !!userData, superAdminStatus });
-        
         if (userData) {
           const parsedData = JSON.parse(userData)
-          console.log('useAuth: Setting user data:', parsedData.user);
           setUser(parsedData.user)
           setNode(parsedData.node)
         }
         
         if (superAdminStatus) {
           const isSuper = JSON.parse(superAdminStatus);
-          console.log('useAuth: Setting super admin status:', isSuper);
           setIsSuperAdmin(isSuper)
         }
-        
-        console.log('useAuth: Authentication initialized');
       } catch (error) {
         console.error('Error initializing auth:', error)
         // Clear corrupted data
@@ -72,96 +66,51 @@ export const useAuth = () => {
     setLoading(true)
     
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
+      })
+
+      const result = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.message || `Login failed: ${response.status} ${response.statusText}`)
+      }
+
+      if (!result.success) {
+        throw new Error(result.message || 'Login failed')
+      }
+
+      // Set up Supabase client session
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email: email,
         password,
       })
       
       if (authError) {
-        throw new Error(authError.message)
+        console.warn('useAuth: Supabase session setup failed:', authError.message)
+        // Continue anyway since the API login was successful
       }
 
-      if (!authData.user) {
-        throw new Error('User not found')
-      }
-
-      const userId = authData.user.id
-
-      const { data: userRole, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .single()
-
-      if (roleError) {
-        throw new Error('Failed to fetch user role')
-      }
-
-      const { data: userData, error: userError } = await supabase
-        .from('user')
-        .select('node_id')
-        .eq('user_id', userId)
-        .single()
-
-      if (userError) {
-        throw new Error('Failed to fetch user data')
-      }
-
-      const { data: nodeData, error: nodeError } = await supabase
-        .from('nodes')
-        .select('node_id, node_name, node_type, node_address')
-        .eq('node_id', userData.node_id)
-        .single()
-
-      if (nodeError) {
-        throw new Error('Failed to fetch node data')
-      }
-
-      const { data: superAdminData, error: superAdminError } = await supabase
-        .from('super_admin')
-        .select('user_id')
-        .eq('user_id', userId)
-        .single()
-
-      const isSuperAdmin = !superAdminError && superAdminData
-
-      const response: LoginResponse = {
-        success: true,
-        message: 'Login successful',
-        data: {
-          user: {
-            id: userId,
-            username: email, // Using email as username
-            name: email, // Using email as name for now
-            role: userRole.role,
-            node_id: userData.node_id
-          },
-          node: {
-            id: nodeData.node_id,
-            name: nodeData.node_name,
-            type: nodeData.node_type,
-            location: nodeData.node_address
-          }
-        }
-      }
-
-      setUser(response.data.user)
-      setNode(response.data.node)
-      setIsSuperAdmin(!!isSuperAdmin)
+      // Update local state with API response data
+      const { user: userData, node: nodeData, isSuperAdmin } = result.data
       
-      console.log('useAuth: Login successful, setting localStorage data:', {
-        user: response.data.user,
-        isSuperAdmin: !!isSuperAdmin
-      });
+      setUser(userData)
+      setNode(nodeData)
+      setIsSuperAdmin(isSuperAdmin)
       
-      localStorage.setItem('userData', JSON.stringify(response.data))
-      localStorage.setItem('isSuperAdmin', JSON.stringify(!!isSuperAdmin))
+      localStorage.setItem('userData', JSON.stringify({ user: userData, node: nodeData }))
+      localStorage.setItem('isSuperAdmin', JSON.stringify(isSuperAdmin))
       
-      return response
+      return result
       
     } catch (error) {
-      console.error('Login error:', error)
-      return null
+      console.error('useAuth: Login failed:', error)
+      // Re-throw the error so the UI can display it
+      throw error
     } finally {
       setLoading(false)
     }
