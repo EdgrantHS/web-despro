@@ -22,6 +22,11 @@ export default function Navigation() {
 
     // QR Scan available for all authenticated roles
     items.push({ name: 'QR Scan', href: '/qr-scan' });
+    
+    items.push({ name: 'QR Create', href: '/qr-create' });
+
+    // Development QR Scanner (available for all authenticated users)
+    items.push({ name: 'QR Scan Dev', href: '/qr-scan-dev' });
 
     // Super Admin menu for Admin Pusat
     if (role === 'admin_pusat' || isSuperAdmin) {
@@ -29,6 +34,7 @@ export default function Navigation() {
         name: 'Super Admin',
         href: '#',
         children: [
+          { name: 'Users', href: '/super-admin/users' },
           { name: 'Nodes', href: '/super-admin/nodes' },
           { name: 'Item Types', href: '/super-admin/item-types' },
           { name: 'Item Instances', href: '/super-admin/item-instances' },

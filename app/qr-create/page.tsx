@@ -9,7 +9,7 @@ const QRCodeCreate = () => {
     // tambahkan 'count' pada tipe item instance
     const [itemInstanceList, setItemInstanceList] = useState<{ id: string; name: string; count: number }[]>([]);
     const [sourceList, setSourceList] = useState<{ id: string; name: string; type: string; address: string }[]>([]);
-    const [destinationList, setDestinationList] = useState<{ id: string; name: string }[]>([]);
+    const [destinationList, setDestinationList] = useState<{ id: string; name: string; type: string; address: string }[]>([]);
 
     // State untuk form
     const [formData, setFormData] = useState({
@@ -91,10 +91,10 @@ const QRCodeCreate = () => {
         }
     };
 
-    // Fetch tujuan (distribution nodes)
+    // Fetch tujuan (destination nodes) - now allows all active nodes as destination
     const fetchDistributionNodes = async () => {
         try {
-            const response = await fetch('/api/nodes?node_type=Distribution&status=active');
+            const response = await fetch('/api/nodes?status=active');
             const result = await response.json();
 
             if (result.success && result.data && Array.isArray(result.data.nodes)) {
@@ -108,7 +108,7 @@ const QRCodeCreate = () => {
                 );
             }
         } catch (err) {
-            console.error("Failed to fetch distribution nodes:", err);
+            console.error("Failed to fetch destination nodes:", err);
         }
     };
 
@@ -293,7 +293,7 @@ const QRCodeCreate = () => {
                             <option value="">Pilih Tujuan</option>
                             {destinationList.map(node => (
                                 <option key={node.id} value={node.id}>
-                                    {node.name}
+                                    {node.name} ({node.type})
                                 </option>
                             ))}
                         </select>
@@ -351,6 +351,18 @@ const QRCodeCreate = () => {
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-600">Node Tujuan</span>
                                     <span className="font-medium text-black">{qrData.destination_name}</span>
+                                </div>
+                                <div className="pt-2 border-t border-gray-200">
+                                    <div className="text-sm text-gray-600 mb-1">QR URL:</div>
+                                    <div className="bg-gray-50 p-2 rounded border font-mono text-xs break-all">
+                                        {qrData.qr_url}
+                                    </div>
+                                    <button
+                                        onClick={() => navigator.clipboard.writeText(qrData.qr_url)}
+                                        className="text-xs text-blue-600 hover:text-blue-800 mt-1"
+                                    >
+                                        📋 Copy URL
+                                    </button>
                                 </div>
                             </div>
                             <button

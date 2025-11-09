@@ -6,6 +6,13 @@ import { LoadingLink } from '@/components/LoadingLink';
 export default function SuperAdminPage() {
   const adminModules = [
     {
+      title: 'Users Management',
+      description: 'Manage system users, roles, and permissions across all nodes',
+      href: '/super-admin/users',
+      icon: '👥',
+      color: 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100'
+    },
+    {
       title: 'Nodes Management',
       description: 'Manage all nodes in the system - create, edit, and delete nodes',
       href: '/super-admin/nodes',

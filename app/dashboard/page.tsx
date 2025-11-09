@@ -93,6 +93,45 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+          
+          {/* Development Tools Section */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">🛠️ Development Tools</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <button
+                onClick={() => router.push('/qr-scan-dev')}
+                className="bg-blue-50 hover:bg-blue-100 border border-blue-200 p-4 rounded-lg text-left transition-colors"
+              >
+                <div className="text-2xl mb-2">📱</div>
+                <h3 className="font-medium text-gray-900">QR Scanner Dev</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Test QR scanning with camera and manual input
+                </p>
+              </button>
+              
+              <button
+                onClick={() => router.push('/qr-scan')}
+                className="bg-green-50 hover:bg-green-100 border border-green-200 p-4 rounded-lg text-left transition-colors"
+              >
+                <div className="text-2xl mb-2">📷</div>
+                <h3 className="font-medium text-gray-900">QR Scanner</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Production QR code scanner
+                </p>
+              </button>
+              
+              <button
+                onClick={() => router.push('/qr-create')}
+                className="bg-purple-50 hover:bg-purple-100 border border-purple-200 p-4 rounded-lg text-left transition-colors"
+              >
+                <div className="text-2xl mb-2">🔗</div>
+                <h3 className="font-medium text-gray-900">QR Generator</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Create QR codes for testing
+                </p>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
