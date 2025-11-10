@@ -495,4 +495,5 @@ MEETING TRANSCRIPTION:
           - [ ] Focus on improving the overall User Interface (UI).
       - **Edgrant**:
           - [ ] Work on fixing and improving the transit item logic.
+          - [ ] Fix vercel deployment
           - [x] Send the meeting notes.
