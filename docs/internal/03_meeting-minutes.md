@@ -59,6 +59,11 @@ MEETING TRANSCRIPTION:
   - [Bimbingan Despro - 2025/10/08](#bimbingan-despro---20251008)
   - [QR Scan Feature Discussion - 2025/10/10-10](#qr-scan-feature-discussion---20251010-10)
   - [Progress Update Meeting 5 - 2025/10/12](#progress-update-meeting-5---20251012)
+  - [2025/11/09-20.57](#20251109-2057)
+    - [Project Progress and Data Structure Updates (Phase 1-3)](#project-progress-and-data-structure-updates-phase-1-3)
+    - [QR Scanner Testing and Functionality](#qr-scanner-testing-and-functionality)
+    - [Deliverables and Presentation Timeline](#deliverables-and-presentation-timeline)
+    - [Role Assignments for Final Phases](#role-assignments-for-final-phases)
 
 ## Progress Update Meeting 1 - 2025/09/07
 
@@ -439,3 +444,55 @@ MEETING TRANSCRIPTION:
   - [ ] Check with Pak Alfan regarding the plan to purchase scanners.
   - [ ] Wait for Pak Alvan’s approval before purchasing action figures/miniatures.
   - [ ] Test if using a scanner connected via USB to a computer can input text when reading a QR code.
+
+## 2025/11/09-20.57
+
+  - **Recording**: https://drive.google.com/file/d/1enXBKAVXFlC8QlCIOJ4dWiZTccZjyM2a/view?usp=sharing
+  - **Attendees**: Edgrant, Bima, Haris, Nadif
+  - **Topic**: Project Progress Review (Phase 1-3), Item Instance Logic, QR Scanner Testing, Deliverables (Miniatures & Poster), and Phase 4 Assignment.
+  - **Summary**: The team reviewed the completion of Phase 1 through 3 and discussed critical logic changes regarding **item instances** (**transit items**), confirming they should not be treated as inventory due to expiry dates. Assignments were distributed, with **Haris** taking Phase 4, **Nadif** focusing on UI improvements, and **Edgrant** fixing transit item logic. **Bima** was tasked with testing the QR scanner functionality. Significant time was spent planning **deliverables (miniatures and posters)** for the upcoming presentation, targeted for review by Pak Alvan as early as next week.
+
+### Project Progress and Data Structure Updates (Phase 1-3)
+
+  - **Phase 1 through 3 Completion:** The initial development phases (1-3) are confirmed complete.
+  - **Item Instance Logic:** A key structural decision was made that **Item Instances** should **not** be treated as inventory because they include an expiry date. If they were treated as inventory, the system could contain identical items with different expiry dates.
+  - **Dashboard Logic:** If a dashboard is required to summarize item data for a specific node, logic must be implemented to allow for the summation of item instances belonging to that single node.
+  - **User UI Adaptation:** UI adjustments are necessary, especially for the **Node Admin** and **officers**. Their UIs must be adapted because they are expected to use mobile phones, while the **Central Admin** uses a laptop or computer.
+  - **Node Selection Automation:** The previous page used for selecting the node during item instance creation is now automatically synchronized with the user's specific node.
+  - _User dashboard: Created a dashboard for managing user accounts_
+
+### QR Scanner Testing and Functionality
+
+  - **Testing Requirement:** Bima is required to test the scanner functionality. The test involves creating any arbitrary QR code and ensuring the resulting link or output matches the expected data.
+  - **Scanner Behavior:** When scanning, the device behaves like a **keyboard**. It reads the **text** embedded in the QR code.
+  - _Test QR Code: the dev qr scan page can be used to read the scanned text and verify the output._
+
+### Deliverables and Presentation Timeline
+
+  - **Presentation Timeline:** The presentation is scheduled for approximately four weeks away, in early **December**. The team aims to finish development by the end of **November**.
+  - **Review Target:** The goal is to finish development by **next week** to allow for review by Pak Alfan.
+  - **Miniatures:** Miniatures are required to demonstrate the project's **flow** and overall **direction**.
+      - Four specific locations must be represented: **warehouse**, **kitchen**, and **school**.
+      - The setup should include a **car**, a **driver**, and about **5 or 6 people**, situated across the different points.
+      - _Miniatures should be a simplified representation of the project, simpler than the poster._
+  - **Poster:** A poster is also required. The poster should be **more detailed** than the miniatures.
+  - **Miniature Planning:** Although physical miniatures may not arrive by the target completion date (next week), initial drawings or conceptual planning is sufficient. Simple **top-down** drawings are acceptable, and 3D models are not strictly necessary. Text or writing at various points in the miniature setup can serve as an alternative reference to the poster.
+
+### Role Assignments for Final Phases
+
+  - **Phase 4:** Assigned to Haris.
+  - **UI Focus:** Assigned to Nadif for ongoing UI improvements.
+  - **Transit Item Fixes:** Edgrant will focus on fixing and improving the transit items logic.
+  - **Action Items**:
+      - **Bima**:
+          - [ ] Test QR code and test the scanner functionality.
+          - [ ] Provide a conceptual overview/drawing for the miniature design.
+          - [ ] Prepare for purchasing miniatures after approval.
+          - [ ] Think about the poster design and layout.
+      - **Haris**:
+          - [ ] Focus on completing Phase 4.
+      - **Nadif**:
+          - [ ] Focus on improving the overall User Interface (UI).
+      - **Edgrant**:
+          - [ ] Work on fixing and improving the transit item logic.
+          - [x] Send the meeting notes.
