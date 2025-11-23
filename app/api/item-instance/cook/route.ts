@@ -13,14 +13,7 @@ import {
   createErrorResponse,
   getSupabaseClient,
   handleApiError,
-  transformDbToApi
 } from '@/lib/api-helpers';
-import { log } from 'console';
-
-type Ingredient = {
-  item_instance_id: string;
-  item_count: number; // amount required PER PORTION
-};
 
 export async function POST(request: NextRequest) {
   return handleApiError(async () => {
@@ -39,105 +32,173 @@ export async function POST(request: NextRequest) {
     }
 
     const {
-      node_id,
-      item_count: servings, // number of portions to create
-      ingredients, // array of { item_instance_id, item_count } where item_count is amount per portion
-      item_type_id,
-      expire_date
+      recipe_id,    // UUID resep
+      node_id,      // Node tempat memasak (dari parameter, bukan dari recipe)
+      quantity,     // Jumlah porsi
+      expire_date   // Tanggal kadaluarsa hasil masakan
     } = body;
 
-    // Basic validation
+    // Validasi input
+    if (!recipe_id || typeof recipe_id !== 'string') {
+      return createErrorResponse('recipe_id (uuid) is required', 400);
+    }
     if (!node_id || typeof node_id !== 'string') {
       return createErrorResponse('node_id (uuid) is required', 400);
     }
-    if (!item_type_id || typeof item_type_id !== 'string') {
-      return createErrorResponse('item_type_id (uuid) is required', 400);
+    if (typeof quantity !== 'number' || quantity <= 0) {
+      return createErrorResponse('servings must be a positive number', 400);
     }
-    if (typeof servings !== 'number' || servings <= 0) {
-      return createErrorResponse('item_count (servings) must be a positive number', 400);
+
+    // 1. Fetch recipe & recipe_ingredients dengan item_types details
+    const { data: recipe, error: recipeErr } = await supabase
+      .from('recipes')
+      .select(`
+        id,
+        name,
+        node_id,
+        result_id,
+        recipe_ingredients (
+          item_id,
+          quantity,
+          item_types:item_id (
+            item_id,
+            item_name
+          )
+        )
+      `)
+      .eq('id', recipe_id)
+      .single();
+
+    if (recipeErr || !recipe) {
+      console.error('Recipe fetch error:', recipeErr);
+      return createErrorResponse('Recipe not found', 404);
     }
-    if (!Array.isArray(ingredients) || ingredients.length === 0) {
-      return createErrorResponse('ingredients (array) is required and cannot be empty', 400);
+
+    const ingredients = recipe.recipe_ingredients || [];
+    if (ingredients.length === 0) {
+      return createErrorResponse('Recipe has no ingredients defined', 400);
     }
-    // validate ingredients entries
+
+    // 2. Hitung kebutuhan per item_type
+    const neededMap: Record<string, { quantity: number; item_name: string }> = {};
     for (const ing of ingredients) {
-      if (!ing?.item_instance_id || typeof ing.item_instance_id !== 'string') {
-        return createErrorResponse('Each ingredient must contain item_instance_id (uuid)', 400);
-      }
-      if (typeof ing.item_count !== 'number' || ing.item_count < 0) {
-        return createErrorResponse('Each ingredient.item_count must be a non-negative number', 400);
+      const itemTypeId = ing.item_id;
+      const itemName = ing.item_types[0]?.item_name || 'Unknown Item';
+      const totalNeeded = ing.quantity * quantity;
+      
+      if (neededMap[itemTypeId]) {
+        neededMap[itemTypeId].quantity += totalNeeded;
+      } else {
+        neededMap[itemTypeId] = { quantity: totalNeeded, item_name: itemName };
       }
     }
 
-    // Build map of total needed per ingredient (assume ingredient.item_count is per portion)
-    const ingredientIds = ingredients.map((i: Ingredient) => i.item_instance_id);
-    const neededMap: Record<string, number> = {};
-    for (const ing of ingredients) {
-      neededMap[ing.item_instance_id] = (neededMap[ing.item_instance_id] || 0) + (ing.item_count * servings);
-    }
-
-    // Fetch current item_instances for all ingredient ids
-    const { data: currentItems, error: fetchErr } = await supabase
+    // 3. Fetch item_instances untuk semua item_types yang dibutuhkan
+    const itemTypeIds = Object.keys(neededMap);
+    const { data: itemInstances, error: itemErr } = await supabase
       .from('item_instances')
-      .select('item_instance_id, item_count')
-      .in('item_instance_id', ingredientIds);
+      .select(`
+        item_instance_id,
+        item_type_id,
+        item_count,
+        expire_date,
+        item_types (
+          item_id,
+          item_name
+        )
+      `)
+      .in('item_type_id', itemTypeIds)
+      .eq('node_id', node_id)
+      .order('expire_date', { ascending: true }); // FIFO priority
 
-    if (fetchErr) {
-      console.error('Failed to fetch item_instances for ingredients:', fetchErr);
+    if (itemErr) {
+      console.error('Failed to fetch item_instances:', itemErr);
       return createErrorResponse('Database error while checking ingredients', 500);
     }
 
-    // Ensure all ingredient rows exist
-    const foundIds = new Set(currentItems.map((r: any) => r.item_instance_id));
-    for (const id of ingredientIds) {
-      if (!foundIds.has(id)) {
-        return createErrorResponse(`Ingredient item_instance not found: ${id}`, 400);
+    // 4. Alokasikan item_instances untuk memenuhi kebutuhan (FIFO greedy)
+    const allocation: Record<string, { need: number; current: number; remaining: number }> = {};
+    const allocationDetail: Array<{ 
+      item_instance_id: string; 
+      item_name: string; 
+      quantity_used: number;
+      remaining: number;
+    }> = [];
+
+    for (const itemTypeId of itemTypeIds) {
+      const need = neededMap[itemTypeId].quantity;
+      const itemName = neededMap[itemTypeId].item_name;
+      let remaining = need;
+
+      const candidates = itemInstances.filter((ii: any) => ii.item_type_id === itemTypeId);
+
+      if (candidates.length === 0) {
+        return createErrorResponse(
+          `No stock found for ingredient: ${itemName} (item_type: ${itemTypeId})`,
+          400
+        );
+      }
+
+      for (const candidate of candidates) {
+        if (remaining <= 0) break;
+
+        const current = Number(candidate.item_count || 0);
+        const take = Math.min(remaining, current);
+
+        allocation[candidate.item_instance_id] = {
+          need: take,
+          current,
+          remaining: current - take
+        };
+
+        allocationDetail.push({
+          item_instance_id: candidate.item_instance_id,
+          item_name: candidate.item_types[0]?.item_name || itemName,
+          quantity_used: take,
+          remaining: current - take
+        });
+
+        remaining -= take;
+      }
+
+      // Cek ketersediaan - error handling SPESIFIK
+      if (remaining > 0) {
+        const totalAvailable = candidates.reduce((sum: number, ii: any) => sum + Number(ii.item_count || 0), 0);
+        return createErrorResponse(
+          `Insufficient stock for ingredient "${itemName}": need ${need}, available ${need - remaining}. Total in node: ${totalAvailable}`,
+          400
+        );
       }
     }
 
-    // Check availability
-    const insufficient: string[] = [];
-    const currentMap: Record<string, number> = {};
-    for (const row of currentItems) {
-      const cid = row.item_instance_id;
-      const current = Number(row.item_count ?? 0);
-      currentMap[cid] = current;
-      const need = Number(neededMap[cid] ?? 0);
-      if (current < need) {
-        insufficient.push(`${cid} (need ${need}, have ${current})`);
-      }
-    }
-
-    if (insufficient.length > 0) {
-      return createErrorResponse(`Insufficient stock for ingredients: ${insufficient.join('; ')}`, 400);
-    }
-
-    // All checks passed - proceed to decrement ingredients and create cooked item_instance
+    // 5. Decrement ingredients & create cooked item
     try {
-      // Decrement each ingredient
-      for (const id of Object.keys(neededMap)) {
-        const need = neededMap[id];
-        const newCount = currentMap[id] - need;
+      // Decrement each allocated item_instance
+      for (const [instanceId, { remaining }] of Object.entries(allocation)) {
         const { error: updateErr } = await supabase
           .from('item_instances')
-          .update({ item_count: newCount })
-          .eq('item_instance_id', id);
+          .update({ item_count: remaining })
+          .eq('item_instance_id', instanceId);
 
         if (updateErr) {
-          console.error('Failed to update ingredient item_instance:', id, updateErr);
-          return createErrorResponse('Failed to update ingredient stock', 500);
+          console.error('Failed to update ingredient stock:', instanceId, updateErr);
+          return createErrorResponse(
+            `Failed to deduct ingredient: ${instanceId}. Please try again.`,
+            500
+          );
         }
       }
 
-      // Insert cooked item_instance (the finished dish)
+      // Insert cooked item_instance
       const insertPayload: any = {
-        item_type_id,
-        node_id,
-        item_count: servings,
+        item_type_id: recipe.result_id,
+        node_id: node_id,
+        item_count: quantity,
       };
       if (expire_date) {
-        // accept either string or Date; store as ISO string
-        insertPayload.expire_date = typeof expire_date === 'string' ? expire_date : new Date(expire_date).toISOString();
+        insertPayload.expire_date = typeof expire_date === 'string' 
+          ? expire_date 
+          : new Date(expire_date).toISOString();
       }
 
       const { data: inserted, error: insertErr } = await supabase
@@ -148,7 +209,7 @@ export async function POST(request: NextRequest) {
           item_count,
           expire_date,
           item_types (
-            item_type,
+            item_id,
             item_name
           )
         `)
@@ -156,33 +217,24 @@ export async function POST(request: NextRequest) {
 
       if (insertErr || !inserted) {
         console.error('Failed to insert cooked item_instance:', insertErr);
-        // Attempt to rollback ingredient changes would be ideal here (not implemented)
-        return createErrorResponse('Failed to create cooked item instance', 500);
+        return createErrorResponse(
+          'Failed to create finished product. Ingredient stocks may have been deducted.',
+          500
+        );
       }
 
-      // Return success with created item_instance and updated ingredient summary
-      const updatedIngredients: any[] = [];
-      for (const id of Object.keys(neededMap)) {
-        updatedIngredients.push({
-          item_instance_id: id,
-          deducted: neededMap[id],
-          remaining: currentMap[id] - neededMap[id]
-        });
-      }
-
-      console.log("Response: ", inserted);
-
-      return createSuccessResponse('Cooked item instance created and ingredients deducted', {
+      return createSuccessResponse('Recipe cooked successfully', {
         cooked_item: {
           id: inserted.item_instance_id,
-          item_count: inserted.item_count,
+          name: inserted.item_types[0]?.item_name || 'Unknown',
+          quantity: inserted.item_count,
           expire_date: inserted.expire_date,
-          item_type: inserted.item_types && Array.isArray(inserted.item_types) && inserted.item_types.length > 0 ? {
-            id: inserted.item_types[0]?.item_type,
-            name: inserted.item_types[0]?.item_name
-          } : null
         },
-        updated_ingredients: updatedIngredients
+        ingredients_used: allocationDetail,
+        recipe: {
+          id: recipe.id,
+          name: recipe.name
+        }
       });
     } catch (err) {
       console.error('Unexpected error during cook operation:', err);
