@@ -64,6 +64,7 @@ MEETING TRANSCRIPTION:
     - [QR Scanner Testing and Functionality](#qr-scanner-testing-and-functionality)
     - [Deliverables and Presentation Timeline](#deliverables-and-presentation-timeline)
     - [Role Assignments for Final Phases](#role-assignments-for-final-phases)
+  - [2025/11/25-14.17](#20251125-1417)
 
 ## Progress Update Meeting 1 - 2025/09/07
 
@@ -497,3 +498,48 @@ MEETING TRANSCRIPTION:
           - [ ] Work on fixing and improving the transit item logic.
           - [ ] Fix vercel deployment
           - [x] Send the meeting notes.
+
+
+
+## 2025/11/25-14.17
+
+- *Recording*: `Transcription(base).txt`
+- **Attendees**: Edgrant, Bima, Haris, Nadif
+- *Topic*: Design Project (Despro) Timeline, Application Development, and Exhibition Preparation.
+- *Summary*: The team discussed the timeline for the "Despro" final report and exhibition. Technical decisions were made regarding the frontend mobile view and the removal of the "Courier" feature to streamline development. The database schema for recipes and ingredients was reviewed. Plans for the physical miniature display (3 buildings) and budget for exhibition refreshments were finalized.
+
+- *Discussion Points*
+  - **Project Timeline & Deliverables**
+    - The final report must be completed by the 30th.
+    - The project display will take place on the 10th or 11th.
+    - The team aims to have a demo (Phase 3) ready this week to present to "Pak Alfan" next week.
+
+  - **Frontend & UI Implementation**
+    - A display issue was noted where the mobile view needs to be preserved on PC screens. The solution discussed is adding a `max-width` (approx. 600px) to the outer wrapper to maintain the mobile aspect ratio.
+    - The QR code display has been adjusted to fit the design.
+
+  - **Backend & Database Schema**
+    - **Courier Feature:** The team decided to remove the "Courier" feature from the item transit flow to simplify the system and ensure the project is finished on time. The database column exists, but it will not be implemented in the program.
+    - **Recipe Logic:** The system includes tables for Reports, Recipes, Item Types, and Ingredients.
+    - **Relationships:** A single recipe links to multiple ingredients via a bridging table. One row in the recipe table refers to a specific instruction set and resource.
+    - **Cooking Feature:** Implementing "Cooking" will deduct from stock. It handles stock differently compared to raw material stock.
+
+  - **Exhibition & Miniature Setup**
+    - **Structure:** The miniature display will consist of three buildings: a Warehouse, a Kitchen, and a School.
+    - **Packaging:** The team plans to use a clear box/container for the miniature setup.
+    - **Staffing:** Five distinct roles are required for the demo, including a Chef and delivery personnel.
+    - **Refreshments:** Discussion regarding the exhibition budget (approx. 400k total). The plan involves serving drinks (discussion between Pop Ice vs. Milo) and purchasing cups and water gallons. A reserve of 200k is set aside for safety.
+
+  - **Demo Media**
+    - The team debated between a looping video or an animation for the display monitor. They leaned towards an animation that explains the steps/process to complement the poster.
+
+- *Action Items*:
+  - Harris:
+    - [ ] Complete report and cooking
+  - Nadhif
+    - [ ] Refactor UI to match figma
+  - Edgrant
+    - [ ] Complete the final report by the 30th.
+    - [ ] Create demo/animation video
+  - Bima
+    - [ ] Finalize miniature construction (3 buildings) and purchase exhibition supplies.
