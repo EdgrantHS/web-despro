@@ -50,6 +50,8 @@ export default function Navigation() {
         href: '#',
         children: [
           { name: 'Item Instances', href: '/node-admin/item-instances' },
+          { name: 'Recipes', href: '/node-admin/recipes' },
+          { name: 'Cook Recipe', href: '/node-admin/cook' },
           { name: 'Dev Item Instances', href: '/node-admin/item-instances-dev' },
         ],
       });

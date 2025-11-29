@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
         const {
             name,
             node_id,           // nullable - null untuk global, uuid untuk lokal
-            result_id,         // item_type_id hasil masakan
+            result_id,         // item_type_id hasil masakan (optional jika result_name diberikan)
+            result_name,       // nama hasil masakan baru (jika result_id tidak ada)
             instructions,      // instruksi memasak
             ingredients        // array: [{ item_id, quantity, note }]
         } = body;
@@ -72,8 +73,8 @@ export async function POST(request: NextRequest) {
         if (!name || typeof name !== 'string') {
             return createErrorResponse('name (string) is required', 400);
         }
-        if (!result_id || typeof result_id !== 'string') {
-            return createErrorResponse('result_id (uuid) is required', 400);
+        if (!result_id && !result_name) {
+            return createErrorResponse('Either result_id (uuid) or result_name (string) is required', 400);
         }
         if (!Array.isArray(ingredients) || ingredients.length === 0) {
             return createErrorResponse('ingredients (array) is required and cannot be empty', 400);
@@ -90,14 +91,47 @@ export async function POST(request: NextRequest) {
         }
 
         try {
-            // 1. Insert recipe
+            let finalResultId = result_id;
+            let resultItem = null;
+
+            // 1. Jika result_name diberikan, buat entry baru di item_types
+            if (result_name && !result_id) {
+                const { data: newItemType, error: itemTypeErr } = await supabase
+                    .from('item_types')
+                    .insert([
+                        {
+                            item_name: result_name
+                        }
+                    ])
+                    .select('item_id, item_name')
+                    .single();
+
+                if (itemTypeErr || !newItemType) {
+                    console.error('Failed to create item_type:', itemTypeErr);
+                    return createErrorResponse('Failed to create result item type', 500);
+                }
+
+                finalResultId = newItemType.item_id;
+                resultItem = newItemType;
+            } else if (result_id) {
+                // 2. Fetch existing result item_type info
+                const { data: existingItem } = await supabase
+                    .from('item_types')
+                    .select('item_id, item_name')
+                    .eq('item_id', result_id)
+                    .single();
+
+                resultItem = existingItem;
+            }
+
+            // 3. Insert recipe
             const { data: recipe, error: recipeErr } = await supabase
                 .from('recipes')
                 .insert([
                     {
                         name,
                         node_id,
-                        result_id,
+                        result_id: finalResultId,
                         instructions: instructions || null
                     }
                 ])
@@ -109,7 +143,7 @@ export async function POST(request: NextRequest) {
                 return createErrorResponse('Failed to create recipe', 500);
             }
 
-            // 2. Insert recipe_ingredients
+            // 4. Insert recipe_ingredients
             const ingredientRows = ingredients.map((ing: any) => ({
                 recipe_id: recipe.id,
                 item_id: ing.item_id,
@@ -135,22 +169,15 @@ export async function POST(request: NextRequest) {
             if (ingredientsErr) {
                 console.error('Failed to insert recipe_ingredients:', ingredientsErr);
                 // Rollback recipe
-                await supabase.from('recipe').delete().eq('id', recipe.id);
+                await supabase.from('recipes').delete().eq('id', recipe.id);
                 return createErrorResponse('Failed to add ingredients', 500);
             }
-
-            // 3. Fetch result item_type info
-            const { data: resultItem } = await supabase
-                .from('item_types')
-                .select('item_id, item_name')
-                .eq('item_id', result_id)
-                .single();
 
             return createSuccessResponse('Recipe created successfully', {
                 id: recipe.id,
                 name: recipe.name,
                 node_id: recipe.node_id,
-                result: resultItem || { item_id: result_id },
+                result: resultItem || { item_id: finalResultId },
                 instructions: recipe.instructions,
                 created_at: recipe.created_at,
                 ingredients: recipeIngredients || []

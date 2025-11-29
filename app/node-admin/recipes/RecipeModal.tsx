@@ -41,6 +41,7 @@ interface RecipeFormData {
   name: string;
   node_id: string;
   result_id: string;
+  result_name: string;
   instructions: string;
   recipe_ingredients: RecipeIngredient[];
 }
@@ -54,10 +55,12 @@ interface RecipeModalProps {
 export default function RecipeModal({ recipe, onClose, onSuccess }: RecipeModalProps) {
   const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [useNewResult, setUseNewResult] = useState(false);
   const [formData, setFormData] = useState<RecipeFormData>({
     name: '',
     node_id: '',
     result_id: '',
+    result_name: '',
     instructions: '',
     recipe_ingredients: []
   });
@@ -75,9 +78,11 @@ export default function RecipeModal({ recipe, onClose, onSuccess }: RecipeModalP
         name: recipe.name,
         node_id: recipe.node_id || '',
         result_id: recipe.result_id,
+        result_name: recipe.item_types?.item_name || '',
         instructions: recipe.instructions || '',
         recipe_ingredients: recipe.recipe_ingredients || []
       });
+      setUseNewResult(false);
     }
   }, [recipe]);
 
@@ -95,8 +100,13 @@ export default function RecipeModal({ recipe, onClose, onSuccess }: RecipeModalP
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.result_id) {
-      alert('Please fill in recipe name and result item');
+    if (!formData.name) {
+      alert('Please fill in recipe name');
+      return;
+    }
+
+    if (!formData.result_id && !formData.result_name) {
+      alert('Please select an existing result item or enter a new result item name');
       return;
     }
 
@@ -107,13 +117,23 @@ export default function RecipeModal({ recipe, onClose, onSuccess }: RecipeModalP
 
     setIsLoading(true);
 
-    const payload = {
+    const payload: any = {
       name: formData.name,
       node_id: formData.node_id || null,
-      result_id: formData.result_id,
       instructions: formData.instructions || null,
-      recipe_ingredients: formData.recipe_ingredients
+      ingredients: formData.recipe_ingredients.map(ing => ({
+        item_id: ing.item_id,
+        quantity: ing.quantity,
+        note: ing.note || null
+      }))
     };
+
+    // Gunakan result_id jika ada, otherwise gunakan result_name
+    if (formData.result_id) {
+      payload.result_id = formData.result_id;
+    } else {
+      payload.result_name = formData.result_name;
+    }
 
     try {
       const url = recipe ? `/api/recipes/${recipe.id}` : '/api/recipes';
@@ -220,22 +240,65 @@ export default function RecipeModal({ recipe, onClose, onSuccess }: RecipeModalP
                 required
               />
             </div>
+            
             <div>
-              <Label htmlFor="result_id">Result Item (Product) *</Label>
-              <select
-                id="result_id"
-                value={formData.result_id}
-                onChange={(e) => setFormData({...formData, result_id: e.target.value})}
-                className="w-full p-2 border rounded-md"
-                required
-              >
-                <option value="">Select Result Item</option>
-                {itemTypes.map((type) => (
-                  <option key={type.item_id} value={type.item_id}>
-                    {type.item_name} ({type.item_type})
-                  </option>
-                ))}
-              </select>
+              <Label>Result Item (Product) *</Label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    id="existing_result"
+                    checked={!useNewResult}
+                    onChange={() => {
+                      setUseNewResult(false);
+                      setFormData({...formData, result_name: ''});
+                    }}
+                  />
+                  <label htmlFor="existing_result" className="text-sm cursor-pointer">
+                    Select Existing
+                  </label>
+                </div>
+
+                {!useNewResult ? (
+                  <select
+                    value={formData.result_id}
+                    onChange={(e) => setFormData({...formData, result_id: e.target.value})}
+                    className="w-full p-2 border rounded-md"
+                    required
+                  >
+                    <option value="">Select Result Item</option>
+                    {itemTypes.map((type) => (
+                      <option key={type.item_id} value={type.item_id}>
+                        {type.item_name} ({type.item_type})
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    id="new_result"
+                    checked={useNewResult}
+                    onChange={() => {
+                      setUseNewResult(true);
+                      setFormData({...formData, result_id: ''});
+                    }}
+                  />
+                  <label htmlFor="new_result" className="text-sm cursor-pointer">
+                    Create New
+                  </label>
+                </div>
+
+                {useNewResult ? (
+                  <Input
+                    placeholder="Enter new result item name"
+                    value={formData.result_name}
+                    onChange={(e) => setFormData({...formData, result_name: e.target.value})}
+                    required
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
 
