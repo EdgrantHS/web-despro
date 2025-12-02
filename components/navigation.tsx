@@ -24,9 +24,13 @@ export default function Navigation() {
     items.push({ name: 'QR Scan', href: '/qr-scan' });
     
     items.push({ name: 'QR Create', href: '/qr-create' });
+    items.push({ name: 'QR Create Admin', href: '/qr-create-admin' });
 
     // Development QR Scanner (available for all authenticated users)
     items.push({ name: 'QR Scan Dev', href: '/qr-scan-dev' });
+
+    // Scanner Interface for hardware scanners
+    items.push({ name: 'Scanner Interface', href: '/scanner-interface' });
 
     // Super Admin menu for Admin Pusat
     if (role === 'admin_pusat' || isSuperAdmin) {

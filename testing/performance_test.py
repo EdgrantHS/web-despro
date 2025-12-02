@@ -25,11 +25,11 @@ NUM_ITERATIONS = 30  # Number of test iterations to run for statistical reliabil
 DELAY_BETWEEN_ITERATIONS = 2  # Seconds to wait between full test cycles
 DELAY_BETWEEN_TESTS = 0.5  # Seconds to wait between individual tests
 REQUEST_TIMEOUT = 10  # Timeout for all HTTP requests and browser operations (seconds)
-BASE_URL = "https://web-despro.vercel.app"
+BASE_URL = "http://localhost:3001"
 RESULTS_DIR = "results"
 
 class PerformanceTester:
-    def __init__(self, base_url=BASE_URL):
+    def __init__(self, base_url="http://localhost:3001"):
         self.base_url = base_url
         self.results = []
         if not os.path.exists(RESULTS_DIR):
@@ -364,7 +364,7 @@ async def main():
     
     # Check if server is running
     try:
-        response = requests.get(BASE_URL, timeout=REQUEST_TIMEOUT)
+        response = requests.get("http://localhost:3001", timeout=REQUEST_TIMEOUT)
         print("✅ Server is running on port 3001")
     except:
         print("❌ Server is not responding on port 3001")

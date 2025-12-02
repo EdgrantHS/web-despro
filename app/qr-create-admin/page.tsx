@@ -7,20 +7,21 @@ import * as QRCodeLib from 'qrcode';
 
 const QRCodeCreate = () => {
     // State untuk data dropdown hasil fetch
+    // tambahkan 'count' pada tipe item instance
     const [itemInstanceList, setItemInstanceList] = useState<{ id: string; name: string; count: number }[]>([]);
+    const [sourceList, setSourceList] = useState<{ id: string; name: string; type: string; address: string }[]>([]);
     const [destinationList, setDestinationList] = useState<{ id: string; name: string; type: string; address: string }[]>([]);
-    const [userNode, setUserNode] = useState<{ id: string; name: string; type: string; location?: string } | null>(null);
 
     // State untuk form
     const [formData, setFormData] = useState({
         itemInstanceId: '',
+        sourceId: '',
         destinationId: '',
         itemCount: 0
     });
 
     // State data untuk kebutuhan frontend
     const [modalOpen, setModalOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
     const [qrData, setQrData] = useState<{
         qr_url: string;
         item_name: string;
@@ -30,40 +31,29 @@ const QRCodeCreate = () => {
         destination_name: string;
     } | null>(null);
 
-    // Handler fetch data
+    // Handler fetch data (siapkan, tinggal isi logic fetch)
     useEffect(() => {
-        fetchUserNodeAndData();
+        fetchSourceNodes();
+        fetchDistributionNodes();
+
+        // console.log('QR Data:', qrData);
+
     }, []);
 
-    const fetchUserNodeAndData = async () => {
-        setIsLoading(true);
+    useEffect(() => {
+        fetchItemInstances();
+    }, [formData.sourceId])
+
+
+    // Fetch item instances dari API
+    const fetchItemInstances = async () => {
         try {
-            // First, get the user's assigned node
-            const nodeResponse = await fetch('/api/user/node');
-            const nodeData = await nodeResponse.json();
-            
-            if (!nodeData.success) {
-                console.error('Error fetching user node:', nodeData.message);
-                return;
-            }
-            
-            const userNodeInfo = nodeData.data.node;
-            setUserNode(userNodeInfo);
-            
-            // Now fetch item instances for this specific node and destination nodes
-            const [instancesRes, destinationRes] = await Promise.all([
-                fetch(`/api/item-instances?node_id=${userNodeInfo.id}`),
-                fetch('/api/nodes?status=active')
-            ]);
-            
-            const [instancesData, destinationData] = await Promise.all([
-                instancesRes.json(),
-                destinationRes.json()
-            ]);
-            
-            if (instancesData.success && instancesData.data && Array.isArray(instancesData.data.item_instances)) {
+            const response = await fetch(`/api/item-instances?node_id=${formData.sourceId}`);
+            const result = await response.json();
+            // Pastikan response sukses dan ada data
+            if (result.success && result.data && Array.isArray(result.data.item_instances)) {
                 setItemInstanceList(
-                    instancesData.data.item_instances.map((item: any) => ({
+                    result.data.item_instances.map((item: any) => ({
                         id: item.id,
                         name: item.item_types?.item_name || item.item_type?.item_name || "Unknown",
                         count: item.item_count || 0
@@ -72,21 +62,54 @@ const QRCodeCreate = () => {
             } else {
                 setItemInstanceList([]);
             }
+        } catch (err) {
+            console.error("Failed to fetch item instances:", err);
+            setItemInstanceList([]);
+        }
+    };
 
-            if (destinationData.success && destinationData.data && Array.isArray(destinationData.data.nodes)) {
+    // Fetch asal (source nodes) - now allows any node as source
+    const fetchSourceNodes = async () => {
+        try {
+            const response = await fetch('/api/nodes?status=active');
+            const result = await response.json();
+
+            if (result.success && result.data && Array.isArray(result.data.nodes)) {
+                setSourceList(
+                    result.data.nodes.map((node: any) => ({
+                        id: node.id, // Use 'id' since we fixed the field mapping
+                        name: node.name, // Use 'name' since we fixed the field mapping
+                        type: node.type, // Use 'type' since we fixed the field mapping
+                        address: node.location || "" // Use 'location' since we fixed the field mapping
+                    }))
+                );
+            } else {
+                setSourceList([]);
+            }
+        } catch (err) {
+            console.error("Failed to fetch source nodes:", err);
+            setSourceList([]);
+        }
+    };
+
+    // Fetch tujuan (destination nodes) - now allows all active nodes as destination
+    const fetchDistributionNodes = async () => {
+        try {
+            const response = await fetch('/api/nodes?status=active');
+            const result = await response.json();
+
+            if (result.success && result.data && Array.isArray(result.data.nodes)) {
                 setDestinationList(
-                    destinationData.data.nodes.map((node: any) => ({
-                        id: node.id,
-                        name: node.name,
-                        type: node.type,
-                        address: node.location || ""
+                    result.data.nodes.map((node: any) => ({
+                        id: node.id, // Use 'id' since we fixed the field mapping
+                        name: node.name, // Use 'name' since we fixed the field mapping
+                        type: node.type, // Use 'type' since we fixed the field mapping
+                        address: node.location || "" // Use 'location' since we fixed the field mapping
                     }))
                 );
             }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            setIsLoading(false);
+        } catch (err) {
+            console.error("Failed to fetch destination nodes:", err);
         }
     };
 
@@ -214,15 +237,10 @@ const QRCodeCreate = () => {
             return;
         }
 
-        if (!userNode) {
-            alert('Node information not available');
-            return;
-        }
-
         // Parsing form data ke format API
         const parsedData = {
             item_instance_id: formData.itemInstanceId,
-            source_id: userNode.id, // Automatically use user's node
+            source_id: formData.sourceId,
             destination_id: formData.destinationId,
             item_count: formData.itemCount
         };
@@ -252,50 +270,17 @@ const QRCodeCreate = () => {
                 // Reset input form
                 setFormData({
                     itemInstanceId: '',
+                    sourceId: '',
                     destinationId: '',
                     itemCount: 0
                 });
             } else {
                 console.error('Failed to create new QR Code: ' + (result.message || 'Unknown error'));
-                alert('Failed to create QR Code: ' + (result.message || 'Unknown error'));
             }
         } catch (err) {
             console.error('Error creating QR code:', err);
-            alert('Error creating QR code. Please try again.');
         }
     };
-
-    const getUserNodeName = () => {
-        return userNode ? `${userNode.name} (${userNode.type})` : 'Loading...';
-    };
-
-    if (isLoading) {
-        return (
-            <div className="w-full min-h-screen bg-white flex-1 flex items-center justify-center p-4">
-                <div className="text-center">
-                    <p className="text-gray-600 mb-4">Loading your node information...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!userNode) {
-        return (
-            <div className="w-full min-h-screen bg-white flex-1 flex items-center justify-center p-4">
-                <div className="max-w-md mx-auto text-center">
-                    <h1 className="text-2xl font-bold mb-4">QR Code Create</h1>
-                    <div className="bg-red-50 p-6 rounded-lg border border-red-200 shadow-sm">
-                        <p className="text-red-700 mb-4">
-                            Unable to load your assigned node. Please contact an administrator.
-                        </p>
-                        <p className="text-red-600 text-sm">
-                            Your user account does not have a node assigned or the node information could not be retrieved.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="w-full min-h-screen bg-white flex-1 flex items-center justify-center p-4">
@@ -304,25 +289,28 @@ const QRCodeCreate = () => {
                 <div className="flex flex-col items-center mb-8">
                     <Image src={assets.create_icon} className='w-20 h-20 flex items-center justify-center mb-4' alt="Create QR Code" />
                     <h1 className="text-2xl font-bold text-black">QR Code Create</h1>
-                    <p className="text-sm text-gray-600 text-center mt-2">
-                        Creating QR for node: <span className="font-semibold text-blue-600">{getUserNodeName()}</span>
-                    </p>
                 </div>
 
                 {/* Form */}
                 <div className="space-y-5">
-                    {/* Source Node (Auto-selected and disabled) */}
+                    {/* Asal */}
                     <div>
                         <label className="block text-sm font-medium text-black mb-2">
-                            Source Node (Your Node)
+                            Source Node (Any Node)
                         </label>
-                        <input
-                            type="text"
-                            value={getUserNodeName()}
-                            disabled
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm bg-gray-100 cursor-not-allowed opacity-60"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">Automatically assigned based on your user account</p>
+                        <select
+                            name="sourceId"
+                            value={formData.sourceId}
+                            onChange={handleChange}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white cursor-pointer"
+                        >
+                            <option value="">Choose Source Node</option>
+                            {sourceList.map(node => (
+                                <option key={node.id} value={node.id}>
+                                    {node.name} ({node.type})
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     {/* ID Barang */}
@@ -334,25 +322,32 @@ const QRCodeCreate = () => {
                             name="itemInstanceId"
                             value={formData.itemInstanceId}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white cursor-pointer"
+                            disabled={!formData.sourceId}
+                            className={`w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-400 cursor-pointer ${
+                                !formData.sourceId 
+                                    ? 'bg-gray-100 cursor-not-allowed opacity-60' 
+                                    : 'bg-white'
+                            }`}
                         >
-                            {itemInstanceList.length === 0 ? (
-                                <option disabled>-- Tidak ada barang tersedia di node Anda --</option>
+                            {!formData.sourceId ? (
+                                <option disabled>-- Pilih Source Node terlebih dahulu --</option>
+                            ) : itemInstanceList.length === 0 ? (
+                                <option disabled>-- Tidak ada barang tersedia di node yang dipilih --</option>
                             ) : (
                                 <option value="">-- Pilih Barang --</option>
                             )}
-                            {itemInstanceList.map(item => (
+                            {formData.sourceId && itemInstanceList.map(item => (
                                 <option key={item.id} value={item.id}>
                                     {item.name} {item.count ? `(${item.count})` : ''}
                                 </option>
                             ))}
                         </select>
-                        {itemInstanceList.length === 0 && (
-                            <p className="text-xs text-gray-500 mt-1">Tidak ada barang tersedia di node Anda</p>
+                        {!formData.sourceId && (
+                            <p className="text-xs text-gray-500 mt-1">Pilih source node untuk melihat barang yang tersedia</p>
                         )}
                     </div>
                     
-                    {/* Jumlah Barang */}
+                    {/* Jumlah Barang (number input, max dari selected item count) */}
                     <div>
                         <label className="block text-sm font-medium text-black mb-2">
                             Jumlah Barang
@@ -370,6 +365,7 @@ const QRCodeCreate = () => {
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white"
                             disabled={!formData.itemInstanceId}
                         />
+                        {/* VALIDATION MESSAGE: show normal helper or warning if over max */}
                         {(() => {
                             const sel = itemInstanceList.find(i => i.id === formData.itemInstanceId);
                             if (!formData.itemInstanceId) {
@@ -408,15 +404,14 @@ const QRCodeCreate = () => {
                 <div className="mt-12 flex justify-center">
                     <button
                         onClick={handleSubmit}
-                        disabled={!formData.itemInstanceId || !formData.destinationId || formData.itemCount < 1}
-                        className="px-12 py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className="px-12 py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
                     >
                         CREATE
                     </button>
                 </div>
             </div>
 
-            {/* Popup Modal QR Code */}
+            { /* Popup Modal QR Code */}
             {modalOpen && qrData && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto p-6">
