@@ -1,10 +1,7 @@
 'use client';
 
 import { useAuth } from '@/lib/useAuth';
-import { hasEnvVars } from "@/utils/supabase/check-env-vars";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import ClientHeaderAuth from "@/components/ClientHeaderAuth";
-import Link from "next/link";
+import { usePathname } from 'next/navigation';
 import Navigation from "@/components/navigation";
 
 interface AuthenticatedLayoutProps {
@@ -13,22 +10,18 @@ interface AuthenticatedLayoutProps {
 
 export default function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const { user, loading } = useAuth();
+  const pathname = usePathname();
 
-  // Show navbar and header only when user is authenticated
-  if (user) {
+  // Don't show navigation on login/register pages
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+  
+  // Don't show navigation on petugas pages
+  const isPetugasPage = pathname === '/petugas' || pathname?.startsWith('/petugas/');
+
+  // Show navbar and header only when user is authenticated and not on auth pages or petugas pages
+  if (user && !loading && !isAuthPage && !isPetugasPage) {
     return (
       <>
-        <nav className="sticky top-0 z-30 w-full flex justify-center border-b border-b-foreground/10 h-16 bg-background bg-opacity-90 backdrop-blur">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Project Despro 13</Link>
-              <div className="flex items-center gap-2">
-                {/* <DeployButton /> */}
-              </div>
-            </div>
-            {!hasEnvVars ? <EnvVarWarning /> : <ClientHeaderAuth />}
-          </div>
-        </nav>
         <Navigation />
         <div className="flex flex-col gap-20 w-full lg:max-w-5xl px-5">
           {children}
@@ -37,7 +30,7 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     );
   }
 
-  // Show content without navbar/header when not authenticated or still loading
+  // Show content without navbar/header when not authenticated, still loading, or on auth pages
   return (
     <div className="flex flex-col gap-20 w-full lg:max-w-5xl px-5">
       {children}

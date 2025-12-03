@@ -3,8 +3,12 @@ import { assets } from '@/assets/public/assets';
 import Image from 'next/image';
 import QRCode from 'react-qr-code';
 import React, { useEffect, useState } from 'react';
+import { ArrowLeft, ChevronDown } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import petugasImage from '@/assets/public/01_image_petugas.png';
 
 const QRCodeCreate = () => {
+    const router = useRouter();
     // State untuk data dropdown hasil fetch
     // tambahkan 'count' pada tipe item instance
     const [itemInstanceList, setItemInstanceList] = useState<{ id: string; name: string; count: number }[]>([]);
@@ -191,53 +195,49 @@ const QRCodeCreate = () => {
     };
 
     return (
-        <div className="w-full min-h-screen bg-white flex-1 flex items-center justify-center p-4">
-            <div className="w-full max-w-md flex flex-col gap-20">
-                {/* Header with Icon */}
-                <div className="flex flex-col items-center mb-8">
-                    <Image src={assets.create_icon} className='w-20 h-20 flex items-center justify-center mb-4' alt="Create QR Code" />
-                    <h1 className="text-2xl font-bold text-black">QR Code Create</h1>
+        <div className="w-full min-h-screen bg-white flex flex-col">
+            {/* Header */}
+            <div 
+                className="bg-blue-600 text-white py-4 px-3 rounded-b-3xl flex items-center gap-2.5"
+                style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
+            >
+                <button onClick={() => router.back()}>
+                    <ArrowLeft className="w-5 h-5" />
+                </button>
+                <h1 className="text-base font-semibold">Qr Code Create</h1>
+            </div>
+
+            {/* Content */}
+            <div className="flex flex-col items-center">
+                {/* Illustration */}
+                <div className="mt-6 flex justify-center">
+                    <Image
+                        src={petugasImage}
+                        alt="Illustration"
+                        width={160}
+                        height={160}
+                        className="w-40 h-40 object-contain"
+                    />
                 </div>
 
                 {/* Form */}
-                <div className="space-y-5">
-                    {/* Asal */}
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-2">
-                            Source Node (Any Node)
-                        </label>
-                        <select
-                            name="sourceId"
-                            value={formData.sourceId}
-                            onChange={handleChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white cursor-pointer"
-                        >
-                            <option value="">Choose Source Node</option>
-                            {sourceList.map(node => (
-                                <option key={node.id} value={node.id}>
-                                    {node.name} ({node.type})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* ID Barang */}
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-2">
-                            Nama Barang
-                        </label>
+                <form className="w-full px-6 mt-4 flex flex-col gap-3 max-w-md" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+                {/* Nama Barang */}
+                <div>
+                    <label className="text-sm font-semibold text-gray-700">Nama Barang</label>
+                    <div className="relative mt-1">
                         <select
                             name="itemInstanceId"
                             value={formData.itemInstanceId}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white cursor-pointer"
+                            className="w-full appearance-none px-3 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                             {
-                                itemInstanceList.length === 0 ?
-                                (
-                                    <option disabled>-- Tidak ada barang tersedia di node yang dipilih --</option>
-                                ) :
-                                <option value="">-- Pilih Barang-- </option>
+                                itemInstanceList.length === 0 ? (
+                                    <option disabled value="">-- Tidak ada barang tersedia di node yang dipilih --</option>
+                                ) : (
+                                    <option value="">-- Pilih Barang --</option>
+                                )
                             }
                             {itemInstanceList.map(item => (
                                 <option key={item.id} value={item.id}>
@@ -245,50 +245,70 @@ const QRCodeCreate = () => {
                                 </option>
                             ))}
                         </select>
+                        <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                     </div>
-                    
-                    {/* Jumlah Barang (number input, max dari selected item count) */}
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-2">
-                            Jumlah Barang
-                        </label>
-                        <input
-                            type="number"
-                            name="itemCount"
-                            value={formData.itemCount}
-                            onChange={handleChange}
-                            min={1}
-                            max={ (() => {
-                                const sel = itemInstanceList.find(i => i.id === formData.itemInstanceId);
-                                return sel ? sel.count : 1;
-                            })() }
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white"
-                            disabled={!formData.itemInstanceId}
-                        />
-                        {/* VALIDATION MESSAGE: show normal helper or warning if over max */}
-                        {(() => {
-                            const sel = itemInstanceList.find(i => i.id === formData.itemInstanceId);
-                            if (!formData.itemInstanceId) {
-                                return <p className="text-xs text-gray-500 mt-1">Pilih barang untuk melihat stok</p>;
-                            }
-                            const max = sel ? sel.count : 0;
-                            if (formData.itemCount > max || formData.itemCount < 1) {
-                                return <p className="text-xs text-red-600 mt-1">Maks: {max} — jumlah melebihi stok</p>;
-                            }
-                            return <p className="text-xs text-gray-500 mt-1">Maks: {max}</p>;
-                        })()}
-                    </div>
+                </div>
 
-                    {/* Tujuan */}
-                    <div>
-                        <label className="block text-sm font-medium text-black mb-2">
-                            Tujuan (Node)
-                        </label>
+                {/* Jumlah Barang */}
+                <div>
+                    <label className="text-sm font-semibold text-gray-700">Jumlah Barang</label>
+                    <input
+                        type="number"
+                        name="itemCount"
+                        value={formData.itemCount || ''}
+                        onChange={handleChange}
+                        placeholder="10"
+                        min={1}
+                        max={(() => {
+                            const sel = itemInstanceList.find(i => i.id === formData.itemInstanceId);
+                            return sel ? sel.count : 1;
+                        })()}
+                        className="w-full mt-1 px-3 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        disabled={!formData.itemInstanceId}
+                    />
+                    {(() => {
+                        const sel = itemInstanceList.find(i => i.id === formData.itemInstanceId);
+                        if (!formData.itemInstanceId) {
+                            return <p className="text-xs text-gray-500 mt-1">Pilih barang untuk melihat stok</p>;
+                        }
+                        const max = sel ? sel.count : 0;
+                        if (formData.itemCount > max || formData.itemCount < 1) {
+                            return <p className="text-xs text-red-600 mt-1">Maks: {max} — jumlah melebihi stok</p>;
+                        }
+                        return <p className="text-xs text-gray-500 mt-1">Maks: {max}</p>;
+                    })()}
+                </div>
+
+                {/* Asal */}
+                <div>
+                    <label className="text-sm font-semibold text-gray-700">Asal</label>
+                    <div className="relative mt-1">
+                        <select
+                            name="sourceId"
+                            value={formData.sourceId}
+                            onChange={handleChange}
+                            className="w-full appearance-none px-3 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        >
+                            <option value="">Pilih Asal</option>
+                            {sourceList.map(node => (
+                                <option key={node.id} value={node.id}>
+                                    {node.name} ({node.type})
+                                </option>
+                            ))}
+                        </select>
+                        <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
+                </div>
+
+                {/* Tujuan */}
+                <div>
+                    <label className="text-sm font-semibold text-gray-700">Tujuan</label>
+                    <div className="relative mt-1">
                         <select
                             name="destinationId"
                             value={formData.destinationId}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-gray-400 bg-white cursor-pointer"
+                            className="w-full appearance-none px-3 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                             <option value="">Pilih Tujuan</option>
                             {destinationList.map(node => (
@@ -297,28 +317,42 @@ const QRCodeCreate = () => {
                                 </option>
                             ))}
                         </select>
+                        <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                     </div>
                 </div>
+            </form>
 
                 {/* Create Button */}
-                <div className="mt-12 flex justify-center">
-                    <button
-                        onClick={handleSubmit}
-                        className="px-12 py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
-                    >
-                        CREATE
-                    </button>
+                <button 
+                    onClick={handleSubmit}
+                    className="mt-8 bg-blue-700 text-white px-8 py-2.5 rounded-lg font-medium text-base hover:bg-blue-800 transition-colors"
+                >
+                    Create
+                </button>
+
+                {/* Footer */}
+                <div className="text-center pb-8 text-gray-600 text-xs px-5 mt-8">
+                    <p className="font-semibold text-gray-800">Having trouble or found a bug?</p>
+                    <p>
+                        Tap <span className="text-blue-600 font-semibold">Admin</span> to get quick help — we're here to support you.
+                    </p>
                 </div>
             </div>
 
             { /* Popup Modal QR Code */}
             {modalOpen && qrData && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto p-6">
-                        <div className="flex flex-col items-center">
-                            <h2 className="text-xl font-bold text-black mb-2">QR Code Berhasil Dibuat!</h2>
-                            <p className="text-gray-700 mb-4 text-center">Scan QR di bawah untuk proses selanjutnya.</p>
-                            <div className="bg-gray-100 rounded-xl p-4 mb-4 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto">
+                        {/* Header */}
+                        <div className="bg-blue-600 text-white py-4 px-6 rounded-t-2xl">
+                            <h2 className="text-xl font-bold">QR Code Berhasil Dibuat!</h2>
+                            <p className="text-sm text-blue-50 mt-1">Scan QR di bawah untuk proses selanjutnya.</p>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="p-6">
+                            {/* QR Code */}
+                            <div className="bg-gray-50 rounded-xl p-4 mb-6 flex items-center justify-center border border-gray-200">
                                 {qrData.qr_url ? (
                                     <QRCode
                                         value={qrData.qr_url}
@@ -331,42 +365,34 @@ const QRCodeCreate = () => {
                                     <span className="text-orange-700">QR tidak tersedia</span>
                                 )}
                             </div>
-                            <div className="w-full space-y-2 mb-4">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Nama Barang</span>
-                                    <span className="font-medium text-black">{qrData.item_name}</span>
+                            
+                            {/* Info Details */}
+                            <div className="w-full space-y-3 mb-6">
+                                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-sm text-gray-600">Nama Barang</span>
+                                    <span className="text-sm font-semibold text-gray-900">{qrData.item_name}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Tipe Barang</span>
-                                    <span className="font-medium text-black">{qrData.item_type}</span>
+                                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-sm text-gray-600">Tipe Barang</span>
+                                    <span className="text-sm font-semibold text-gray-900">{qrData.item_type}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Jumlah Barang</span>
-                                    <span className="font-medium text-black">{qrData.item_count}</span>
+                                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-sm text-gray-600">Jumlah Barang</span>
+                                    <span className="text-sm font-semibold text-gray-900">{qrData.item_count}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Node Asal</span>
-                                    <span className="font-medium text-black">{qrData.source_name}</span>
+                                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span className="text-sm text-gray-600">Node Asal</span>
+                                    <span className="text-sm font-semibold text-gray-900">{qrData.source_name}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Node Tujuan</span>
-                                    <span className="font-medium text-black">{qrData.destination_name}</span>
-                                </div>
-                                <div className="pt-2 border-t border-gray-200">
-                                    <div className="text-sm text-gray-600 mb-1">QR URL:</div>
-                                    <div className="bg-gray-50 p-2 rounded border font-mono text-xs break-all">
-                                        {qrData.qr_url}
-                                    </div>
-                                    <button
-                                        onClick={() => navigator.clipboard.writeText(qrData.qr_url)}
-                                        className="text-xs text-blue-600 hover:text-blue-800 mt-1"
-                                    >
-                                        📋 Copy URL
-                                    </button>
+                                <div className="flex justify-between items-center py-2">
+                                    <span className="text-sm text-gray-600">Node Tujuan</span>
+                                    <span className="text-sm font-semibold text-gray-900">{qrData.destination_name}</span>
                                 </div>
                             </div>
+                            
+                            {/* Close Button */}
                             <button
-                                className="w-full bg-black text-white py-2 rounded-lg font-medium mt-2"
+                                className="w-full bg-blue-700 text-white py-2.5 rounded-lg font-medium text-base hover:bg-blue-800 transition-colors"
                                 onClick={() => setModalOpen(false)}
                             >
                                 Tutup

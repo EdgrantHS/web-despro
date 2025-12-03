@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import Link from 'next/link'
+import Image from 'next/image'
+import logoImage from '@/assets/public/LOGO.png'
+import { User, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const { login, loading } = useAuth()
   const router = useRouter()
@@ -47,7 +48,13 @@ export default function LoginPage() {
           window.location.href = '/node-admin'
           return
         }
-        // Petugas default to QR Scan
+        // Petugas redirect to petugas dashboard
+        if (role === 'petugas') {
+          console.log('👤 UI: Redirecting to petugas dashboard');
+          window.location.href = '/petugas'
+          return
+        }
+        // Default fallback to QR Scan
         console.log('📱 UI: Redirecting to QR scanner');
         window.location.href = '/qr-scan'
       } else {
@@ -69,62 +76,116 @@ export default function LoginPage() {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    handleLogin(email, password)
+    // Use username/email field for login
+    handleLogin(username, password)
   }
 
   return (
-    <div className="max-w-7xl flex flex-col gap-12 items-start">
-      <form className="flex-1 flex flex-col min-w-64" onSubmit={onSubmit}>
-        <h1 className="text-2xl font-medium">Login</h1>
-        {/* <p className="text-sm text-foreground">
-          Belum punya akun?{' '}
-          <Link className="text-foreground font-medium underline" href="/register">
-            Register
-          </Link>
-        </p> */}
-        <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-          <Label htmlFor="email">Email</Label>
-          <Input 
-            id="email"
-            name="email" 
-            type="email"
-            placeholder="you@example.com" 
-            required 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            name="password"
-            placeholder="Your password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 mt-2">
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <span className="text-red-400 text-lg">⚠️</span>
-                </div>
-                <div className="ml-2">
-                  <p className="text-sm text-red-700 font-medium">Login Error</p>
-                  <p className="text-sm text-red-600 mt-1">{error}</p>
-                </div>
+    <div className="min-h-screen flex flex-col bg-white font-sans">
+      {/* Blue header */}
+      <div
+        className="bg-blue-600 pt-16 pb-20 flex items-center justify-center rounded-b-[32px]"
+        style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
+      >
+        <div className="flex items-center justify-center">
+          {/* Logo */}
+          <div className="relative">
+            <Image
+              src={logoImage}
+              alt="Despro Logo"
+              width={80}
+              height={80}
+              className="object-contain"
+              priority
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Main */}
+      <div className="flex-1 px-6 flex flex-col items-center mt-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+          Login to your Account
+        </h1>
+
+        <form onSubmit={onSubmit} className="w-full max-w-md">
+          {/* USERNAME */}
+          <div className="mb-5 relative group">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10 pointer-events-none">
+              <div className="text-white transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-blue-200">
+                <User className="h-5 w-5" />
               </div>
+              <div className="h-6 w-px bg-blue-400/50 group-focus-within:bg-blue-300 transition-colors duration-300"></div>
+            </div>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              placeholder="Username"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full bg-blue-600 text-white placeholder-blue-200 py-3 pl-14 pr-4 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-blue-600 focus:bg-blue-500 focus:scale-[1.02] transition-all duration-300 text-sm hover:bg-blue-500 relative z-0"
+            />
+          </div>
+
+          {/* PASSWORD */}
+          <div className="mb-3 relative group">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10 pointer-events-none">
+              <div className="text-white transition-all duration-300 group-focus-within:scale-110 group-focus-within:text-blue-200">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div className="h-6 w-px bg-blue-400/50 group-focus-within:bg-blue-300 transition-colors duration-300"></div>
+            </div>
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-blue-600 text-white placeholder-blue-200 py-3 pl-14 pr-10 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-blue-600 focus:bg-blue-500 focus:scale-[1.02] transition-all duration-300 text-sm hover:bg-blue-500 relative z-0"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white opacity-80 hover:opacity-100 focus:outline-none transition-opacity"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+
+          <div className="text-right mb-8">
+            <button 
+              type="button"
+              className="text-gray-600 text-sm hover:text-gray-800 focus:outline-none"
+            >
+              Forget Password ?
+            </button>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3 mb-5">
+              <p className="text-xs text-red-700 font-medium">Login Error</p>
+              <p className="text-xs text-red-600 mt-1">{error}</p>
             </div>
           )}
-        </div>
-      </form>
+
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full px-10 py-2.5 border-2 border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors uppercase text-sm"
+          >
+            {loading ? 'Logging in...' : 'LOGIN'}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }
