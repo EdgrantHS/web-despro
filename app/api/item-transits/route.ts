@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       .from('item_transits')
       .select(`
         *,
+        item_transit_count,
         item_instances (
           item_instance_id,
           item_count,
@@ -78,9 +79,10 @@ export async function GET(request: NextRequest) {
     // Transform data to match API response format
     const transformedData = data?.map((item: any) => ({
       ...transformDbToApi(item, ITEM_TRANSIT_FIELD_MAPPING),
+      item_transit_count: item.item_transit_count, // Include the actual transit count
       item_instance: item.item_instances ? {
         item_instance_id: item.item_instances.item_instance_id,
-        item_count: item.item_instances.item_count,
+        item_count: item.item_transit_count || item.item_instances.item_count, // Use transit count, fallback to instance count
         item_type: item.item_instances.item_types ? {
           item_name: item.item_instances.item_types.item_name,
           item_type: item.item_instances.item_types.item_type

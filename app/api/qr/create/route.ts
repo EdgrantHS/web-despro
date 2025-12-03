@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
         }
 
         const qrId = uuidv4();
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-        const qr_url = `${baseUrl}/api/qr/scan/${qrId}`;
+        // Use only the UUID as QR content for shorter QR codes
+        const qr_content = qrId;
 
         // Insert ke table qr_codes
         const { data: qrData, error: qrDataError } = await supabase
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
                 item_instance_id,
                 source_id,
                 destination_id,
-                qr_url,
+                qr_url: qr_content, // Store just the UUID
                 item_count
             }])
             .select(`
@@ -64,7 +64,8 @@ export async function POST(request: NextRequest) {
 
         return createSuccessResponse("QR code entry created successfully", {
             action: "qr_created",
-            qr_url: qrData.qr_url,
+            qr_url: qrData.qr_url, // This is now just the UUID
+            qr_id: qrId, // Also return the ID for clarity
             item_instance: qrData.item_instances ? {
                 id: qrData.item_instances.item_instance_id,
                 name: qrData.item_instances.item_types?.item_name,

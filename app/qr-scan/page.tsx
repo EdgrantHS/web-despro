@@ -135,13 +135,26 @@ const Page = () => {
         }
         setIsScanning(false);
 
-        // Ambil qrId dari path terakhir
+        // Extract QR ID - handle both URL format and UUID-only format
         let qrId = "";
         try {
-            const urlParts = decodedText.trim().split("/");
-            qrId = urlParts[urlParts.length - 1];
+            const trimmedText = decodedText.trim();
+            
+            // Check if it's a UUID format (new shorter format)
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            if (uuidRegex.test(trimmedText)) {
+                qrId = trimmedText;
+            } else {
+                // Try to extract from URL format (legacy support)
+                const urlParts = trimmedText.split("/");
+                qrId = urlParts[urlParts.length - 1];
+            }
+            
+            if (!qrId) {
+                throw new Error("No QR ID found");
+            }
         } catch {
-            setScanResult({ raw: "QR format error" });
+            setScanResult({ raw: "QR format error - invalid format" });
             return;
         }
 

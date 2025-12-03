@@ -63,15 +63,22 @@ export default function QRScanDevPage() {
       return newHistory.slice(0, 10); // Keep only last 10 scans
     });
 
-    // Check if it's a QR scan URL pattern
+    // Check if it's a QR scan pattern (URL or UUID)
     try {
-      // Extract QR ID from URL like: http://localhost:3000/api/qr/scan/249ca59f-7842-4506-8b5a-a919cbd6fd22
+      // First check if it's a full URL with QR scan path
       if (qrString.includes('/api/qr/scan/') || qrString.includes('/qr/scan/')) {
         const qrId = qrString.split('/').pop();
         if (qrId) {
           await handleQRScan(qrId, qrString);
           return;
         }
+      }
+      
+      // Check if it's just a UUID (new format)
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(qrString.trim())) {
+        await handleQRScan(qrString.trim(), qrString);
+        return;
       }
       
       // Try to parse and redirect if it's a valid internal URL
@@ -82,8 +89,14 @@ export default function QRScanDevPage() {
         router.push(path);
       }
     } catch {
-      // Not a URL, just display the result
-      console.log('QR content is not a URL:', qrString);
+      // Not a URL, check if it might be a UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(qrString.trim())) {
+        await handleQRScan(qrString.trim(), qrString);
+      } else {
+        // Just display the result
+        console.log('QR content is not a URL or UUID:', qrString);
+      }
     }
   };
 
