@@ -8,54 +8,42 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
 
-export default function QRScanDevPage() {
+export default function ScannerInterfacePage() {
   const [scanResult, setScanResult] = useState<string>('');
-  const [manualInput, setManualInput] = useState<string>('');
-  const [isScanning, setIsScanning] = useState(false);
+  const [scanInput, setScanInput] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [scanHistory, setScanHistory] = useState<string[]>([]);
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { user } = useAuth();
 
-  // Start camera for QR scanning
-  const startCamera = async () => {
-    try {
-      setError('');
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } // Use back camera if available
-      });
-      setCameraStream(stream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
+  // Auto-focus the input on mount and keep focus
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+    
+    // Refocus input when clicking anywhere on the page
+    const handleClick = () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
       }
-      setIsScanning(true);
-    } catch (err) {
-      setError('Camera access denied or not available');
-      console.error('Camera error:', err);
-    }
-  };
+    };
 
-  // Stop camera
-  const stopCamera = () => {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
-      setCameraStream(null);
-    }
-    setIsScanning(false);
-  };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
 
   // Process QR code result
   const processQRResult = async (qrString: string) => {
     if (!qrString.trim()) {
-      setError('Empty QR code string');
+      setError('Empty scanner input');
       return;
     }
 
-    setScanResult(qrString);
+    setIsProcessing(true);
+    setScanResult('Processing...');
     
     // Add to history if not already there
     setScanHistory(prev => {
@@ -70,6 +58,7 @@ export default function QRScanDevPage() {
         const qrId = qrString.split('/').pop();
         if (qrId) {
           await handleQRScan(qrId, qrString);
+          setIsProcessing(false);
           return;
         }
       }
@@ -78,6 +67,7 @@ export default function QRScanDevPage() {
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (uuidRegex.test(qrString.trim())) {
         await handleQRScan(qrString.trim(), qrString);
+        setIsProcessing(false);
         return;
       }
       
@@ -95,9 +85,12 @@ export default function QRScanDevPage() {
         await handleQRScan(qrString.trim(), qrString);
       } else {
         // Just display the result
-        console.log('QR content is not a URL or UUID:', qrString);
+        setScanResult(`Scanner Input Received: ${qrString}`);
+        console.log('Scanner content is not a URL or UUID:', qrString);
       }
     }
+    
+    setIsProcessing(false);
   };
 
   // Handle QR scan API call (similar to the main qr-scan page)
@@ -112,7 +105,7 @@ export default function QRScanDevPage() {
           'Content-Type': 'application/json' 
         },
         body: JSON.stringify({
-          courier_name: 'Dev User',
+          courier_name: 'Scanner User',
           courier_phone: '000-000-0000'
         }),
       });
@@ -150,45 +143,41 @@ API Response: ${JSON.stringify(result.data, null, 2)}`;
     }
   };
 
-  // Handle manual input
-  const handleManualScan = async () => {
-    if (manualInput.trim()) {
-      await processQRResult(manualInput.trim());
-      setManualInput('');
-    }
-  };
-
-  // Capture frame from video for QR detection (placeholder - would need QR library)
-  const captureFrame = () => {
-    if (videoRef.current && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const video = videoRef.current;
-      const ctx = canvas.getContext('2d');
+  // Handle scanner input (triggered on Enter key or when scanner finishes)
+  const handleScannerInput = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && scanInput.trim()) {
+      await processQRResult(scanInput.trim());
+      setScanInput(''); // Clear input for next scan
       
-      if (ctx) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Here you would typically use a QR code detection library
-        // For now, we'll just show a placeholder message
-        setError('QR detection library not implemented. Use manual input for testing.');
-      }
+      // Refocus input for continuous scanning
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 100);
     }
   };
 
-  // Cleanup camera on unmount
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, [cameraStream]);
+  // Handle manual process button
+  const handleManualProcess = async () => {
+    if (scanInput.trim()) {
+      await processQRResult(scanInput.trim());
+      setScanInput('');
+      
+      // Refocus input
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 100);
+    }
+  };
 
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">Please log in to access QR scanner</p>
+          <p className="text-gray-600 mb-4">Please log in to access Scanner Interface</p>
           <Button onClick={() => router.push('/login')}>Go to Login</Button>
         </div>
       </div>
@@ -198,12 +187,12 @@ API Response: ${JSON.stringify(result.data, null, 2)}`;
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">QR Scanner - Development</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Scanner Interface</h1>
         <p className="text-gray-600">
-          Scan QR codes using camera or enter QR content manually for testing
+          Hardware barcode/QR scanner interface - scan items and press Enter
         </p>
-        <Badge className="mt-2 bg-yellow-100 text-yellow-800">
-          🧪 Development Mode
+        <Badge className="mt-2 bg-green-100 text-green-800">
+          🔍 Scanner Ready
         </Badge>
       </div>
 
@@ -219,71 +208,49 @@ API Response: ${JSON.stringify(result.data, null, 2)}`;
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Camera Scanner Section */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">📱 Camera Scanner</h2>
-          
-          <div className="mb-4">
-            {!isScanning ? (
-              <Button onClick={startCamera} className="w-full">
-                Start Camera
-              </Button>
-            ) : (
-              <Button onClick={stopCamera} variant="outline" className="w-full">
-                Stop Camera
-              </Button>
-            )}
+      {/* Main Scanner Input Section */}
+      <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-blue-200">
+        <h2 className="text-2xl font-semibold mb-6 text-center">📟 Scanner Input</h2>
+        
+        <div className="space-y-6">
+          <div>
+            <Label htmlFor="scanner-input" className="text-lg font-medium">
+              Scan or Type Code
+            </Label>
+            <Input
+              ref={inputRef}
+              id="scanner-input"
+              placeholder="Point scanner here and scan, or type manually..."
+              value={scanInput}
+              onChange={(e) => setScanInput(e.target.value)}
+              onKeyDown={handleScannerInput}
+              className="text-lg p-4 text-center font-mono"
+              autoComplete="off"
+              autoFocus
+            />
+            <div className="text-sm text-gray-500 text-center mt-2">
+              Hardware scanners will automatically input here. Press Enter to process.
+            </div>
           </div>
-
-          {isScanning && (
-            <div className="space-y-4">
-              <div className="relative">
-                <video
-                  ref={videoRef}
-                  className="w-full h-64 bg-gray-100 rounded border object-cover"
-                  playsInline
-                />
-                <div className="absolute inset-4 border-2 border-blue-500 border-dashed rounded opacity-50"></div>
-              </div>
-              
-              <Button onClick={captureFrame} className="w-full">
-                📸 Capture & Scan Frame
-              </Button>
-              
-              <canvas ref={canvasRef} className="hidden" />
-              
-              <div className="text-sm text-gray-500 text-center">
-                Position QR code within the frame and tap capture
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Manual Input Section */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">⌨️ Manual Input</h2>
           
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="manual-input">QR Code Content</Label>
-              <Input
-                id="manual-input"
-                placeholder="Enter QR code content here..."
-                value={manualInput}
-                onChange={(e) => setManualInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleManualScan()}
-              />
-            </div>
-            
-            <Button 
-              onClick={handleManualScan} 
-              disabled={!manualInput.trim()}
-              className="w-full"
-            >
-              Process QR Content
-            </Button>
+          <Button 
+            onClick={handleManualProcess} 
+            disabled={!scanInput.trim() || isProcessing}
+            className="w-full text-lg py-4"
+          >
+            {isProcessing ? 'Processing...' : 'Process Code'}
+          </Button>
 
+          {/* Scanner Status Indicator */}
+          <div className="text-center">
+            <div className={`inline-flex items-center px-4 py-2 rounded-full ${
+              isProcessing ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+            }`}>
+              <div className={`w-2 h-2 rounded-full mr-2 ${
+                isProcessing ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'
+              }`}></div>
+              {isProcessing ? 'Processing...' : 'Ready to Scan'}
+            </div>
           </div>
         </div>
       </div>
@@ -292,7 +259,7 @@ API Response: ${JSON.stringify(result.data, null, 2)}`;
       {scanResult && (
         <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-green-800 mb-2">✅ Scan Result</h3>
-          <div className="bg-white p-4 rounded border font-mono text-sm">
+          <div className="bg-white p-4 rounded border font-mono text-sm whitespace-pre-wrap">
             {scanResult}
           </div>
           
@@ -318,13 +285,25 @@ API Response: ${JSON.stringify(result.data, null, 2)}`;
       {scanHistory.length > 0 && (
         <div className="mt-8 bg-gray-50 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">📚 Scan History</h3>
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-64 overflow-y-auto">
             {scanHistory.map((item, index) => (
               <div key={index} className="flex items-center justify-between bg-white p-3 rounded border">
                 <span className="font-mono text-sm truncate flex-1 mr-4">
                   {item}
                 </span>
                 <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setScanInput(item);
+                      if (inputRef.current) {
+                        inputRef.current.focus();
+                      }
+                    }}
+                  >
+                    📝 Load
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -355,15 +334,16 @@ API Response: ${JSON.stringify(result.data, null, 2)}`;
         </div>
       )}
 
-      {/* Development Info */}
+      {/* Scanner Interface Info */}
       <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-800 mb-2">🔧 Development Notes</h3>
+        <h3 className="text-lg font-semibold text-blue-800 mb-2">📟 Scanner Interface Guide</h3>
         <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Camera scanner requires QR detection library integration (e.g., jsQR, qr-scanner)</li>
-          <li>• Manual input allows testing without camera access</li>
-          <li>• Local URLs are automatically navigated to</li>
-          <li>• Scan history helps with repeated testing</li>
-          <li>• Use this page for QR content development and testing</li>
+          <li>• Point your barcode/QR scanner at the input field and scan</li>
+          <li>• Scanner input will automatically appear in the text box</li>
+          <li>• Most scanners automatically press Enter after scanning</li>
+          <li>• Input field stays focused for continuous scanning</li>
+          <li>• Manual typing is also supported - press Enter when done</li>
+          <li>• History keeps track of recent scans for reference</li>
         </ul>
       </div>
     </div>
