@@ -22,7 +22,30 @@ export async function GET(
 
     const { data, error } = await supabase
       .from('reports')
-      .select('*')
+      .select(`
+        id,
+        user_id,
+        item_id,
+        item_transit_id,
+        type,
+        status,
+        description,
+        received_quantity,
+        expired_quantity,
+        evidence,
+        created_at,
+        item_transits:item_transit_id (
+          item_transit_id,
+          item_instance_id,
+          source_node_id,
+          dest_node_id,
+          status
+        ),
+        users:user_id (
+          user_id,
+          user_node_id
+        )
+      `)
       .eq('id', reportId)
       .single();
 
@@ -38,7 +61,8 @@ export async function GET(
   });
 }
 
-// PUT /api/reports/[reportId] - Update Report
+// PUT /api/reports/[reportId] - Update Report Status
+// Admin hanya bisa update status, tidak bisa edit informasi report
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ reportId: string }> }
@@ -51,41 +75,51 @@ export async function PUT(
       return createErrorResponse('Report ID is required', 400);
     }
 
-    const {
-      type,
-      description,
-      received_quantity,
-      expired_quantity,
-      evidence
-    } = body;
+    const { status } = body;
 
-    // Validasi tipe report jika ada
-    if (type) {
-      const validTypes = ['STOCK_DISCREPANCY', 'EXPIRED_ITEM', 'OTHER_ISSUE'];
-      if (!validTypes.includes(type)) {
-        return createErrorResponse(`Invalid type. Must be one of: ${validTypes.join(', ')}`, 400);
-      }
+    // Admin hanya bisa update status
+    if (!status) {
+      return createErrorResponse('status field is required', 400);
+    }
+
+    // Validasi status enum - harus match dengan Supabase enum dengan underscore
+    const validStatuses = ['IN_REVIEW', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'];
+    if (!validStatuses.includes(status)) {
+      return createErrorResponse(`Invalid status. Must be one of: ${validStatuses.join(', ')}`, 400);
     }
 
     const supabase = await getSupabaseClient();
 
-    // Siapkan field yang akan di-update
-    const updateFields: any = {};
-    if (type !== undefined) updateFields.type = type;
-    if (description !== undefined) updateFields.description = description;
-    if (received_quantity !== undefined) updateFields.received_quantity = received_quantity;
-    if (expired_quantity !== undefined) updateFields.expired_quantity = expired_quantity;
-    if (evidence !== undefined) updateFields.evidence = evidence;
-
-    if (Object.keys(updateFields).length === 0) {
-      return createErrorResponse('No fields to update', 400);
-    }
-
     const { data, error } = await supabase
       .from('reports')
-      .update(updateFields)
+      .update({ 
+        status
+      })
       .eq('id', reportId)
-      .select('*')
+      .select(`
+        id,
+        user_id,
+        item_id,
+        item_transit_id,
+        type,
+        status,
+        description,
+        received_quantity,
+        expired_quantity,
+        evidence,
+        created_at,
+        item_transits:item_transit_id (
+          item_transit_id,
+          item_instance_id,
+          source_node_id,
+          dest_node_id,
+          status
+        ),
+        users:user_id (
+          user_id,
+          user_node_id
+        )
+      `)
       .single();
 
     if (error) {
@@ -96,7 +130,7 @@ export async function PUT(
       return createErrorResponse('Failed to update report', 500);
     }
 
-    return createSuccessResponse('Report updated successfully', data);
+    return createSuccessResponse('Report status updated successfully', data);
   });
 }
 

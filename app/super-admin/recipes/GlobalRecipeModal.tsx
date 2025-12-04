@@ -1,4 +1,4 @@
-// app/recipes/RecipeModal.tsx
+// app/super-admin/recipes/GlobalRecipeModal.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,7 +20,7 @@ interface RecipeIngredient {
 interface Recipe {
     id: string;
     name: string;
-    node_id?: string;
+    node_id?: string | null;
     result_id: string;
     instructions?: string;
     created_at: string;
@@ -39,29 +39,24 @@ interface ItemType {
 
 interface RecipeFormData {
     name: string;
-    node_id: string;
     result_id: string;
     result_name: string;
     instructions: string;
     recipe_ingredients: RecipeIngredient[];
 }
 
-interface RecipeModalProps {
+interface GlobalRecipeModalProps {
     recipe: Recipe | null;
-    userNode: { id: string; name: string } | null;
-    isGlobalRecipe?: boolean;
     onClose: () => void;
     onSuccess: () => void;
 }
 
-export default function RecipeModal({ recipe, userNode, isGlobalRecipe = false, onClose, onSuccess }: RecipeModalProps) {
+export default function GlobalRecipeModal({ recipe, onClose, onSuccess }: GlobalRecipeModalProps) {
     const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [nodeDisplayName, setNodeDisplayName] = useState<string>('');
     const [isEditMode, setIsEditMode] = useState<boolean>(!!recipe);
     const [formData, setFormData] = useState<RecipeFormData>({
         name: '',
-        node_id: recipe ? (recipe.node_id || '') : (userNode ? userNode.id : ''),
         result_id: '',
         result_name: '',
         instructions: '',
@@ -77,34 +72,19 @@ export default function RecipeModal({ recipe, userNode, isGlobalRecipe = false, 
     useEffect(() => {
         fetchItemTypes();
         
-        // Determine mode and set node display
         if (recipe) {
-            // Edit mode - use recipe's node_id
             setIsEditMode(true);
             setFormData({
                 name: recipe.name,
-                node_id: recipe.node_id || '',
                 result_id: recipe.result_id,
                 result_name: recipe.item_types?.item_name || '',
                 instructions: recipe.instructions || '',
                 recipe_ingredients: recipe.recipe_ingredients || []
             });
-            // Set display name untuk edit mode
-            if (isGlobalRecipe) {
-                setNodeDisplayName('Global');
-            } else {
-                setNodeDisplayName(recipe.node_id ? `Node: ${recipe.node_id.slice(0, 8)}...` : 'Global');
-            }
-        } else if (isGlobalRecipe) {
-            // Add new global recipe - node_id is always null
+        } else {
             setIsEditMode(false);
-            setNodeDisplayName('Global');
-        } else if (userNode) {
-            // Add new local recipe - use current user node
-            setIsEditMode(false);
-            setNodeDisplayName(`Node: ${userNode.name}`);
         }
-    }, [recipe, userNode, isGlobalRecipe]);
+    }, [recipe]);
 
     const fetchItemTypes = async () => {
         try {
@@ -139,7 +119,7 @@ export default function RecipeModal({ recipe, userNode, isGlobalRecipe = false, 
 
         const payload: any = {
             name: formData.name,
-            node_id: isGlobalRecipe ? null : (formData.node_id || null),
+            node_id: null, // Always null for global recipes
             instructions: formData.instructions || null,
             ingredients: formData.recipe_ingredients.map(ing => ({
                 item_id: ing.item_id,
@@ -239,7 +219,7 @@ export default function RecipeModal({ recipe, userNode, isGlobalRecipe = false, 
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
                     <h2 className="text-xl font-bold">
-                        {recipe ? 'Edit Recipe' : 'Add New Recipe'}
+                        {recipe ? 'Edit Global Recipe' : 'Add New Global Recipe'}
                     </h2>
                     <button
                         onClick={onClose}
@@ -287,10 +267,10 @@ export default function RecipeModal({ recipe, userNode, isGlobalRecipe = false, 
                     </div>
 
                     <div>
-                        <Label htmlFor="node_id">Node</Label>
+                        <Label htmlFor="status">Status</Label>
                         <Input
-                            id="node_id"
-                            value={nodeDisplayName}
+                            id="status"
+                            value="Global"
                             disabled
                             className="bg-gray-100 cursor-not-allowed"
                         />

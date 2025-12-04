@@ -8,13 +8,18 @@ import {
     createPaginationMeta
 } from '@/lib/api-helpers';
 
-// GET /api/recipes - List all recipes with pagination
+// GET /api/recipes - List recipes
+// Query parameters:
+//   - node_id (optional): Filter by specific node_id. If provided, returns global recipes + recipes for that node
+//   - If node_id NOT provided: Returns all recipes (global + all nodes)
 export async function GET(request: NextRequest) {
     return handleApiError(async () => {
 
         const supabase = await getSupabaseClient();
+        const { searchParams } = new URL(request.url);
+        const nodeIdParam = searchParams.get('node_id');
 
-        const { data, error, count } = await supabase
+        let query = supabase
             .from('recipes')
             .select(
                 `
@@ -40,8 +45,16 @@ export async function GET(request: NextRequest) {
         )
       `,
                 { count: 'exact' }
-            )
-            .order('created_at', { ascending: false });
+            );
+
+        // Filter berdasarkan node_id parameter
+        if (nodeIdParam) {
+            // Jika node_id diberikan: global recipes (node_id is null) + recipes untuk node itu
+            query = query.or(`node_id.is.null,node_id.eq.${nodeIdParam}`);
+        }
+        // Jika tidak ada parameter: return semua recipes (global + semua node)
+
+        const { data, error, count } = await query.order('created_at', { ascending: false });
 
         if (error) {
             console.error('Recipes fetch error:', error);
@@ -49,7 +62,8 @@ export async function GET(request: NextRequest) {
         }
 
         return createSuccessResponse('Recipes retrieved successfully', {
-            recipes: data || []
+            recipes: data || [],
+            filter: nodeIdParam ? `global + node ${nodeIdParam}` : 'all'
         });
     });
 }

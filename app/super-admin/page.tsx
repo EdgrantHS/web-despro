@@ -39,6 +39,13 @@ export default function SuperAdminPage() {
       href: '/super-admin/item-transits',
       icon: '🚚',
       color: 'bg-orange-50 border-orange-200 hover:bg-orange-100'
+    },
+    {
+      title: 'Recipes Management',
+      description: 'Manage global recipes and approve local recipes from nodes',
+      href: '/super-admin/recipes',
+      icon: '👨‍🍳',
+      color: 'bg-red-50 border-red-200 hover:bg-red-100'
     }
   ];
 

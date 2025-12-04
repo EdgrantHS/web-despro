@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Recipe {
   id: string;
@@ -71,12 +72,12 @@ interface CookHistory {
 
 export default function NodeAdminCookPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [userNode, setUserNode] = useState<Node | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [isCooking, setIsCooking] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [cookHistory, setCookHistory] = useState<CookHistory[]>([]);
+  const [userNode, setUserNode] = useState<Node | null>(null);
   const [formData, setFormData] = useState<CookFormData>({
     recipe_id: '',
     quantity: '1',
@@ -84,36 +85,46 @@ export default function NodeAdminCookPage() {
   });
 
   useEffect(() => {
-    fetchUserNodeAndRecipes();
-  }, []);
+    fetchCurrentUserNode();
+  }, [])
 
-  const fetchUserNodeAndRecipes = async () => {
-    setIsLoading(true);
+  useEffect(() => {
+    if (userNode) {
+      fetchRecipes();
+    }
+  }, [userNode]);
+
+  const fetchCurrentUserNode = async () => {
     try {
-      // Get user's node
+      // First, get the user's assigned node
       const nodeResponse = await fetch('/api/user/node');
       const nodeData = await nodeResponse.json();
-      
+
       if (!nodeData.success) {
         console.error('Error fetching user node:', nodeData.message);
         return;
       }
-      
+
       const userNodeInfo = nodeData.data.node;
       setUserNode(userNodeInfo);
-      
-      // Fetch available recipes (both global and node-specific)
-      const recipesRes = await fetch('/api/recipes');
+
+    } catch (error) {
+      console.error('Error getting user node data:', error);
+    }
+  }
+
+  const fetchRecipes = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch recipes dengan node_id parameter
+      const recipesRes = await fetch(`/api/recipes?node_id=${userNode?.id}`);
       const recipesData = await recipesRes.json();
-      
+
       if (recipesData.success) {
-        const allRecipes = recipesData.data.recipes || [];
-        // Filter recipes that are global or belong to this node
-        const availableRecipes = allRecipes.filter((r: Recipe) => !r.node_id || r.node_id === userNodeInfo.id);
-        setRecipes(availableRecipes);
+        setRecipes(recipesData.data.recipes || []);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching recipes:', error);
     } finally {
       setIsLoading(false);
     }
@@ -130,8 +141,8 @@ export default function NodeAdminCookPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!userNode || !selectedRecipe) {
+
+    if (!selectedRecipe) {
       alert('Missing required information');
       return;
     }
@@ -146,7 +157,7 @@ export default function NodeAdminCookPage() {
 
     const payload = {
       recipe_id: formData.recipe_id,
-      node_id: userNode.id,
+      node_id: userNode?.id,
       quantity: quantity,
       expire_date: formData.expire_date || undefined,
     };
@@ -157,7 +168,7 @@ export default function NodeAdminCookPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      
+
       const result = await response.json();
 
       if (response.ok && result.success) {
@@ -173,8 +184,10 @@ export default function NodeAdminCookPage() {
           created_at: new Date().toISOString(),
           status: 'success'
         };
-        
+
         setCookHistory([historyEntry, ...cookHistory]);
+        console.log(cookedData);
+        
         resetForm();
         alert(`Success! Created ${quantity}x ${cookedData.cooked_item.name}`);
       } else {
@@ -189,7 +202,7 @@ export default function NodeAdminCookPage() {
           status: 'error',
           message: result.message || 'Failed to cook recipe'
         };
-        
+
         setCookHistory([historyEntry, ...cookHistory]);
         alert('Error: ' + (result.message || 'Failed to cook recipe'));
       }
@@ -212,33 +225,15 @@ export default function NodeAdminCookPage() {
   };
 
   const getUserNodeName = () => {
-    return userNode ? `${userNode.name} (${userNode.type})` : 'Loading...';
+    return userNode ? `Node: ${userNode.name.slice(0, 8)}...` : 'Loading...';
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading your node information and recipes...</div>;
+    return <div className="p-6">Loading recipes...</div>;
   }
 
   if (!userNode) {
-    return (
-      <div className="p-6">
-        <div className="max-w-md mx-auto mt-10">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold mb-2">Node Admin - Cook Recipe</h1>
-            <p className="text-gray-600 text-red-600">
-              Unable to load your assigned node. Please contact an administrator.
-            </p>
-          </div>
-          
-          <div className="bg-red-50 p-6 rounded-lg border border-red-200 shadow-sm">
-            <p className="text-red-700 text-sm">
-              Your user account does not have a node assigned or the node information could not be retrieved.
-              Please contact your system administrator to resolve this issue.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="p-6">Initializing node ID...</div>;
   }
 
   return (
@@ -339,7 +334,7 @@ export default function NodeAdminCookPage() {
                       type="number"
                       min="1"
                       value={formData.quantity}
-                      onChange={(e) => setFormData({...formData, quantity: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                       required
                     />
                   </div>
@@ -349,7 +344,7 @@ export default function NodeAdminCookPage() {
                       id="expire_date"
                       type="date"
                       value={formData.expire_date}
-                      onChange={(e) => setFormData({...formData, expire_date: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, expire_date: e.target.value })}
                     />
                   </div>
                   <div className="flex items-end">
@@ -401,16 +396,15 @@ export default function NodeAdminCookPage() {
                     <TableCell>{history.result_item_name || '-'}</TableCell>
                     <TableCell>{history.quantity}</TableCell>
                     <TableCell>
-                      {history.expire_date 
-                        ? new Date(history.expire_date).toLocaleDateString() 
+                      {history.expire_date
+                        ? new Date(history.expire_date).toLocaleDateString()
                         : 'N/A'}
                     </TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        history.status === 'success'
+                      <span className={`px-2 py-1 rounded text-xs ${history.status === 'success'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
-                      }`}>
+                        }`}>
                         {history.status === 'success' ? 'Success' : 'Failed'}
                       </span>
                     </TableCell>

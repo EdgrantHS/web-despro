@@ -23,13 +23,38 @@ export async function GET(request: NextRequest) {
 
     const supabase = await getSupabaseClient();
 
-    const from = (page - 1) * page_size;
-    const to = from + page_size - 1;
-
     const { data, error, count } = await supabase
       .from('reports')
-      .select('*', { count: 'exact' })
-    //   .range(from, to)
+      .select(`
+        id,
+        user_id,
+        item_id,
+        item_transit_id,
+        type,
+        status,
+        description,
+        received_quantity,
+        expired_quantity,
+        evidence,
+        created_at,
+        item_transits:item_transit_id (
+          item_transit_id,
+          item_instance_id,
+          item_instances:item_instance_id (
+            item_types(
+              item_name,
+              item_type
+            )
+          ),
+          source_node_id,
+          dest_node_id,
+          status
+        ),
+        users:user_id (
+          user_id,
+          user_node_id
+        )
+      `, { count: 'exact' })
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -39,8 +64,37 @@ export async function GET(request: NextRequest) {
 
     const paginationMeta = createPaginationMeta(count || 0, page, page_size);
 
+    // Transform data untuk response yang terstruktur
+    const formattedReports = (data || []).map((report: any) => ({
+      id: report.id,
+      type: report.type,
+      status: report.status,
+      description: report.description,
+      evidence: report.evidence,
+      quantities: {
+        received: report.received_quantity,
+        expired: report.expired_quantity
+      },
+      created_at: report.created_at,
+      user: report.users ? {
+        id: report.users.user_id,
+        // email: report.users.email
+      } : null,
+      item_transit: report.item_transits ? {
+        id: report.item_transits.item_transit_id,
+        item_id: report.item_transits.item_instance_id,
+        source_node_id: report.item_transits.source_node_id,
+        destination_node_id: report.item_transits.dest_node_id,
+        status: report.item_transits.status,
+        item_instance: report.item_transits.item_instances ? {
+          item_name: report.item_transits.item_instances.item_types?.item_name || null,
+          item_type: report.item_transits.item_instances.item_types?.item_type || null
+        } : null
+      } : null
+    }));
+
     return createSuccessResponse('Reports retrieved successfully', {
-      reports: data || [],
+      reports: formattedReports,
       pagination: paginationMeta
     });
   });
@@ -55,6 +109,7 @@ export async function POST(request: NextRequest) {
     const {
       user_id,
       item_id,
+      item_transit_id,
       type,
       description,
       received_quantity,
@@ -78,13 +133,27 @@ export async function POST(request: NextRequest) {
       .insert([{
         user_id,
         item_id,
+        item_transit_id: item_transit_id || null,
         type,
+        status: 'IN_REVIEW',  // Default status - match Supabase enum with underscores
         description: description || null,
         received_quantity: received_quantity || null,
         expired_quantity: expired_quantity || null,
         evidence: evidence || null
       }])
-      .select('*')
+      .select(`
+        id,
+        user_id,
+        item_id,
+        item_transit_id,
+        type,
+        status,
+        description,
+        received_quantity,
+        expired_quantity,
+        evidence,
+        created_at
+      `)
       .single();
 
     if (error) {
@@ -92,6 +161,19 @@ export async function POST(request: NextRequest) {
       return createErrorResponse('Failed to create report', 500);
     }
 
-    return createSuccessResponse('Report created successfully', data);
+    return createSuccessResponse('Report created successfully', {
+      id: data.id,
+      type: data.type,
+      status: data.status,
+      description: data.description,
+      evidence: data.evidence,
+      quantities: {
+        received: data.received_quantity,
+        expired: data.expired_quantity
+      },
+      user_id: data.user_id,
+      item_transit_id: data.item_transit_id,
+      created_at: data.created_at
+    });
   });
 }

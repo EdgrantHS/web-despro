@@ -78,6 +78,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
       return createSuccessResponse("Item successfully arrived at destination", {
         action: "item_arrived",
+        item_transit_id: updated.item_transit_id,
         item_instance: updated.item_instances ? {
           id: updated.item_instances.item_instance_id,
           item_name: updated.item_instances.item_types?.item_name,
@@ -189,6 +190,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
       return createSuccessResponse("Item successfully placed in transit", {
         action: "item_added",
+        item_transit_id: inserted.item_transit_id,
         item_instance: inserted.item_instances ? {
           id: inserted.item_instances.item_instance_id,
           item_name: inserted.item_instances.item_types?.item_name,
