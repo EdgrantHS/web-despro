@@ -339,7 +339,7 @@ export default function NodeAdminItemInstancesPage() {
             </TableHeader>
             <TableBody>
               {Array.isArray(itemInstances) && itemInstances.map((item, index) => (
-                <TableRow key={item.id || item.item_instance_id || `item-${index}`}>
+                <TableRow key={item.item_instance_id || `item-${index}`}>
                   <TableCell className="font-medium">
                     {item.item_type ? `${item.item_type.item_name} (${item.item_type.item_type})` : 'N/A'}
                   </TableCell>

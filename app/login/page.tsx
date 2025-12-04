@@ -81,12 +81,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans">
-      {/* Blue header */}
-      <div
-        className="bg-blue-600 pt-16 pb-20 flex items-center justify-center rounded-b-[32px]"
-        style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
-      >
+    <div className="min-h-screen flex justify-center bg-white font-sans">
+      <div className="w-full max-w-md bg-white min-h-screen flex flex-col sm:border-2 border-blue-600">
+        {/* Blue header */}
+        <div className="bg-blue-600 pt-16 pb-20 flex items-center justify-center rounded-b-[32px]">
+        
         <div className="flex items-center justify-center">
           {/* Logo */}
           <div className="relative">
@@ -102,13 +101,13 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Main */}
-      <div className="flex-1 px-6 flex flex-col items-center mt-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-          Login to your Account
-        </h1>
+        {/* Main */}
+        <div className="flex-1 px-6 flex flex-col items-center mt-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+            Login to your Account
+          </h1>
 
-        <form onSubmit={onSubmit} className="w-full max-w-md">
+          <form onSubmit={onSubmit} className="w-full">
           {/* USERNAME */}
           <div className="mb-5 relative group">
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2 z-10 pointer-events-none">
@@ -184,7 +183,8 @@ export default function LoginPage() {
           >
             {loading ? 'Logging in...' : 'LOGIN'}
           </button>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   )

@@ -1,0 +1,128 @@
+================================================================================
+             COMPREHENSIVE PERFORMANCE ANALYSIS REPORT
+================================================================================
+Generated: 2025-11-29 15:44:39
+Analysis Date: November 29, 2025
+
+📊 DATASET OVERVIEW
+--------------------------------------------------
+Total Records: 570
+Analysis Type: Multi-Iteration Testing
+Unique Tests: 19
+Iterations per Test: ~30
+Total Measurements: 570
+API Tests: 300
+Page Tests: 270
+
+🌟 EXECUTIVE SUMMARY
+--------------------------------------------------
+Overall Performance:
+  • Average Response Time: 454.05 ms
+  • Median Response Time: 542.44 ms
+  • 95th Percentile: 772.42 ms
+  • 99th Percentile: 963.13 ms
+  • Overall Assessment: 🟡 GOOD - Acceptable performance
+
+📈 PERFORMANCE BREAKDOWN
+--------------------------------------------------
+  🟢 Excellent (<100ms):    9 tests (  1.6%)
+  🟡 Good (100-500ms):  259 tests ( 45.4%)
+  🟠 Fair (500-1000ms):  296 tests ( 51.9%)
+  🔴 Poor (>1000ms):    6 tests (  1.1%)
+
+🌐 PAGE LOAD PERFORMANCE ANALYSIS
+--------------------------------------------------
+Page Load Statistics:
+  • Number of Pages Tested: 9
+  • Average Load Time: 652.02 ms
+  • Median Load Time: 622.85 ms
+  • Standard Deviation: 97.84 ms
+  • Fastest Page: 555.40 ms
+  • Slowest Page: 1192.71 ms
+  ✅ Page load times are within acceptable range
+
+  🏆 Best Performing Pages:
+    • Login Page: 593.7ms (±24.0ms)
+    • QR Scanner Page: 603.3ms (±43.3ms)
+    • Halaman Manajemen User (Super Admin): 622.8ms (±20.9ms)
+
+  ⚠️  Slowest Performing Pages:
+    • Halaman Generate QR: 890.1ms (±119.3ms)
+    • Dashboard Admin Pusat: 649.5ms (±27.6ms)
+    • Daftar Item (Table): 629.8ms (±24.5ms)
+
+🚀 API RESPONSE PERFORMANCE ANALYSIS
+--------------------------------------------------
+API Response Statistics:
+  • Number of APIs Tested: 10
+  • Average Response Time: 275.88 ms
+  • Median Response Time: 216.26 ms
+  • Standard Deviation: 139.33 ms
+  • Fastest API: 59.08 ms
+  • Slowest API: 864.18 ms
+  ✅ API response times are good
+
+  🏆 Fastest APIs:
+    • Login API (Invalid Credentials): 123.2ms (±36.8ms)
+    • Reports API: 210.1ms (±48.3ms)
+    • Recipes API: 222.2ms (±100.4ms)
+
+  ⚠️  Slowest APIs:
+    • Login API (Valid Credentials): 512.5ms (±77.2ms)
+    • Users API: 486.8ms (±116.7ms)
+    • Item Transits API: 246.4ms (±63.8ms)
+
+🔍 RELIABILITY & CONSISTENCY ANALYSIS
+--------------------------------------------------
+Test Reliability Distribution:
+  🟢 High Reliability: 10 tests (52.6%)
+  🟡 Medium Reliability: 9 tests (47.4%)
+
+Consistency Metrics:
+  • Average Coefficient of Variation: 17.0%
+  • Most Consistent Test: 3.4% CV
+  • Least Consistent Test: 45.2% CV
+
+🎯 Most Consistent Tests (Low Variability):
+  • Halaman Manajemen User (Super Admin): 3.4% CV (High reliability)
+  • Halaman Manajemen Node (Super Admin): 3.5% CV (High reliability)
+  • Node Admin Item Instances: 3.7% CV (High reliability)
+  • Node Admin Dashboard: 3.7% CV (High reliability)
+  • Daftar Item (Table): 3.9% CV (High reliability)
+
+📈 Least Consistent Tests (High Variability):
+  • Recipes API: 45.2% CV (Medium reliability)
+  • Nodes API: 36.0% CV (Medium reliability)
+  • Login API (Invalid Credentials): 29.9% CV (Medium reliability)
+  • Item Instances API: 29.2% CV (Medium reliability)
+  • Item Transits API: 25.9% CV (Medium reliability)
+
+💡 RECOMMENDATIONS & NEXT STEPS
+--------------------------------------------------
+Priority Actions:
+🟢 MAINTAIN CURRENT PERFORMANCE:
+  1. Continue regular performance monitoring
+  2. Set performance budgets for new features
+  3. Implement automated performance testing in CI/CD
+
+  Focus Areas for Optimization:
+    1. Halaman Generate QR
+    2. Dashboard Admin Pusat
+    3. Daftar Item (Table)
+
+📊 Performance Monitoring Strategy:
+  1. Set up continuous performance monitoring
+  2. Establish performance baselines and thresholds
+  3. Implement automated alerts for performance degradation
+  4. Regular performance testing in CI/CD pipeline
+  5. Monthly performance reviews and optimization cycles
+
+🎯 Performance Targets:
+  • Page Load Time: < 2 seconds (target: < 1 second)
+  • API Response Time: < 200ms (target: < 100ms)
+  • 95th Percentile: < 3 seconds for pages, < 500ms for APIs
+  • Reliability: > 90% of tests should have high consistency
+
+================================================================================
+End of Report
+================================================================================

@@ -3,9 +3,9 @@ import { createErrorResponse } from '@/lib/api-helpers';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const qrId = params.id;
+  const { id: qrId } = await params;
   
   return new Response(
     `

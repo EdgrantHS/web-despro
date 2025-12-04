@@ -6,25 +6,25 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import petugasImage from '@/assets/public/01_image_petugas.png';
+import * as QRCodeLib from 'qrcode';
 
 const QRCodeCreate = () => {
     const router = useRouter();
     // State untuk data dropdown hasil fetch
-    // tambahkan 'count' pada tipe item instance
     const [itemInstanceList, setItemInstanceList] = useState<{ id: string; name: string; count: number }[]>([]);
-    const [sourceList, setSourceList] = useState<{ id: string; name: string; type: string; address: string }[]>([]);
     const [destinationList, setDestinationList] = useState<{ id: string; name: string; type: string; address: string }[]>([]);
+    const [userNode, setUserNode] = useState<{ id: string; name: string; type: string; location?: string } | null>(null);
 
     // State untuk form
     const [formData, setFormData] = useState({
         itemInstanceId: '',
-        sourceId: '',
         destinationId: '',
         itemCount: 0
     });
 
     // State data untuk kebutuhan frontend
     const [modalOpen, setModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [qrData, setQrData] = useState<{
         qr_url: string;
         item_name: string;
@@ -34,29 +34,40 @@ const QRCodeCreate = () => {
         destination_name: string;
     } | null>(null);
 
-    // Handler fetch data (siapkan, tinggal isi logic fetch)
+    // Handler fetch data
     useEffect(() => {
-        fetchSourceNodes();
-        fetchDistributionNodes();
-
-        // console.log('QR Data:', qrData);
-
+        fetchUserNodeAndData();
     }, []);
 
-    useEffect(() => {
-        fetchItemInstances();
-    }, [formData.sourceId])
-
-
-    // Fetch item instances dari API
-    const fetchItemInstances = async () => {
+    const fetchUserNodeAndData = async () => {
+        setIsLoading(true);
         try {
-            const response = await fetch(`/api/item-instances?node_id=${formData.sourceId}`);
-            const result = await response.json();
-            // Pastikan response sukses dan ada data
-            if (result.success && result.data && Array.isArray(result.data.item_instances)) {
+            // First, get the user's assigned node
+            const nodeResponse = await fetch('/api/user/node');
+            const nodeData = await nodeResponse.json();
+            
+            if (!nodeData.success) {
+                console.error('Error fetching user node:', nodeData.message);
+                return;
+            }
+            
+            const userNodeInfo = nodeData.data.node;
+            setUserNode(userNodeInfo);
+            
+            // Now fetch item instances for this specific node and destination nodes
+            const [instancesRes, destinationRes] = await Promise.all([
+                fetch(`/api/item-instances?node_id=${userNodeInfo.id}`),
+                fetch('/api/nodes?status=active')
+            ]);
+            
+            const [instancesData, destinationData] = await Promise.all([
+                instancesRes.json(),
+                destinationRes.json()
+            ]);
+            
+            if (instancesData.success && instancesData.data && Array.isArray(instancesData.data.item_instances)) {
                 setItemInstanceList(
-                    result.data.item_instances.map((item: any) => ({
+                    instancesData.data.item_instances.map((item: any) => ({
                         id: item.id,
                         name: item.item_types?.item_name || item.item_type?.item_name || "Unknown",
                         count: item.item_count || 0
@@ -65,54 +76,21 @@ const QRCodeCreate = () => {
             } else {
                 setItemInstanceList([]);
             }
-        } catch (err) {
-            console.error("Failed to fetch item instances:", err);
-            setItemInstanceList([]);
-        }
-    };
 
-    // Fetch asal (source nodes) - now allows any node as source
-    const fetchSourceNodes = async () => {
-        try {
-            const response = await fetch('/api/nodes?status=active');
-            const result = await response.json();
-
-            if (result.success && result.data && Array.isArray(result.data.nodes)) {
-                setSourceList(
-                    result.data.nodes.map((node: any) => ({
-                        id: node.id, // Use 'id' since we fixed the field mapping
-                        name: node.name, // Use 'name' since we fixed the field mapping
-                        type: node.type, // Use 'type' since we fixed the field mapping
-                        address: node.location || "" // Use 'location' since we fixed the field mapping
-                    }))
-                );
-            } else {
-                setSourceList([]);
-            }
-        } catch (err) {
-            console.error("Failed to fetch source nodes:", err);
-            setSourceList([]);
-        }
-    };
-
-    // Fetch tujuan (destination nodes) - now allows all active nodes as destination
-    const fetchDistributionNodes = async () => {
-        try {
-            const response = await fetch('/api/nodes?status=active');
-            const result = await response.json();
-
-            if (result.success && result.data && Array.isArray(result.data.nodes)) {
+            if (destinationData.success && destinationData.data && Array.isArray(destinationData.data.nodes)) {
                 setDestinationList(
-                    result.data.nodes.map((node: any) => ({
-                        id: node.id, // Use 'id' since we fixed the field mapping
-                        name: node.name, // Use 'name' since we fixed the field mapping
-                        type: node.type, // Use 'type' since we fixed the field mapping
-                        address: node.location || "" // Use 'location' since we fixed the field mapping
+                    destinationData.data.nodes.map((node: any) => ({
+                        id: node.id,
+                        name: node.name,
+                        type: node.type,
+                        address: node.location || ""
                     }))
                 );
             }
-        } catch (err) {
-            console.error("Failed to fetch destination nodes:", err);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -136,6 +114,95 @@ const QRCodeCreate = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    // Function to save QR code as image
+    const saveQRAsImage = () => {
+        if (!qrData?.qr_url) return;
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const size = 300;
+        canvas.width = size;
+        canvas.height = size;
+        
+        // Create QR code using QRCode library
+        QRCodeLib.toCanvas(canvas, qrData.qr_url, {
+            width: size,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#FFFFFF'
+            }
+        }, (error: any) => {
+            if (error) {
+                console.error('Error generating QR code:', error);
+                return;
+            }
+            
+            // Convert canvas to blob and download
+            canvas.toBlob((blob) => {
+                if (!blob) return;
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `QR-${qrData.item_name}-${Date.now()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        });
+    };
+
+    // Function to copy QR code image to clipboard
+    const copyQRToClipboard = async () => {
+        if (!qrData?.qr_url) return;
+        
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const size = 300;
+            canvas.width = size;
+            canvas.height = size;
+            
+            await new Promise((resolve, reject) => {
+                QRCodeLib.toCanvas(canvas, qrData.qr_url, {
+                    width: size,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, (error: any) => {
+                    if (error) reject(error);
+                    else resolve(true);
+                });
+            });
+            
+            canvas.toBlob(async (blob) => {
+                if (!blob) return;
+                
+                await navigator.clipboard.write([
+                    new ClipboardItem({ 'image/png': blob })
+                ]);
+            }, 'image/png');
+        } catch (error) {
+            console.error('Error copying QR code:', error);
+            // Fallback: copy URL to clipboard
+            try {
+                await navigator.clipboard.writeText(qrData.qr_url);
+                alert('QR URL copied to clipboard!');
+            } catch (clipboardError) {
+                console.error('Clipboard access failed:', clipboardError);
+                alert('Copy failed. Please copy the URL manually.');
+            }
+        }
+    };
+
     const handleSubmit = async () => {
         // Validasi jumlah sebelum submit
         const selected = itemInstanceList.find(i => i.id === formData.itemInstanceId);
@@ -149,10 +216,15 @@ const QRCodeCreate = () => {
             return;
         }
 
+        if (!userNode) {
+            alert('Node information not available');
+            return;
+        }
+
         // Parsing form data ke format API
         const parsedData = {
             item_instance_id: formData.itemInstanceId,
-            source_id: formData.sourceId,
+            source_id: userNode.id, // Automatically use user's node
             destination_id: formData.destinationId,
             item_count: formData.itemCount
         };
@@ -182,17 +254,50 @@ const QRCodeCreate = () => {
                 // Reset input form
                 setFormData({
                     itemInstanceId: '',
-                    sourceId: '',
                     destinationId: '',
                     itemCount: 0
                 });
             } else {
                 console.error('Failed to create new QR Code: ' + (result.message || 'Unknown error'));
+                alert('Failed to create QR Code: ' + (result.message || 'Unknown error'));
             }
         } catch (err) {
             console.error('Error creating QR code:', err);
+            alert('Error creating QR code. Please try again.');
         }
     };
+
+    const getUserNodeName = () => {
+        return userNode ? `${userNode.name} (${userNode.type})` : 'Loading...';
+    };
+
+    if (isLoading) {
+        return (
+            <div className="w-full min-h-screen bg-white flex-1 flex items-center justify-center p-4">
+                <div className="text-center">
+                    <p className="text-gray-600 mb-4">Loading your node information...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!userNode) {
+        return (
+            <div className="w-full min-h-screen bg-white flex-1 flex items-center justify-center p-4">
+                <div className="max-w-md mx-auto text-center">
+                    <h1 className="text-2xl font-bold mb-4">QR Code Create</h1>
+                    <div className="bg-red-50 p-6 rounded-lg border border-red-200 shadow-sm">
+                        <p className="text-red-700 mb-4">
+                            Unable to load your assigned node. Please contact an administrator.
+                        </p>
+                        <p className="text-red-600 text-sm">
+                            Your user account does not have a node assigned or the node information could not be retrieved.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full min-h-screen bg-white flex flex-col">
@@ -279,25 +384,18 @@ const QRCodeCreate = () => {
                     })()}
                 </div>
 
-                {/* Asal */}
+                {/* Source Node (Auto-selected and disabled) */}
                 <div>
-                    <label className="text-sm font-semibold text-gray-700">Asal</label>
-                    <div className="relative mt-1">
-                        <select
-                            name="sourceId"
-                            value={formData.sourceId}
-                            onChange={handleChange}
-                            className="w-full appearance-none px-3 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        >
-                            <option value="">Pilih Asal</option>
-                            {sourceList.map(node => (
-                                <option key={node.id} value={node.id}>
-                                    {node.name} ({node.type})
-                                </option>
-                            ))}
-                        </select>
-                        <ChevronDown className="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                    </div>
+                    <label className="text-sm font-semibold text-gray-700">
+                        Source Node (Your Node)
+                    </label>
+                    <input
+                        type="text"
+                        value={getUserNodeName()}
+                        disabled
+                        className="w-full px-3 py-2.5 mt-1 border border-gray-300 rounded-lg text-sm bg-gray-100 cursor-not-allowed opacity-60"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Automatically assigned based on your user account</p>
                 </div>
 
                 {/* Tujuan */}
@@ -339,7 +437,7 @@ const QRCodeCreate = () => {
                 </div>
             </div>
 
-            { /* Popup Modal QR Code */}
+            {/* Popup Modal QR Code */}
             {modalOpen && qrData && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-auto">
@@ -351,8 +449,23 @@ const QRCodeCreate = () => {
                         
                         {/* Content */}
                         <div className="p-6">
+                            {/* Save and Copy Buttons */}
+                            <div className="flex gap-2 mb-6">
+                                <button
+                                    onClick={saveQRAsImage}
+                                    className="flex-1 border-2 border-blue-500 hover:bg-blue-500 hover:text-white text-blue-700 py-2 px-4 rounded-lg font-medium text-sm transition-colors duration-200 flex items-center justify-center gap-1"
+                                >
+                                    Save Image
+                                </button>
+                                <button
+                                    onClick={copyQRToClipboard}
+                                    className="flex-1 border-2 border-blue-500 hover:bg-blue-500 hover:text-white text-blue-700 py-2 px-4 rounded-lg font-medium text-sm transition-colors duration-200 flex items-center justify-center gap-1"
+                                >
+                                    Copy Image
+                                </button>
+                            </div>
                             {/* QR Code */}
-                            <div className="bg-gray-50 rounded-xl p-4 mb-6 flex items-center justify-center border border-gray-200">
+                            <div className="bg-white rounded-xl p-4 mb-6 flex items-center justify-center border border-gray-200">
                                 {qrData.qr_url ? (
                                     <QRCode
                                         value={qrData.qr_url}

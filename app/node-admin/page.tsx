@@ -168,7 +168,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="px-4 md:px-5 mt-4 overflow-x-auto">
+      {/* <div className="px-4 md:px-5 mt-4 overflow-x-auto">
         <div className="flex gap-1.5 md:gap-3 min-w-max">
           <button className="bg-blue-600 text-white px-2 md:px-4 py-1 md:py-2 rounded-lg md:rounded-xl text-[10px] md:text-sm font-medium shadow-md whitespace-nowrap">
             Inventory ({itemInstances.length})
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
             User (15)
           </button>
         </div>
-      </div>
+      </div> */}
 
       <div className="px-4 md:px-5 mt-5">
         <div className="flex items-center gap-2 bg-gray-100 px-3 md:px-4 py-2.5 md:py-3 rounded-2xl">

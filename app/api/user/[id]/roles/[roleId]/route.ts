@@ -4,12 +4,11 @@ import { NextRequest, NextResponse } from 'next/server'
 // Remove Specific Role from User
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; roleId: string } }
+  { params }: { params: Promise<{ id: string; roleId: string }> }
 ) {
   try {
     const supabase = await createClient()
-    const userNodeId = params.id
-    const roleId = params.roleId
+    const { id: userNodeId, roleId } = await params
 
     // Check if user exists
     const { data: userData, error: userError } = await supabase

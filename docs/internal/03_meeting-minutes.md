@@ -64,6 +64,8 @@ MEETING TRANSCRIPTION:
     - [QR Scanner Testing and Functionality](#qr-scanner-testing-and-functionality)
     - [Deliverables and Presentation Timeline](#deliverables-and-presentation-timeline)
     - [Role Assignments for Final Phases](#role-assignments-for-final-phases)
+  - [2025/11/25-14.17](#20251125-1417)
+  - [2025/12/01](#20251201)
 
 ## Progress Update Meeting 1 - 2025/09/07
 
@@ -497,3 +499,111 @@ MEETING TRANSCRIPTION:
           - [ ] Work on fixing and improving the transit item logic.
           - [ ] Fix vercel deployment
           - [x] Send the meeting notes.
+
+
+
+## 2025/11/25-14.17
+
+- *Recording*: `Transcription(base).txt`
+- **Attendees**: Edgrant, Bima, Haris, Nadif
+- *Topic*: Design Project (Despro) Timeline, Application Development, and Exhibition Preparation.
+- *Summary*: The team discussed the timeline for the "Despro" final report and exhibition. Technical decisions were made regarding the frontend mobile view and the removal of the "Courier" feature to streamline development. The database schema for recipes and ingredients was reviewed. Plans for the physical miniature display (3 buildings) and budget for exhibition refreshments were finalized.
+
+- *Discussion Points*
+  - **Project Timeline & Deliverables**
+    - The final report must be completed by the 30th.
+    - The project display will take place on the 10th or 11th.
+    - The team aims to have a demo (Phase 3) ready this week to present to "Pak Alfan" next week.
+
+  - **Frontend & UI Implementation**
+    - A display issue was noted where the mobile view needs to be preserved on PC screens. The solution discussed is adding a `max-width` (approx. 600px) to the outer wrapper to maintain the mobile aspect ratio.
+    - The QR code display has been adjusted to fit the design.
+
+  - **Backend & Database Schema**
+    - **Courier Feature:** The team decided to remove the "Courier" feature from the item transit flow to simplify the system and ensure the project is finished on time. The database column exists, but it will not be implemented in the program.
+    - **Recipe Logic:** The system includes tables for Reports, Recipes, Item Types, and Ingredients.
+    - **Relationships:** A single recipe links to multiple ingredients via a bridging table. One row in the recipe table refers to a specific instruction set and resource.
+    - **Cooking Feature:** Implementing "Cooking" will deduct from stock. It handles stock differently compared to raw material stock.
+
+  - **Exhibition & Miniature Setup**
+    - **Structure:** The miniature display will consist of three buildings: a Warehouse, a Kitchen, and a School.
+    - **Packaging:** The team plans to use a clear box/container for the miniature setup.
+    - **Staffing:** Five distinct roles are required for the demo, including a Chef and delivery personnel.
+    - **Refreshments:** Discussion regarding the exhibition budget (approx. 400k total). The plan involves serving drinks (discussion between Pop Ice vs. Milo) and purchasing cups and water gallons. A reserve of 200k is set aside for safety.
+
+  - **Demo Media**
+    - The team debated between a looping video or an animation for the display monitor. They leaned towards an animation that explains the steps/process to complement the poster.
+
+- *Action Items*:
+  - Harris:
+    - [ ] Complete report and cooking
+  - Nadhif
+    - [ ] Refactor UI to match figma
+  - Edgrant
+    - [ ] Complete the final report by the 30th.
+    - [ ] Create demo/animation video
+  - Bima
+    - [ ] Finalize miniature construction (3 buildings) and purchase exhibition supplies.
+
+## 2025/12/01
+
+- *Recording*: https://drive.google.com/file/d/1MxW270P7k0lGNc4lVrLeDzdrsXiEebdM/view?usp=drive_link
+- *Attendees*: Edgrant, Haris, Nadif, Bima
+- *Topic*: Pre-Exhibition Sprint: Recipe Logic, Reporting Simplification, UI/UX Polish, and Physical Miniature Setup.
+- *Summary*: 
+The team convened to finalize features before the upcoming Friday deadline and the exhibition (Pameran) on Wednesday. Major decisions included simplifying the "Cooking" and "Reporting" logic to ensure stability for the demo. The "Recipe" feature was defined to use "servings" rather than complex weight units table. The "Reporting" scope was reduced to only allow reports during scanning, removing the history page. UI refinements were assigned to Nadif, specifically for the scanner interface and printer compatibility. Arya Bina outlined the physical miniature setup, defining specific roles and labeling for the warehouse, kitchen, and school nodes. A rehearsal (Gladi) is scheduled for Friday _15.30_.
+
+- *Discussion Points*
+  - **Project Status & Timeline**
+    - The backend is complete; the frontend is estimated to take one more day.
+    - A rehearsal/practice session (Gladi) is scheduled for Friday at approximately 15:30.
+    - The final exhibition (Pameran) is on Wednesday.
+
+  - **Recipe & Cooking Feature Implementation**
+    - The system will allow an Admin to create recipes consisting of a "Recipe Name" and "Result Item".
+    - Ingredients are pulled from "Item Types" that are designated as "Raw Materials" (Bahan Mentah).
+    - **Unit Logic Decision**: To avoid complex math (converting grams to kg), the team agreed to use "1 Serving" (Satu Sajian) as the standard unit for the presentation.
+    - "Start Cooking" action will automatically deduct the raw materials from the node's `Item Instance`.
+
+  - **Reporting (Laporan) & Tracking Logic**
+    - **Scope Reduction**: The original plan to have a "Scan History" page for reporting was cancelled due to time constraints.
+    - Reporting will now only be available via a pop-up immediately after scanning a QR code.
+    - Item Tracing was simplified: Instead of tracking the full history (Warehouse A -> Kitchen B -> School C), the system will only track the item's status at the current/last node.
+
+  - **UI/UX & Scanner Refinements**
+    - **Tables**: _make sure the pagination is implemented correctly. There are no max items, just follow the API response._
+    - **Scanner Interface**: After a successful scan, the UI must hide technical details like "Item Type," "URL," and "Status" to look cleaner for the demo.
+    - **Status Definitions**: The system uses "Active" to mean "Terikirim" and "Inactive" to mean "Diteirma".
+    - **Printer Feature**: A specific page is required to "Download QR" because the printer application relies on email/file downloads rather than direct printing.
+
+  - **Physical Exhibition Setup (Miniatures)**
+    - The setup will feature three distinct nodes: **School, Factory/Kitchen, and Warehouse**.
+    - **Roles & Labels**:
+      - **Warehouse**: Admin Gudang (Adds stock), Petugas Gudang (Creates/Scans QR to send).
+      - **Kitchen**: Admin Dapur (Creates Menu/Recipes), Petugas Dapur (Scans to receive/send), Chef (Converts stock to food).
+      - **School**: Petugas Sekolah (Scans to receive).
+    - Arya Bina will prepare text labels/barcodes explaining the function of each role for the audience.
+
+- *Action Items*:
+  - **Edgrant**:
+    - [ ] Complete the meeting minutes (Notulen) and Report.
+    - [ ] Coordinate the Friday rehearsal.
+    - [ ] Refine QR scanner page.
+  - **Haris**:
+    - [ ] Finalize the Reporting logic (Pop-up on scan only).
+    - [ ] Implement "Admin Pusat" feature for accepting recipes.
+    - [ ] _Implement other "Admin Pusat" (Central Admin) features if time permits._
+    - [ ] Handle "Item Transit" logic for Admin Nodes.
+  - **Nadif**:
+    - [ ] Update Scanner UI: Remove Item Type, URL, and Status text after scan.
+    - [ ] Create a "Download QR" page for printer compatibility.
+    - [ ] Ensure there is a max-width for petugas pages so that the mobile view is preserved on PC screens.
+      - _For admin pusat, there is no need to have a mobile view_
+      - _For admin node, it is expected to be used on mobile phones, so if there is no time to make a seperate desktop view, make it like petugas with max-width._
+    - [ ] Verify pagination works correctly.
+  - **Bima**:
+    - [ ] Test the physical scanner hardware.
+    - [ ] Place the scanner in the lab (Digilab) cupboard for storage.
+    - [ ] Finalize the 3-node miniature setup (School, Kitchen, Warehouse).
+    - [ ] Create document for all the text in the miniature demonstration setup.
+```

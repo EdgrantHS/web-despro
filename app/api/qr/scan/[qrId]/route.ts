@@ -20,16 +20,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return createErrorResponse("id parameter is required", 400);
     }
 
-    // Define baseUrl and build qr_url
-    const baseUrl = "http://localhost:3000/api/qr/scan";
-    const qr_url = `${baseUrl}/${qrId}`;
-    console.log('QR URL:', qr_url);
+    // Use QR ID for matching (since we now store UUID in qr_url field)
+    console.log('QR ID:', qrId);
 
-    // 1. Cari entry di item_transits
+    // 1. Cari entry di item_transits using the QR ID
     const { data: found, error: findError } = await supabase
       .from('item_transits')
       .select('*')
-      .eq('qr_url', qr_url)
+      .eq('qr_url', qrId)
       .single();
 
     if (findError && findError.code !== 'PGRST116') {
@@ -38,63 +36,125 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     if (found) {
-      // Entry ditemukan, update status dan time_arrival jika perlu
-      const newStatus = found.status === 'active' ? 'inactive' : 'active';
-      const updateFields: any = { status: newStatus };
-      if (!found.time_arrival) {
-        updateFields.time_arrival = new Date().toISOString();
-      }
+      // Entry ditemukan, this is the second scan (delivery)
+      if (found.status === 'active') {
+        // Mark transit as delivered
+        const updateFields: any = { 
+          status: 'inactive',
+          time_arrival: new Date().toISOString()
+        };
 
-      const { data: updated, error: updateError } = await supabase
-        .from('item_transits')
-        .update(updateFields)
-        .eq('item_transit_id', found.item_transit_id)
-        .select(`
-          *,
-          item_instances (
-            item_instance_id,
-            item_count,
-            item_types (
-              item_name,
-              item_type
+        const { data: updated, error: updateError } = await supabase
+          .from('item_transits')
+          .update(updateFields)
+          .eq('item_transit_id', found.item_transit_id)
+          .select(`
+            *,
+            item_instances (
+              item_instance_id,
+              item_count,
+              item_types (
+                item_name,
+                item_type
+              )
+            ),
+            item_transit_count,
+            source_nodes:nodes!source_node_id (
+              node_id,
+              node_name
+            ),
+            dest_nodes:nodes!dest_node_id (
+              node_id,
+              node_name
             )
-          ),
-          item_transit_count,
-          source_nodes:nodes!source_node_id (
-            node_id,
-            node_name
-          ),
-          dest_nodes:nodes!dest_node_id (
-            node_id,
-            node_name
-          )
-        `)
-        .single();
+          `)
+          .single();
 
-      if (updateError) {
-        console.error('Update Error:', updateError);
-        return createErrorResponse('Failed to update entry', 500);
+        if (updateError) {
+          console.error('Update Error:', updateError);
+          return createErrorResponse('Failed to update delivery status', 500);
+        }
+
+        // Now update the item instance at destination - add the stock and mark as active
+        const destinationNodeId = found.dest_node_id;
+        const itemCount = found.item_transit_count;
+
+        // Get the item type ID from the source item instance
+        const { data: sourceItemInstance, error: sourceError } = await supabase
+          .from('item_instances')
+          .select('item_type_id')
+          .eq('item_instance_id', found.item_instance_id)
+          .single();
+
+        if (sourceError) {
+          console.error('Source item instance lookup error:', sourceError);
+          return createErrorResponse('Failed to get item type information', 500);
+        }
+
+        // Check if there's already an item instance at the destination
+        const { data: destItemInstance, error: destError } = await supabase
+          .from('item_instances')
+          .select('item_instance_id, item_count')
+          .eq('item_type_id', sourceItemInstance.item_type_id)
+          .eq('node_id', destinationNodeId)
+          .eq('status', 'Active')
+          .single();
+
+        if (destError && destError.code !== 'PGRST116') {
+          console.error('Destination item instance lookup error:', destError);
+          return createErrorResponse('Failed to check destination inventory', 500);
+        }
+
+        if (destItemInstance) {
+          // Update existing item instance at destination
+          const { error: updateDestError } = await supabase
+            .from('item_instances')
+            .update({ item_count: destItemInstance.item_count + itemCount })
+            .eq('item_instance_id', destItemInstance.item_instance_id);
+
+          if (updateDestError) {
+            console.error('Update destination item instance error:', updateDestError);
+            return createErrorResponse('Failed to update destination inventory', 500);
+          }
+        } else {
+          // Create new item instance at destination
+          const { error: createDestError } = await supabase
+            .from('item_instances')
+            .insert([{
+              item_type_id: sourceItemInstance.item_type_id,
+              node_id: destinationNodeId,
+              item_count: itemCount,
+              status: 'Active'
+            }]);
+
+          if (createDestError) {
+            console.error('Create destination item instance error:', createDestError);
+            return createErrorResponse('Failed to create destination inventory', 500);
+          }
+        }
+
+        return createSuccessResponse("Item successfully delivered to destination", {
+          action: "item_delivered",
+          item_instance: updated.item_instances ? {
+            id: updated.item_instances.item_instance_id,
+            item_name: updated.item_instances.item_types?.item_name,
+            item_type: updated.item_instances.item_types?.item_type,
+            item_count: updated.item_instances.item_count
+          } : null,
+          item_transit_count: updated.item_transit_count,
+          source_node: updated.source_nodes ? {
+            id: updated.source_nodes.node_id,
+            name: updated.source_nodes.node_name
+          } : null,
+          destination_node: updated.dest_nodes ? {
+            id: updated.dest_nodes.node_id,
+            name: updated.dest_nodes.node_name
+          } : null,
+          status: updated.status
+        });
+      } else {
+        return createErrorResponse('QR code has already been processed', 400);
       }
-
-      return createSuccessResponse("Item successfully arrived at destination", {
-        action: "item_arrived",
-        item_instance: updated.item_instances ? {
-          id: updated.item_instances.item_instance_id,
-          item_name: updated.item_instances.item_types?.item_name,
-          item_type: updated.item_instances.item_types?.item_type,
-          item_count: updated.item_instances.item_count
-        } : null,
-        item_transit_count: updated.item_transit_count,
-        source_node: updated.source_nodes ? {
-          id: updated.source_nodes.node_id,
-          name: updated.source_nodes.node_name
-        } : null,
-        destination_node: updated.dest_nodes ? {
-          id: updated.dest_nodes.node_id,
-          name: updated.dest_nodes.node_name
-        } : null,
-        status: updated.status
-      });
     } else {
       // 2. Cari di qr_codes
       const { data: qrCode, error: qrError } = await supabase
@@ -156,7 +216,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           time_departure: new Date().toISOString(),
           courier_name,
           courier_phone,
-          qr_url: qrCode.qr_url,
+          qr_url: qrId, // Use the QR ID directly
           status: 'active',
           item_transit_count: qrCode.item_count
         }])

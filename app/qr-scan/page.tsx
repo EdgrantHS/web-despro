@@ -138,13 +138,26 @@ const Page = () => {
         }
         setIsScanning(false);
 
-        // Ambil qrId dari path terakhir
+        // Extract QR ID - handle both URL format and UUID-only format
         let qrId = "";
         try {
-            const urlParts = decodedText.trim().split("/");
-            qrId = urlParts[urlParts.length - 1];
+            const trimmedText = decodedText.trim();
+            
+            // Check if it's a UUID format (new shorter format)
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            if (uuidRegex.test(trimmedText)) {
+                qrId = trimmedText;
+            } else {
+                // Try to extract from URL format (legacy support)
+                const urlParts = trimmedText.split("/");
+                qrId = urlParts[urlParts.length - 1];
+            }
+            
+            if (!qrId) {
+                throw new Error("No QR ID found");
+            }
         } catch {
-            setScanResult({ raw: "QR format error" });
+            setScanResult({ raw: "QR format error - invalid format" });
             return;
         }
 
@@ -346,15 +359,15 @@ const Page = () => {
                                 <div className="flex justify-between items-center py-2">
                                     <span className="text-sm text-gray-600">Status</span>
                                     <span className={`text-sm font-semibold px-2 py-1 rounded ${
-                                        scanResult.status === 'completed' || scanResult.status === 'success' 
+                                        scanResult.status === 'inactive' || scanResult.status === 'success' 
                                             ? 'bg-green-100 text-green-700' 
-                                            : scanResult.status === 'pending' || scanResult.status === 'in_transit'
+                                            : scanResult.status === 'active' || scanResult.status === 'in_transit'
                                             ? 'bg-yellow-100 text-yellow-700'
                                             : scanResult.status === 'failed' || scanResult.status === 'error'
                                             ? 'bg-red-100 text-red-700'
                                             : 'text-gray-900'
                                     }`}>
-                                        {scanResult.status || '-'}
+                                        {scanResult.status === 'active' ? 'Terikirim' : scanResult.status === 'inactive' ? 'Diterima' : scanResult.status || '-'}
                                     </span>
                                 </div>
                                 
