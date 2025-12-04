@@ -1,17 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { Search, User, QrCode, FileWarning, ChevronRight, LayoutGrid, PlusCircle } from "lucide-react";
+import { Search, User, QrCode, FileWarning, ChevronRight, LayoutGrid, PlusCircle, LogOut } from "lucide-react";
 import { LoadingLink } from '@/components/LoadingLink';
 import { useAuth } from '@/lib/useAuth';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 import petugasImage from '@/assets/public/image_petugas.png';
 
 export default function PetugasPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [greeting, setGreeting] = useState('Good Morning');
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
   
   useEffect(() => {
     setMounted(true);
@@ -66,13 +75,20 @@ export default function PetugasPage() {
     <div className="min-h-screen bg-white flex flex-col pb-12">
       {/* Header */}
       <div 
-        className="bg-blue-600 text-white py-4 px-5 rounded-b-3xl flex items-center justify-center gap-2.5 shadow-md"
+        className="bg-blue-600 text-white py-4 px-5 rounded-b-3xl flex items-center justify-between gap-2.5 shadow-md"
         style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
       >
         <div className="flex items-center gap-2.5">
           <LayoutGrid className="w-5 h-5" />
           <h1 className="text-xl font-semibold">Dashboard</h1>
         </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 transition-colors text-sm font-medium"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </button>
       </div>
 
       {/* Greeting */}
