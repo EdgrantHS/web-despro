@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
         allocationDetail.push({
           item_instance_id: candidate.item_instance_id,
-          item_name: candidate.item_types.item_name || itemName,
+          item_name: (candidate.item_types as any)?.item_name || itemName,
           quantity_used: take,
           remaining: current - take
         });
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
       return createSuccessResponse('Recipe cooked successfully', {
         cooked_item: {
           id: inserted.item_instance_id,
-          name: inserted.item_types.item_name || 'Unknown', // ada warning tp ini sudah benar (aneh)
+          name: (inserted.item_types as any)?.item_name || 'Unknown',
           quantity: inserted.item_count,
           expire_date: inserted.expire_date,
         },
