@@ -37,6 +37,7 @@ interface RecipeIngredient {
     item_id: string;
     item_name: string;
   };
+  available_stock?: number;
 }
 
 interface Node {
@@ -70,7 +71,7 @@ interface CookHistory {
   message?: string;
 }
 
-export default function NodeAdminCookPage() {
+export default function PetugasCookPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -78,6 +79,7 @@ export default function NodeAdminCookPage() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [cookHistory, setCookHistory] = useState<CookHistory[]>([]);
   const [userNode, setUserNode] = useState<Node | null>(null);
+  const [ingredientStock, setIngredientStock] = useState<Record<string, number>>({});
   const [formData, setFormData] = useState<CookFormData>({
     recipe_id: '',
     quantity: '1',
@@ -113,15 +115,55 @@ export default function NodeAdminCookPage() {
     }
   }
 
+  const fetchStockData = async () => {
+    try {
+      const stockRes = await fetch(`/api/item-instances?node_id=${userNode?.id}`);
+      const stockData = await stockRes.json();
+      
+      if (stockData.success) {
+        // Create stock lookup map
+        const stockMap: Record<string, number> = {};
+        stockData.data.item_instances.forEach((instance: any) => {
+          const itemId = instance.item_type_id;
+          stockMap[itemId] = (stockMap[itemId] || 0) + instance.item_count;
+        });
+        
+        setIngredientStock(stockMap);
+        return stockMap;
+      }
+      return {};
+    } catch (error) {
+      console.error('Error fetching stock data:', error);
+      return {};
+    }
+  };
+
+  const updateRecipesWithStock = (recipesData: Recipe[], stockMap: Record<string, number>) => {
+    return recipesData.map((recipe: Recipe) => ({
+      ...recipe,
+      recipe_ingredients: recipe.recipe_ingredients?.map(ingredient => ({
+        ...ingredient,
+        available_stock: stockMap[ingredient.item_id] || 0
+      }))
+    }));
+  };
+
   const fetchRecipes = async () => {
     setIsLoading(true);
     try {
-      // Fetch recipes dengan node_id parameter
+      // Fetch recipes with node_id parameter
       const recipesRes = await fetch(`/api/recipes?node_id=${userNode?.id}`);
       const recipesData = await recipesRes.json();
 
       if (recipesData.success) {
-        setRecipes(recipesData.data.recipes || []);
+        const recipesWithStock = recipesData.data.recipes || [];
+        
+        // Fetch current stock for all ingredients
+        const stockMap = await fetchStockData();
+        
+        // Add stock information to recipe ingredients
+        const recipesWithStockInfo = updateRecipesWithStock(recipesWithStock, stockMap);
+        setRecipes(recipesWithStockInfo);
       }
     } catch (error) {
       console.error('Error fetching recipes:', error);
@@ -151,6 +193,25 @@ export default function NodeAdminCookPage() {
     if (quantity <= 0) {
       alert('Quantity must be greater than 0');
       return;
+    }
+
+    // Check if there's sufficient stock for all ingredients
+    if (selectedRecipe.recipe_ingredients) {
+      const insufficientIngredients = selectedRecipe.recipe_ingredients.filter(ing => {
+        const availableStock = ing.available_stock || 0;
+        const requiredStock = ing.quantity * quantity;
+        return availableStock < requiredStock;
+      });
+
+      if (insufficientIngredients.length > 0) {
+        const insufficientList = insufficientIngredients
+          .map(ing => `${ing.item_types?.item_name}: need ${ing.quantity * quantity}, have ${ing.available_stock || 0}`)
+          .join('\n');
+        
+        if (!confirm(`Warning: Insufficient stock for some ingredients:\n\n${insufficientList}\n\nDo you want to continue anyway?`)) {
+          return;
+        }
+      }
     }
 
     setIsCooking(true);
@@ -188,6 +249,9 @@ export default function NodeAdminCookPage() {
         setCookHistory([historyEntry, ...cookHistory]);
         console.log(cookedData);
         
+        // Completely re-fetch recipes with updated stock data
+        await fetchRecipes();
+        
         resetForm();
         alert(`Success! Created ${quantity}x ${cookedData.cooked_item.name}`);
       } else {
@@ -204,10 +268,22 @@ export default function NodeAdminCookPage() {
         };
 
         setCookHistory([historyEntry, ...cookHistory]);
+        
+        // Completely re-fetch recipes with updated stock data
+        await fetchRecipes();
+        
         alert('Error: ' + (result.message || 'Failed to cook recipe'));
       }
     } catch (error) {
       console.error('Error cooking recipe:', error);
+      
+      // Completely re-fetch recipes with updated stock data even after network errors
+      try {
+        await fetchRecipes();
+      } catch (stockError) {
+        console.error('Error refreshing recipes after cooking error:', stockError);
+      }
+      
       alert('Error: Failed to process cooking request');
     } finally {
       setIsCooking(false);
@@ -276,6 +352,19 @@ export default function NodeAdminCookPage() {
                         <div className="text-xs text-gray-500 mt-1">
                           Ingredients: {recipe.recipe_ingredients?.length || 0}
                         </div>
+                        {recipe.recipe_ingredients && recipe.recipe_ingredients.length > 0 && (
+                          <div className="text-xs mt-2">
+                            {recipe.recipe_ingredients.some(ing => (ing.available_stock || 0) < ing.quantity) ? (
+                              <div className="bg-red-100 text-red-800 inline-block px-2 py-0.5 rounded">
+                                ⚠ Insufficient stock
+                              </div>
+                            ) : (
+                              <div className="bg-green-100 text-green-800 inline-block px-2 py-0.5 rounded">
+                                ✓ Stock available
+                              </div>
+                            )}
+                          </div>
+                        )}
                         {recipe.node_id && (
                           <div className="text-xs bg-blue-100 text-blue-800 inline-block px-2 py-0.5 rounded mt-1">
                             Local Recipe
@@ -314,13 +403,37 @@ export default function NodeAdminCookPage() {
                   {selectedRecipe.recipe_ingredients && selectedRecipe.recipe_ingredients.length > 0 && (
                     <div className="mt-4 pt-4 border-t">
                       <p className="text-sm font-medium text-gray-700 mb-2">Required Ingredients:</p>
-                      <div className="space-y-1">
-                        {selectedRecipe.recipe_ingredients.map((ing, idx) => (
-                          <div key={idx} className="text-sm text-gray-600">
-                            • {ing.item_types?.item_name} - {ing.quantity} unit
-                            {ing.note && ` (${ing.note})`}
-                          </div>
-                        ))}
+                      <div className="space-y-2">
+                        {selectedRecipe.recipe_ingredients.map((ing, idx) => {
+                          const availableStock = ing.available_stock || 0;
+                          const requiredForRecipe = ing.quantity * parseInt(formData.quantity);
+                          const isStockSufficient = availableStock >= requiredForRecipe;
+                          
+                          return (
+                            <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div className="text-sm text-gray-700">
+                                • {ing.item_types?.item_name} - {requiredForRecipe} unit needed
+                                {ing.note && (
+                                  <span className="text-gray-500"> ({ing.note})</span>
+                                )}
+                              </div>
+                              <div className="text-xs flex items-center gap-2">
+                                <span className="text-gray-600">
+                                  Stock: {availableStock}
+                                </span>
+                                {isStockSufficient ? (
+                                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                                    ✓ OK
+                                  </span>
+                                ) : (
+                                  <span className="bg-red-100 text-red-800 px-2 py-1 rounded">
+                                    ⚠ Short {requiredForRecipe - availableStock}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -359,9 +472,23 @@ export default function NodeAdminCookPage() {
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  <Button type="submit" disabled={isCooking}>
-                    {isCooking ? 'Cooking...' : 'Start Cooking'}
-                  </Button>
+                  {(() => {
+                    const hasInsufficientStock = selectedRecipe.recipe_ingredients?.some(ing => {
+                      const availableStock = ing.available_stock || 0;
+                      const requiredStock = ing.quantity * parseInt(formData.quantity);
+                      return availableStock < requiredStock;
+                    });
+
+                    return (
+                      <Button 
+                        type="submit" 
+                        disabled={isCooking}
+                        className={hasInsufficientStock ? 'bg-orange-600 hover:bg-orange-700' : ''}
+                      >
+                        {isCooking ? 'Cooking...' : hasInsufficientStock ? 'Cook (Low Stock)' : 'Start Cooking'}
+                      </Button>
+                    );
+                  })()}
                   <Button type="button" variant="outline" onClick={resetForm} disabled={isCooking}>
                     Cancel
                   </Button>

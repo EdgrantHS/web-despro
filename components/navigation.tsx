@@ -29,10 +29,11 @@ export default function Navigation() {
 
     const items: any[] = [];
 
-    if (role === 'petugas' || isSuperAdmin) {
+    if (role === 'petugas') {
       items.push({ name : 'QR Scan', href: '/qr-scan' } );
       items.push({ name : 'QR Create', href: '/qr-create' } );
       items.push({ name : 'Scanner Interface', href: '/scanner-interface' } );
+      items.push({ name : 'Cook Recipe', href: '/petugas/cook' } );
     }
     else {
       items.push({
@@ -42,6 +43,7 @@ export default function Navigation() {
           { name: 'QR Scan', href: '/qr-scan' },
           { name: 'QR Create', href: '/qr-create' },
           { name: 'Scanner Interface', href: '/scanner-interface' },
+          { name: 'Cook Recipe', href: '/petugas/cook' },
         ],
       });
     }
@@ -57,6 +59,7 @@ export default function Navigation() {
           { name: 'Item Types', href: '/super-admin/item-types' },
           { name: 'Item Instances', href: '/super-admin/item-instances' },
           { name: 'Item Transits', href: '/super-admin/item-transits' },
+          { name: 'Recipes', href: '/super-admin/recipes' },
         ],
       });
     }
@@ -69,7 +72,6 @@ export default function Navigation() {
         children: [
           { name: 'Item Instances', href: '/node-admin/item-instances' },
           { name: 'Recipes', href: '/node-admin/recipes' },
-          { name: 'Cook Recipe', href: '/node-admin/cook' },
           { name: 'Dev Item Instances', href: '/node-admin/item-instances-dev' },
         ],
       });

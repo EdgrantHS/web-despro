@@ -15,11 +15,11 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   // Don't show navigation on login/register pages
   const isAuthPage = pathname === '/login' || pathname === '/register';
   
-  // Don't show navigation on petugas pages
-  const isPetugasPage = pathname === '/petugas' || pathname?.startsWith('/petugas/');
+  // Don't show navigation only on main petugas dashboard page
+  const isPetugasDashboard = pathname === '/petugas';
 
-  // Show navbar and header only when user is authenticated and not on auth pages or petugas pages
-  if (user && !loading && !isAuthPage && !isPetugasPage) {
+  // Show navbar and header only when user is authenticated and not on auth pages or main petugas dashboard
+  if (user && !loading && !isAuthPage && !isPetugasDashboard) {
     return (
       <>
         <Navigation />
