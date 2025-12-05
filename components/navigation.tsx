@@ -60,6 +60,7 @@ export default function Navigation() {
           { name: 'Item Instances', href: '/super-admin/item-instances' },
           { name: 'Item Transits', href: '/super-admin/item-transits' },
           { name: 'Recipes', href: '/super-admin/recipes' },
+          { name: 'Reports', href: '/super-admin/reports' },
         ],
       });
     }
