@@ -300,20 +300,18 @@ const QRCodeCreate = () => {
     }
 
     return (
-        <div className="w-full min-h-screen bg-white flex flex-col">
-            {/* Header */}
-            <div 
-                className="bg-blue-600 text-white py-4 px-3 rounded-b-3xl flex items-center gap-2.5"
-                style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
-            >
-                <button onClick={() => router.back()}>
-                    <ArrowLeft className="w-5 h-5" />
-                </button>
-                <h1 className="text-base font-semibold">Qr Code Create</h1>
-            </div>
+        <div className="min-h-screen flex justify-center bg-white font-sans">
+            <div className="w-full max-w-md bg-white min-h-screen flex flex-col sm:border-2 border-blue-600">
+                {/* Header */}
+                <div className="bg-blue-600 text-white py-4 px-3 rounded-b-3xl flex items-center gap-2.5">
+                    <button onClick={() => router.back()}>
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h1 className="text-base font-semibold">Qr Code Create</h1>
+                </div>
 
-            {/* Content */}
-            <div className="flex flex-col items-center">
+                {/* Content */}
+                <div className="flex flex-col items-center">
                 {/* Illustration */}
                 <div className="mt-6 flex justify-center">
                     <Image
@@ -514,6 +512,7 @@ const QRCodeCreate = () => {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 };

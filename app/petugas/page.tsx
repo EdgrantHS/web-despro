@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { Search, User, QrCode, FileWarning, ChevronRight, LayoutGrid, PlusCircle, LogOut } from "lucide-react";
+import { Search, User, QrCode, FileWarning, ChevronRight, LayoutGrid, PlusCircle, LogOut, ChefHat } from "lucide-react";
 import { LoadingLink } from '@/components/LoadingLink';
 import { useAuth } from '@/lib/useAuth';
 import { useRouter } from 'next/navigation';
@@ -54,6 +54,14 @@ export default function PetugasPage() {
       loadingMessage: 'Loading QR Scan...'
     },
     {
+      id: 'cook-recipe',
+      title: 'Cook Recipe',
+      description: 'Cook items from available ingredients',
+      href: '/petugas/cook',
+      icon: ChefHat,
+      loadingMessage: 'Loading Cook Recipe...'
+    },
+    {
       id: 'report',
       title: 'Report',
       description: 'Report discrepancies or damage',
@@ -72,12 +80,10 @@ export default function PetugasPage() {
   });
 
   return (
-    <div className="min-h-screen bg-white flex flex-col pb-12">
-      {/* Header */}
-      <div 
-        className="bg-blue-600 text-white py-4 px-5 rounded-b-3xl flex items-center justify-between gap-2.5 shadow-md"
-        style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
-      >
+    <div className="min-h-screen flex justify-center bg-white font-sans">
+      <div className="w-full max-w-md bg-white min-h-screen flex flex-col sm:border-2 border-blue-600 pb-12">
+        {/* Header */}
+        <div className="bg-blue-600 text-white py-4 px-5 rounded-b-3xl flex items-center justify-between gap-2.5 shadow-md">
         <div className="flex items-center gap-2.5">
           <LayoutGrid className="w-5 h-5" />
           <h1 className="text-xl font-semibold">Dashboard</h1>
@@ -174,6 +180,7 @@ export default function PetugasPage() {
       <div className="mt-12 text-center px-5 text-gray-600 text-xs">
         <p className="font-semibold">Having trouble or found a bug?</p>
         <p>Tap <span className="text-blue-600 font-semibold">Admin</span> to get quick help — we're here to support you.</p>
+      </div>
       </div>
     </div>
   );

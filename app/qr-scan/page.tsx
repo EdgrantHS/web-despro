@@ -294,20 +294,18 @@ const Page = () => {
     }
 
     return (
-        <div className="w-full min-h-screen bg-white flex flex-col">
-            {/* Header */}
-            <div 
-                className="bg-blue-600 text-white py-4 px-3 rounded-b-3xl flex items-center gap-2.5"
-                style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
-            >
-                <button onClick={() => router.back()}>
-                    <ArrowLeft className="w-5 h-5" />
-                </button>
-                <h1 className="text-base font-semibold">Scan Qr Code</h1>
-            </div>
+        <div className="min-h-screen flex justify-center bg-white font-sans">
+            <div className="w-full max-w-md bg-white min-h-screen flex flex-col sm:border-2 border-blue-600">
+                {/* Header */}
+                <div className="bg-blue-600 text-white py-4 px-3 rounded-b-3xl flex items-center gap-2.5">
+                    <button onClick={() => router.back()}>
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <h1 className="text-base font-semibold">Scan Qr Code</h1>
+                </div>
 
-            {/* QR Code Area */}
-            <div className="flex-1 flex flex-col items-center justify-center mt-6 w-full px-5">
+                {/* QR Code Area */}
+                <div className="flex-1 flex flex-col items-center justify-center mt-6 w-full px-5">
                 {/* Scanner Frame */}
                 <div className='relative mb-6'>
                     {/* QR Frame Container */}
@@ -575,6 +573,7 @@ const Page = () => {
                     </div>
                 </div>
             )}
+            </div>
         </div>
     )
 }
