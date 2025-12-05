@@ -15,6 +15,8 @@ export default function PetugasPage() {
   const [greeting, setGreeting] = useState('Good Morning');
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userNode, setUserNode] = useState<any>(null);
+  const [nodeLoading, setNodeLoading] = useState(true);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -28,9 +30,24 @@ export default function PetugasPage() {
     if (hour < 12) setGreeting('Good Morning');
     else if (hour < 17) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
+    
+    // Fetch user's node to check if they can access Cook recipe
+    fetchUserNode();
   }, []);
-  
-  const getUserName = () => {
+
+  const fetchUserNode = async () => {
+    try {
+      const response = await fetch('/api/user/node');
+      const data = await response.json();
+      if (data.success && data.data.node) {
+        setUserNode(data.data.node);
+      }
+    } catch (error) {
+      console.error('Error fetching user node:', error);
+    } finally {
+      setNodeLoading(false);
+    }
+  };  const getUserName = () => {
     if (user?.name) return user.name;
     if (user?.username) return user.username;
     return 'Petugas';
@@ -53,14 +70,14 @@ export default function PetugasPage() {
       icon: QrCode,
       loadingMessage: 'Loading QR Scan...'
     },
-    {
+    ...(userNode?.type === 'Assembly' ? [{
       id: 'cook-recipe',
       title: 'Cook Recipe',
       description: 'Cook items from available ingredients',
       href: '/petugas/cook',
       icon: ChefHat,
       loadingMessage: 'Loading Cook Recipe...'
-    },
+    }] : []),
     {
       id: 'report',
       title: 'Report',
@@ -78,6 +95,34 @@ export default function PetugasPage() {
       item.description.toLowerCase().includes(query)
     );
   });
+
+  // Show loading screen while fetching node data
+  if (nodeLoading) {
+    return (
+      <div className="min-h-screen flex justify-center bg-white font-sans">
+        <div className="w-full max-w-md bg-white min-h-screen flex flex-col items-center justify-center sm:border-2 border-blue-600">
+          <style>{`
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+            .animate-spin-custom {
+              animation: spin 1s linear infinite;
+            }
+          `}</style>
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin-custom">
+              <LayoutGrid className="w-12 h-12 text-blue-600" />
+            </div>
+            <div className="text-center">
+              <p className="text-xl font-semibold text-gray-800">Loading Dashboard</p>
+              <p className="text-sm text-gray-500 mt-2">Please wait while we prepare your dashboard...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex justify-center bg-white font-sans">
