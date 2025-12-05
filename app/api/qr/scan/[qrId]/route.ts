@@ -249,6 +249,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
       return createSuccessResponse("Item successfully placed in transit", {
         action: "item_added",
+        item_transit_id: inserted.item_transit_id,
         item_instance: inserted.item_instances ? {
           id: inserted.item_instances.item_instance_id,
           item_name: inserted.item_instances.item_types?.item_name,

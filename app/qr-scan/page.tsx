@@ -6,6 +6,7 @@ import { Html5Qrcode } from 'html5-qrcode'
 import { parse } from 'path'
 import { ArrowLeft, ScanLine } from "lucide-react"
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/lib/useAuth'
 
 const qrRegionId = "qr-reader-region"
 
@@ -16,18 +17,35 @@ interface ScanResult {
     dest_node_name?: string;
     item_count?: number;
     status?: string;
+    item_transit_id?: string;
     [key: string]: any;
+}
+
+interface ReportFormData {
+    type: 'STOCK_DISCREPANCY' | 'EXPIRED_ITEM' | 'OTHER_ISSUE';
+    description: string;
+    received_quantity?: number;
+    expired_quantity?: number;
+    evidence?: string;
 }
 
 const Page = () => {
     const router = useRouter()
+    const { user } = useAuth();
     const [isScanning, setIsScanning] = useState(false)
     const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+    const [showReportModal, setShowReportModal] = useState(false)
+    const [isSubmittingReport, setIsSubmittingReport] = useState(false)
     const scannerRef = useRef<Html5Qrcode | null>(null)
 
     // temporary
     const [courierName, setCourierName] = useState("Rahel");
     const [courierPhone, setCourierPhone] = useState("082130330030");
+
+    const [reportForm, setReportForm] = useState<ReportFormData>({
+        type: 'OTHER_ISSUE',
+        description: ''
+    });
 
     const startScanning = () => {
         setIsScanning(true)
@@ -35,6 +53,7 @@ const Page = () => {
 
     // Handle scanner initialization when isScanning becomes true
     useEffect(() => {
+        
         let mounted = true
 
         const initializeScanner = async () => {
@@ -177,14 +196,17 @@ const Page = () => {
             
             if (result.success && result.data) {
                 setScanResult({
+                    item_instance_id: result.data.item_instance?.id,
                     item_name: result.data.item_instance?.item_name,
                     item_type: result.data.item_instance?.item_type,
                     source_node_name: result.data.source_node?.name,
                     dest_node_name: result.data.destination_node?.name,
                     item_count: result.data.item_transit_count,
                     status: result.data.status,
+                    item_transit_id: result.data.item_transit_id,
                 });
                 console.log("Result from API: ", result.data);
+                console.log("Scan Result: ", scanResult);
             } else {
                 setScanResult({ raw: result.message || "API Failed" });
                 console.error("API Error Result: ", result);
@@ -212,6 +234,52 @@ const Page = () => {
 
     const resetScan = () => {
         setScanResult(null)
+        setReportForm({ type: 'OTHER_ISSUE', description: '' })
+    }
+
+    const handleReportSubmit = async () => {
+        if (!user || !scanResult?.item_transit_id) {
+            alert('Missing required information');
+            return;
+        }
+
+        if (!reportForm.description.trim()) {
+            alert('Please provide a description');
+            return;
+        }
+
+        setIsSubmittingReport(true);
+        try {
+            const response = await fetch('/api/reports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: user.id,
+                    item_id: scanResult.item_instance_id,
+                    item_transit_id: scanResult.item_transit_id,
+                    type: reportForm.type,
+                    description: reportForm.description,
+                    received_quantity: reportForm.received_quantity || null,
+                    expired_quantity: reportForm.expired_quantity || null,
+                    evidence: reportForm.evidence || null
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                alert('Report submitted successfully!');
+                setShowReportModal(false);
+                resetScan();
+            } else {
+                alert(result.message || 'Failed to submit report');
+            }
+        } catch (error) {
+            console.error('Error submitting report:', error);
+            alert('Error submitting report');
+        } finally {
+            setIsSubmittingReport(false);
+        }
     }
 
     const formatDateTime = (dateString?: string) => {
@@ -386,6 +454,122 @@ const Page = () => {
                                 onClick={() => setScanResult(null)}
                             >
                                 Tutup
+                            </button>
+                            {scanResult && scanResult.item_transit_id && (
+                                <a
+                                    className="w-full flex justify-center text-red-600 text-sm cursor-pointer rounded-lg font-normal mt-3"
+                                    onClick={() => setShowReportModal(true)}
+                                >
+                                    Report Issue
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Report Issue Modal */}
+            {showReportModal && scanResult && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-sm mx-auto max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 pb-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-lg font-bold text-gray-800">Report Issue</h2>
+                                <button
+                                    className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                                    onClick={() => setShowReportModal(false)}
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+                        <div className="px-6 space-y-4 mb-6">
+                            {/* Item Info Display */}
+                            <div className="p-3 bg-gray-50 rounded-lg">
+                                <p className="text-xs text-gray-600 mb-2">Item being reported:</p>
+                                <p className="text-sm font-medium text-gray-800">{scanResult.item_name || 'Unknown'}</p>
+                                <p className="text-xs text-gray-600">{scanResult.item_type || '-'}</p>
+                            </div>
+
+                            {/* Report Type */}
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 mb-2 block">Issue Type *</label>
+                                <select
+                                    value={reportForm.type}
+                                    onChange={(e) => setReportForm({ ...reportForm, type: e.target.value as any })}
+                                    className="w-full p-2 border rounded-lg text-sm"
+                                >
+                                    <option value="STOCK_DISCREPANCY">Stock Discrepancy</option>
+                                    <option value="EXPIRED_ITEM">Expired Item</option>
+                                    <option value="OTHER_ISSUE">Other Issue</option>
+                                </select>
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 mb-2 block">Description *</label>
+                                <textarea
+                                    value={reportForm.description}
+                                    onChange={(e) => setReportForm({ ...reportForm, description: e.target.value })}
+                                    placeholder="Describe the issue..."
+                                    rows={3}
+                                    className="w-full p-2 border rounded-lg text-sm"
+                                />
+                            </div>
+
+                            {/* Quantity Fields */}
+                            {reportForm.type === 'STOCK_DISCREPANCY' && (
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-700 mb-1 block">Received Qty</label>
+                                        <input
+                                            type="number"
+                                            value={reportForm.received_quantity || ''}
+                                            onChange={(e) => setReportForm({ ...reportForm, received_quantity: e.target.value ? parseInt(e.target.value) : undefined })}
+                                            placeholder="0"
+                                            className="w-full p-2 border rounded text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-medium text-gray-700 mb-1 block">Expired Qty</label>
+                                        <input
+                                            type="number"
+                                            value={reportForm.expired_quantity || ''}
+                                            onChange={(e) => setReportForm({ ...reportForm, expired_quantity: e.target.value ? parseInt(e.target.value) : undefined })}
+                                            placeholder="0"
+                                            className="w-full p-2 border rounded text-sm"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {reportForm.type === 'EXPIRED_ITEM' && (
+                                <div>
+                                    <label className="text-xs font-medium text-gray-700 mb-1 block">Expired Qty</label>
+                                    <input
+                                        type="number"
+                                        value={reportForm.expired_quantity || ''}
+                                        onChange={(e) => setReportForm({ ...reportForm, expired_quantity: e.target.value ? parseInt(e.target.value) : undefined })}
+                                        placeholder="0"
+                                        className="w-full p-2 border rounded text-sm"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        <div className="px-6 pb-6 flex gap-2">
+                            <button
+                                className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-medium text-sm"
+                                onClick={() => setShowReportModal(false)}
+                                disabled={isSubmittingReport}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg font-medium text-sm"
+                                onClick={handleReportSubmit}
+                                disabled={isSubmittingReport}
+                            >
+                                {isSubmittingReport ? 'Submitting...' : 'Submit Report'}
                             </button>
                         </div>
                     </div>

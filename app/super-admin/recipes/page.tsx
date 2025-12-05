@@ -1,15 +1,13 @@
-// app/recipes/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import RecipeModal from './RecipeModal';
-import { v4 as uuidv4 } from 'uuid';
+import GlobalRecipeModal from './GlobalRecipeModal';
 
 interface Recipe {
     id: string;
     name: string;
-    node_id?: string;
+    node_id?: string | null;
     result_id: string;
     instructions?: string;
     created_at: string;
@@ -31,60 +29,40 @@ interface RecipeIngredient {
     };
 }
 
-interface Node {
-    id: string;
-    name: string;
-    type: string;
+interface Pagination {
+    total: number;
+    page: number;
+    page_size: number;
+    total_pages: number;
 }
 
-export default function RecipeManagementPage() {
+export default function SuperAdminRecipesPage() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
-    const [userNode, setUserNode] = useState<Node | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
+    const [pagination, setPagination] = useState<Pagination | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isApprovingRecipeId, setIsApprovingRecipeId] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchCurrentUserNode();
-    }, [])
-
-    useEffect(() => {
-        if (userNode) {
-            fetchRecipes();
-        }
-    }, [userNode]);
-
-    const fetchCurrentUserNode = async () => {
-        try {
-            // First, get the user's assigned node
-            const nodeResponse = await fetch('/api/user/node');
-            const nodeData = await nodeResponse.json();
-
-            if (!nodeData.success) {
-                console.error('Error fetching user node:', nodeData.message);
-                return;
-            }
-
-            const userNodeInfo = nodeData.data.node;
-            setUserNode(userNodeInfo);
-            
-        } catch (error) {
-            console.error('Error getting user node data:', error);
-        }
-    }
+        fetchRecipes();
+    }, [currentPage]);
 
     const fetchRecipes = async () => {
         setIsLoading(true);
         try {
-            // Fetch recipes dengan node_id parameter - ambil global + recipes untuk node ini
-            const recipesRes = await fetch(`/api/recipes?node_id=${userNode?.id}`);
-            const recipesData = await recipesRes.json();
+            // Fetch all recipes (global + all local recipes) as super admin
+            const response = await fetch(`/api/recipes?page=${currentPage}&page_size=50`);
+            const data = await response.json();
 
-            if (recipesData.success) {
-                setRecipes(recipesData.data.recipes || []);
+            if (data.success) {
+                setRecipes(data.data.recipes || []);
+                setPagination(data.data.pagination);
             }
         } catch (error) {
             console.error('Error fetching recipes:', error);
+            alert('Error fetching recipes');
         } finally {
             setIsLoading(false);
         }
@@ -108,6 +86,38 @@ export default function RecipeManagementPage() {
             } catch (error) {
                 console.error('Error deleting recipe:', error);
                 alert('Error deleting recipe');
+            }
+        }
+    };
+
+    const handleApprove = async (recipeId: string) => {
+        const recipe = recipes.find(r => r.id === recipeId);
+        
+        if (recipe?.node_id === null) {
+            alert('This recipe is already global');
+            return;
+        }
+
+        if (confirm('Are you sure you want to promote this recipe to global? It will be available for all nodes.')) {
+            setIsApprovingRecipeId(recipeId);
+            try {
+                const response = await fetch(`/api/recipes/${recipeId}/approve`, {
+                    method: 'PUT'
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert('Recipe promoted to global successfully!');
+                    fetchRecipes();
+                } else {
+                    alert(result.message || 'Failed to promote recipe');
+                }
+            } catch (error) {
+                console.error('Error approving recipe:', error);
+                alert('Error promoting recipe');
+            } finally {
+                setIsApprovingRecipeId(null);
             }
         }
     };
@@ -146,25 +156,16 @@ export default function RecipeManagementPage() {
         return <div className="p-6">Loading recipes...</div>;
     }
 
-    if (!userNode) {
-        return <div className="p-6">Initializing node ID...</div>;
-    }
-
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Recipe Management</h1>
+                    <h1 className="text-2xl font-bold">Global Recipes Management</h1>
                     <p className="text-gray-600">
-                        Manage your cooking recipes and ingredients
+                        Manage all recipes across the system and approve local recipes to global
                     </p>
-                    {userNode && (
-                        <p className="text-sm text-gray-500 mt-1">
-                            Current Node: <span className="font-semibold text-blue-600">{userNode.name.slice(0, 8)}...</span>
-                        </p>
-                    )}
                 </div>
-                <Button onClick={handleAddNew}>Add New Recipe</Button>
+                <Button onClick={handleAddNew}>Add New Global Recipe</Button>
             </div>
 
             <div className="border rounded-lg overflow-x-auto">
@@ -181,7 +182,7 @@ export default function RecipeManagementPage() {
                                 Ingredients Count
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                                Node
+                                Status
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 Created
@@ -204,14 +205,15 @@ export default function RecipeManagementPage() {
                                     {recipe.recipe_ingredients?.length || 0} ingredients
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 py-1 rounded text-xs ${recipe.node_id
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                        }`}>
-                                        {recipe.node_id ? 'Local' : 'Global'}
+                                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                        recipe.node_id === null 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                        {recipe.node_id === null ? 'Global' : 'Local'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     {new Date(recipe.created_at).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -223,6 +225,17 @@ export default function RecipeManagementPage() {
                                         >
                                             Edit
                                         </Button>
+                                        {recipe.node_id !== null && (
+                                            <Button
+                                                size="sm"
+                                                variant="default"
+                                                onClick={() => handleApprove(recipe.id)}
+                                                disabled={isApprovingRecipeId === recipe.id}
+                                                className="bg-blue-600 hover:bg-blue-700"
+                                            >
+                                                {isApprovingRecipeId === recipe.id ? 'Approving...' : 'Approve'}
+                                            </Button>
+                                        )}
                                         <Button
                                             size="sm"
                                             variant="destructive"
@@ -239,15 +252,38 @@ export default function RecipeManagementPage() {
 
                 {recipes.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                        No recipes found. Click "Add New Recipe" to create one.
+                        No recipes found.
                     </div>
                 )}
             </div>
 
+            {pagination && (
+                <div className="mt-4 flex justify-between items-center">
+                    <p className="text-sm text-gray-600">
+                        Showing page {pagination.page} of {pagination.total_pages} ({pagination.total} total recipes)
+                    </p>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                            disabled={currentPage >= pagination.total_pages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {showModal && (
-                <RecipeModal
+                <GlobalRecipeModal
                     recipe={editingRecipe}
-                    userNode={userNode}
                     onClose={handleModalClose}
                     onSuccess={handleSaveSuccess}
                 />
