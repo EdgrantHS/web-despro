@@ -73,6 +73,7 @@ export default function Navigation() {
         children: [
           { name: 'Item Instances', href: '/node-admin/item-instances' },
           { name: 'Recipes', href: '/node-admin/recipes' },
+          { name: 'Reports', href: '/node-admin/reports' },
           { name: 'Dev Item Instances', href: '/node-admin/item-instances-dev' },
         ],
       });
