@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { Search, User, QrCode, FileWarning, ChevronRight, LayoutGrid, PlusCircle, LogOut, ChefHat } from "lucide-react";
+import { Search, User, QrCode, FileWarning, ChevronRight, LayoutGrid, PlusCircle, LogOut, ChefHat, ScanLine } from "lucide-react";
 import { LoadingLink } from '@/components/LoadingLink';
 import { useAuth } from '@/lib/useAuth';
 import { useRouter } from 'next/navigation';
@@ -70,14 +70,22 @@ export default function PetugasPage() {
       icon: QrCode,
       loadingMessage: 'Loading QR Scan...'
     },
-    ...(userNode?.type === 'Assembly' ? [{
+    {
+      id: 'scanner-interface',
+      title: 'Scanner Interface',
+      description: 'Interface for scanner input',
+      href: '/scanner-interface',
+      icon: ScanLine,
+      loadingMessage: 'Loading Scanner Interface...'
+    },
+    {
       id: 'cook-recipe',
       title: 'Cook Recipe',
       description: 'Cook items from available ingredients',
       href: '/petugas/cook',
       icon: ChefHat,
       loadingMessage: 'Loading Cook Recipe...'
-    }] : []),
+    },
     {
       id: 'report',
       title: 'Report',
