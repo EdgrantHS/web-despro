@@ -65,6 +65,8 @@ export default function SuperAdminReportsPage() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterType, setFilterType] = useState<string>('');
 
   useEffect(() => {
     fetchReports();
@@ -171,6 +173,14 @@ export default function SuperAdminReportsPage() {
     }
   };
 
+  const getFilteredReports = () => {
+    return reports.filter(report => {
+      const statusMatch = !filterStatus || report.status === filterStatus;
+      const typeMatch = !filterType || report.type === filterType;
+      return statusMatch && typeMatch;
+    });
+  };
+
   if (isLoading) {
     return <div className="p-6">Loading reports...</div>;
   }
@@ -187,6 +197,46 @@ export default function SuperAdminReportsPage() {
         <Button onClick={fetchReports}>Refresh</Button>
       </div>
 
+      {/* Filters */}
+      <div className="mb-6 p-4 border rounded-lg bg-gray-50 flex gap-4 items-end">
+        <div className="flex-1">
+          <label className="text-sm font-medium text-gray-600 block mb-2">Filter by Status</label>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="w-full p-2 border rounded-md bg-white"
+          >
+            <option value="">All Status</option>
+            <option value="IN_REVIEW">In Review</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="RESOLVED">Resolved</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+        <div className="flex-1">
+          <label className="text-sm font-medium text-gray-600 block mb-2">Filter by Type</label>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="w-full p-2 border rounded-md bg-white"
+          >
+            <option value="">All Types</option>
+            <option value="STOCK_DISCREPANCY">Stock Discrepancy</option>
+            <option value="EXPIRED_ITEM">Expired Item</option>
+            <option value="OTHER_ISSUE">Other Issue</option>
+          </select>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setFilterStatus('');
+            setFilterType('');
+          }}
+        >
+          Clear Filters
+        </Button>
+      </div>
+
       <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
@@ -201,7 +251,7 @@ export default function SuperAdminReportsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {reports.map((report) => (
+            {getFilteredReports().map((report) => (
               <TableRow key={report.id} className="cursor-pointer hover:bg-gray-50">
                 <TableCell className="font-mono text-xs">
                   {report.id.slice(0, 8)}...
@@ -235,9 +285,9 @@ export default function SuperAdminReportsPage() {
           </TableBody>
         </Table>
 
-        {reports.length === 0 && (
+        {getFilteredReports().length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            No reports found.
+            {reports.length === 0 ? 'No reports found.' : 'No reports match your filters.'}
           </div>
         )}
       </div>
