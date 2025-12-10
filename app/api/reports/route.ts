@@ -14,16 +14,22 @@ import {
 */
 
 // GET /api/reports - List All Reports with pagination
+// Query parameters:
+//   - node_id (optional): Filter reports untuk node admin. Menampilkan reports dimana:
+//     1. user membuat report berasal dari node ini (reports.users.user_node_id = node_id)
+//     2. paket yang dilapor berasal dari node ini (item_transits.source_node_id = node_id)
+//   - Jika node_id tidak diberikan: tampilkan semua reports (untuk super admin)
 export async function GET(request: NextRequest) {
   return handleApiError(async () => {
     const { searchParams } = new URL(request.url);
     const paginationParams = getPaginationParams(searchParams);
     const page = paginationParams.page || 1;
     const page_size = paginationParams.page_size || 50;
+    const nodeIdFilter = searchParams.get('node_id');
 
     const supabase = await getSupabaseClient();
 
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('reports')
       .select(`
         id,
@@ -52,20 +58,28 @@ export async function GET(request: NextRequest) {
         ),
         users:user_id (
           user_id,
-          user_node_id
+          node_id
         )
-      `, { count: 'exact' })
-      .order('created_at', { ascending: false });
+      `, { count: 'exact' });
+
+    // Jika node_id diberikan, filter reports
+    if (nodeIdFilter) {
+      // Fetch full data terlebih dahulu, kemudian filter di aplikasi
+      // karena Supabase RLS dan OR logic bisa kompleks dengan nested relations
+      query = query.order('created_at', { ascending: false });
+    } else {
+      query = query.order('created_at', { ascending: false });
+    }
+
+    const { data, error, count } = await query;
 
     if (error) {
       console.error('Reports fetch error:', error);
       return createErrorResponse('Failed to fetch reports', 500);
     }
 
-    const paginationMeta = createPaginationMeta(count || 0, page, page_size);
-
-    // Transform data untuk response yang terstruktur
-    const formattedReports = (data || []).map((report: any) => ({
+    // Transform dan filter data
+    let formattedReports = (data || []).map((report: any) => ({
       id: report.id,
       type: report.type,
       status: report.status,
@@ -78,7 +92,7 @@ export async function GET(request: NextRequest) {
       created_at: report.created_at,
       user: report.users ? {
         id: report.users.user_id,
-        // email: report.users.email
+        node_id: report.users.node_id
       } : null,
       item_transit: report.item_transits ? {
         id: report.item_transits.item_transit_id,
@@ -93,9 +107,24 @@ export async function GET(request: NextRequest) {
       } : null
     }));
 
+    // Filter jika node_id diberikan
+    if (nodeIdFilter) {
+      formattedReports = formattedReports.filter(report => {
+        // Kondisi 1: user yang membuat report berasal dari node ini
+        const userFromThisNode = report.user?.node_id === nodeIdFilter;
+        // Kondisi 2: paket yang dilapor berasal dari node ini (source_node_id)
+        const packageFromThisNode = report.item_transit?.source_node_id === nodeIdFilter;
+        
+        return userFromThisNode || packageFromThisNode;
+      });
+    }
+
+    const paginationMeta = createPaginationMeta(formattedReports.length, page, page_size);
+
     return createSuccessResponse('Reports retrieved successfully', {
       reports: formattedReports,
-      pagination: paginationMeta
+      pagination: paginationMeta,
+      filter: nodeIdFilter ? `node ${nodeIdFilter}` : 'all'
     });
   });
 }

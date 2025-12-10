@@ -39,6 +39,9 @@ const QRCodeCreate = () => {
         fetchUserNodeAndData();
     }, []);
 
+    console.log(itemInstanceList);
+    
+
     const fetchUserNodeAndData = async () => {
         setIsLoading(true);
         try {

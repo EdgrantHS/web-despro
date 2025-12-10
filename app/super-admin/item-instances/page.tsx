@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/table';
 
 interface ItemInstance {
-  id: string; // Changed from item_instance_id to id
+  id: string;
   item_type_id: string;
   node_id?: string;
   item_count: number;
@@ -57,6 +57,7 @@ export default function SuperAdminItemInstancesPage() {
   const [itemInstances, setItemInstances] = useState<ItemInstance[]>([]);
   const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
   const [nodes, setNodes] = useState<Node[]>([]);
+  const [currentUserNode, setCurrentUserNode] = useState<Node | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<ItemInstance | null>(null);
@@ -71,18 +72,30 @@ export default function SuperAdminItemInstancesPage() {
     fetchData();
   }, []);
 
+  // Set node_id otomatis ketika currentUserNode tersedia
+  useEffect(() => {
+    if (currentUserNode && !editingItem) {
+      setFormData(prev => ({
+        ...prev,
+        node_id: currentUserNode.id
+      }));
+    }
+  }, [currentUserNode, editingItem]);
+
   const fetchData = async () => {
     try {
-      const [instancesRes, itemTypesRes, nodesRes] = await Promise.all([
+      const [instancesRes, itemTypesRes, nodesRes, userNodeRes] = await Promise.all([
         fetch('/api/item-instances'),
         fetch('/api/item-types'),
-        fetch('/api/nodes')
+        fetch('/api/nodes'),
+        fetch('/api/user/node')
       ]);
       
-      const [instancesData, itemTypesData, nodesData] = await Promise.all([
+      const [instancesData, itemTypesData, nodesData, userNodeData] = await Promise.all([
         instancesRes.json(),
         itemTypesRes.json(),
-        nodesRes.json()
+        nodesRes.json(),
+        userNodeRes.json()
       ]);
       
       if (instancesData.success && instancesData.data.item_instances) {
@@ -94,6 +107,11 @@ export default function SuperAdminItemInstancesPage() {
       if (nodesData.success && nodesData.data.nodes) {
         setNodes(nodesData.data.nodes);
       }
+      
+      // Fetch user's current node
+      if (userNodeData.success && userNodeData.data && userNodeData.data.node) {
+        setCurrentUserNode(userNodeData.data.node);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -104,11 +122,12 @@ export default function SuperAdminItemInstancesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // node_id selalu harus ada dari currentUserNode
     const payload = {
       item_type_id: formData.item_type_id,
-      node_id: formData.node_id || undefined,
+      node_id: formData.node_id || currentUserNode?.id,
       item_count: parseInt(formData.item_count),
-      expire_date: formData.expire_date || undefined,
+      expire_date: formData.expire_date || null,
     };
 
     try {
@@ -150,7 +169,7 @@ export default function SuperAdminItemInstancesPage() {
     setEditingItem(item);
     setFormData({
       item_type_id: item.item_type_id,
-      node_id: item.node_id || '',
+      node_id: item.node_id || currentUserNode?.id || '',
       item_count: item.item_count.toString(),
       expire_date: item.expire_date ? item.expire_date.split('T')[0] : ''
     });
@@ -160,7 +179,7 @@ export default function SuperAdminItemInstancesPage() {
   const resetForm = () => {
     setFormData({
       item_type_id: '',
-      node_id: '',
+      node_id: currentUserNode?.id || '',
       item_count: '',
       expire_date: ''
     });
@@ -178,6 +197,9 @@ export default function SuperAdminItemInstancesPage() {
         <div>
           <h1 className="text-2xl font-bold">Super Admin - Item Instances Management</h1>
           <p className="text-gray-600">Manage all item instances across all nodes</p>
+          {currentUserNode && (
+            <p className="text-sm text-gray-500 mt-1">Your Node: <strong>{currentUserNode.name}</strong></p>
+          )}
         </div>
         <Button onClick={() => setShowForm(true)}>Add New Item Instance</Button>
       </div>
@@ -207,19 +229,15 @@ export default function SuperAdminItemInstancesPage() {
             </div>
             <div>
               <Label htmlFor="node_id">Current Node</Label>
-              <select
-                id="node_id"
-                value={formData.node_id}
-                onChange={(e) => setFormData({...formData, node_id: e.target.value})}
-                className="w-full p-2 border rounded"
-              >
-                <option value="">Select Node (Optional)</option>
-                {nodes.map((node) => (
-                  <option key={node.id} value={node.id}>
-                    {node.name} ({node.type})
-                  </option>
-                ))}
-              </select>
+              <div className="w-full p-2 border rounded bg-gray-100">
+                <p className="text-sm">{currentUserNode?.name || 'Loading...'}</p>
+                <input
+                  type="hidden"
+                  id="node_id"
+                  value={formData.node_id}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">* Node diatur otomatis ke node Anda saat ini</p>
             </div>
             <div>
               <Label htmlFor="item_count">Item Count *</Label>

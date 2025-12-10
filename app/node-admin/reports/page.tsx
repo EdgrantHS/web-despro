@@ -11,7 +11,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { report } from 'process';
 
 interface ReportDetail {
   id: string;
@@ -24,10 +23,8 @@ interface ReportDetail {
     expired: number | null;
   };
   created_at: string;
-  updated_at?: string;
   user?: {
     id: string;
-    email: string;
     node_id: string;
   };
   item_transit?: {
@@ -43,13 +40,6 @@ interface ReportDetail {
   };
 }
 
-interface Node {
-  id: string;
-  name: string;
-  type: string;
-  location: string;
-}
-
 interface Pagination {
   total: number;
   page: number;
@@ -57,38 +47,58 @@ interface Pagination {
   total_pages: number;
 }
 
-export default function SuperAdminReportsPage() {
+interface Node {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export default function NodeAdminReportsPage() {
   const [reports, setReports] = useState<ReportDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<ReportDetail | null>(null);
-  const [reporterNode, setReporterNode] = useState<Node | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [userNode, setUserNode] = useState<Node | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filterType, setFilterType] = useState<string>('');
 
   useEffect(() => {
-    fetchReports();
+    fetchUserNode();
   }, []);
 
   useEffect(() => {
-    if (selectedReport && selectedReport.user?.node_id) {
-      fetchNode(selectedReport.user.node_id);
+    if (userNode) {
+      fetchReports();
     }
-    
-  }, [selectedReport]);
+  }, [userNode]);
+
+  const fetchUserNode = async () => {
+    try {
+      const response = await fetch('/api/user/node');
+      const data = await response.json();
+      if (data.success && data.data.node) {
+        setUserNode(data.data.node);
+      }
+    } catch (error) {
+      console.error('Error fetching user node:', error);
+    }
+  };
 
   const fetchReports = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/reports');
+      const nodeId = userNode?.id;
+      const url = nodeId ? `/api/reports?node_id=${nodeId}` : '/api/reports';
+      
+      const response = await fetch(url);
       const result = await response.json();
 
       if (result.success) {
         setReports(result.data.reports || []);
         setPagination(result.data.pagination);
-        console.log('Fetched reports:', result);
+        console.log('Fetched reports for node:', result);
       }
     } catch (error) {
       console.error('Error fetching reports:', error);
@@ -97,18 +107,6 @@ export default function SuperAdminReportsPage() {
       setIsLoading(false);
     }
   };
-
-  const fetchNode = async (nodeId: string) => {
-    try {
-      const response = await fetch(`/api/node/${nodeId}`);
-      const result = await response.json();
-      if (result.success) {
-        setReporterNode(result.data);
-      }
-    } catch (error) {
-      console.error('Error fetching node:', error);
-    }
-  }
 
   const handleRowClick = (report: ReportDetail) => {
     setSelectedReport(report);
@@ -185,13 +183,20 @@ export default function SuperAdminReportsPage() {
     return <div className="p-6">Loading reports...</div>;
   }
 
+  if (!userNode) {
+    return <div className="p-6">Unable to load node information...</div>;
+  }
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Reports Management</h1>
           <p className="text-gray-600">
-            Review and manage all inventory reports from users
+            Review and manage reports from your node
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Node: <span className="font-semibold text-blue-600">{userNode.name}</span>
           </p>
         </div>
         <Button onClick={fetchReports}>Refresh</Button>
@@ -244,7 +249,8 @@ export default function SuperAdminReportsPage() {
               <TableHead>Report ID</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>User Email</TableHead>
+              <TableHead>Reporter Node</TableHead>
+              <TableHead>Item Relation</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Reported At</TableHead>
               <TableHead>Actions</TableHead>
@@ -264,7 +270,16 @@ export default function SuperAdminReportsPage() {
                     {report.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{report.user?.email || 'Unknown'}</TableCell>
+                <TableCell className="text-sm">
+                  {report.user?.node_id ? `${report.user.node_id.slice(0, 8)}...` : 'Unknown'}
+                </TableCell>
+                <TableCell className="text-sm">
+                  {report.item_transit?.source_node_id === userNode.id ? (
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Sent from here</span>
+                  ) : (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Reported here</span>
+                  )}
+                </TableCell>
                 <TableCell className="max-w-xs truncate">
                   {report.description || '-'}
                 </TableCell>
@@ -287,19 +302,19 @@ export default function SuperAdminReportsPage() {
 
         {getFilteredReports().length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            {reports.length === 0 ? 'No reports found.' : 'No reports match your filters.'}
+            {reports.length === 0 ? 'No reports found for your node.' : 'No reports match your filters.'}
           </div>
         )}
       </div>
 
       {pagination && (
         <div className="mt-4 text-sm text-gray-600">
-          Showing page {pagination.page} of {pagination.total_pages} ({pagination.total} total reports)
+          Showing {reports.length} report(s) for this node
         </div>
       )}
 
       {/* Report Detail Modal */}
-      {showDetailModal && selectedReport && reporterNode && (
+      {showDetailModal && selectedReport && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
@@ -324,12 +339,8 @@ export default function SuperAdminReportsPage() {
                   <p>{getTypeLabel(selectedReport.type)}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">User Email</label>
-                  <p>{selectedReport.user?.email || 'Unknown'}</p>
-                </div>
-                <div>
                   <label className="text-sm font-medium text-gray-600">Reporter Node</label>
-                  <p className="font-mono text-sm">{selectedReport.user?.node_id ? reporterNode?.name : 'Unknown'}</p>
+                  <p className="font-mono text-sm">{selectedReport.user?.node_id || 'Unknown'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Reported At</label>
@@ -382,8 +393,8 @@ export default function SuperAdminReportsPage() {
                 <div className="border-t pt-4">
                   <label className="text-sm font-medium text-gray-600 block mb-2">Associated Item Transit</label>
                   <div className="mt-2 text-sm space-y-2 bg-gray-50 p-3 rounded">
-                    <p>Transit ID: <span className="font-mono text-xs">{selectedReport.item_transit.id}.</span></p>
-                    <p>Item ID: <span className="font-mono text-xs">{selectedReport.item_transit.item_id}</span></p>
+                    <p>Transit ID: <span className="font-mono text-xs">{selectedReport.item_transit.id.slice(0, 8)}...</span></p>
+                    <p>Item ID: <span className="font-mono text-xs">{selectedReport.item_transit.item_id.slice(0, 8)}...</span></p>
                     <p>Transit Status: <span className="font-medium">{selectedReport.item_transit.status}</span></p>
                     {selectedReport.item_transit.item_instance && (
                       <>
