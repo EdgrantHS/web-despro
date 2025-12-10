@@ -1,10 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/useAuth';
-import { createClient } from '@/utils/supabase/client';
-import { ChefHat, LogOut, ArrowLeft, CheckCircle, XCircle, AlertTriangle, Clock, Plus, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Recipe {
   id: string;
@@ -64,8 +72,6 @@ interface CookHistory {
 }
 
 export default function PetugasCookPage() {
-  const router = useRouter();
-  const { user } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -74,7 +80,6 @@ export default function PetugasCookPage() {
   const [cookHistory, setCookHistory] = useState<CookHistory[]>([]);
   const [userNode, setUserNode] = useState<Node | null>(null);
   const [ingredientStock, setIngredientStock] = useState<Record<string, number>>({});
-
   const [formData, setFormData] = useState<CookFormData>({
     recipe_id: '',
     quantity: '1',
@@ -83,7 +88,7 @@ export default function PetugasCookPage() {
 
   useEffect(() => {
     fetchCurrentUserNode();
-  }, []);
+  }, [])
 
   useEffect(() => {
     if (userNode) {
@@ -91,14 +96,9 @@ export default function PetugasCookPage() {
     }
   }, [userNode]);
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push('/login');
-  };
-
   const fetchCurrentUserNode = async () => {
     try {
+      // First, get the user's assigned node
       const nodeResponse = await fetch('/api/user/node');
       const nodeData = await nodeResponse.json();
 
@@ -109,10 +109,11 @@ export default function PetugasCookPage() {
 
       const userNodeInfo = nodeData.data.node;
       setUserNode(userNodeInfo);
+
     } catch (error) {
       console.error('Error getting user node data:', error);
     }
-  };
+  }
 
   const fetchStockData = async () => {
     try {
@@ -120,6 +121,7 @@ export default function PetugasCookPage() {
       const stockData = await stockRes.json();
       
       if (stockData.success) {
+        // Create stock lookup map
         const stockMap: Record<string, number> = {};
         stockData.data.item_instances.forEach((instance: any) => {
           const itemId = instance.item_type_id;
@@ -149,12 +151,17 @@ export default function PetugasCookPage() {
   const fetchRecipes = async () => {
     setIsLoading(true);
     try {
+      // Fetch recipes with node_id parameter
       const recipesRes = await fetch(`/api/recipes?node_id=${userNode?.id}`);
       const recipesData = await recipesRes.json();
 
       if (recipesData.success) {
         const recipesWithStock = recipesData.data.recipes || [];
+        
+        // Fetch current stock for all ingredients
         const stockMap = await fetchStockData();
+        
+        // Add stock information to recipe ingredients
         const recipesWithStockInfo = updateRecipesWithStock(recipesWithStock, stockMap);
         setRecipes(recipesWithStockInfo);
       }
@@ -240,7 +247,11 @@ export default function PetugasCookPage() {
         };
 
         setCookHistory([historyEntry, ...cookHistory]);
+        console.log(cookedData);
+        
+        // Completely re-fetch recipes with updated stock data
         await fetchRecipes();
+        
         resetForm();
         alert(`Success! Created ${quantity}x ${cookedData.cooked_item.name}`);
       } else {
@@ -257,16 +268,22 @@ export default function PetugasCookPage() {
         };
 
         setCookHistory([historyEntry, ...cookHistory]);
+        
+        // Completely re-fetch recipes with updated stock data
         await fetchRecipes();
+        
         alert('Error: ' + (result.message || 'Failed to cook recipe'));
       }
     } catch (error) {
       console.error('Error cooking recipe:', error);
+      
+      // Completely re-fetch recipes with updated stock data even after network errors
       try {
         await fetchRecipes();
       } catch (stockError) {
         console.error('Error refreshing recipes after cooking error:', stockError);
       }
+      
       alert('Error: Failed to process cooking request');
     } finally {
       setIsCooking(false);
@@ -284,404 +301,268 @@ export default function PetugasCookPage() {
   };
 
   const getUserNodeName = () => {
-    return userNode ? `${userNode.name} (${userNode.type})` : 'Loading...';
+    return userNode ? `Node: ${userNode.name.slice(0, 8)}...` : 'Loading...';
   };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex justify-center bg-white font-sans">
-        <div className="w-full max-w-md bg-white min-h-screen flex flex-col items-center justify-center sm:border-2 border-blue-600">
-          <div className="text-center px-5">
-            <p className="text-gray-600 mb-4">Please log in to access Cook Recipe</p>
-            <button
-              onClick={() => router.push('/login')}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium"
-            >
-              Go to Login
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex justify-center bg-white font-sans">
-        <div className="w-full max-w-md bg-white min-h-screen flex flex-col items-center justify-center sm:border-2 border-blue-600">
-          <div className="text-center px-5">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading recipes...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="p-6">Loading recipes...</div>;
   }
 
   if (!userNode) {
-    return (
-      <div className="min-h-screen flex justify-center bg-white font-sans">
-        <div className="w-full max-w-md bg-white min-h-screen flex flex-col items-center justify-center sm:border-2 border-blue-600">
-          <div className="text-center px-5">
-            <p className="text-gray-600">Initializing node ID...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="p-6">Initializing node ID...</div>;
   }
 
   return (
-    <div className="min-h-screen flex justify-center bg-white font-sans">
-      <div className="w-full max-w-md bg-white min-h-screen flex flex-col sm:border-2 border-blue-600 pb-12">
-        {/* Header */}
-        <div className="bg-blue-600 text-white py-4 px-5 rounded-b-3xl flex items-center justify-between gap-2.5 shadow-md">
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => router.back()}
-              className="p-1 hover:bg-blue-700 rounded transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <ChefHat className="w-5 h-5" />
-            <h1 className="text-xl font-semibold">Cook Recipe</h1>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-1 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 transition-colors text-sm font-medium"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Cook Recipe</h1>
+          <p className="text-gray-600">
+            Cook recipes at: <span className="font-semibold text-blue-600">{getUserNodeName()}</span>
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Select a recipe and cook based on available ingredients
+          </p>
         </div>
+        <Button onClick={() => setShowForm(!showForm)} disabled={recipes.length === 0}>
+          {showForm ? 'Cancel' : 'Cook New Recipe'}
+        </Button>
+      </div>
 
-        {/* Main Content */}
-        <div className="flex-1 px-5 mt-5">
-          {/* Node Info */}
-          <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-3">
-            <p className="text-sm text-gray-600">Cooking at:</p>
-            <p className="text-base font-semibold text-blue-700">{getUserNodeName()}</p>
-          </div>
-
-          {/* Cook New Recipe Button */}
-          {!showForm && (
-            <button
-              onClick={() => setShowForm(true)}
-              disabled={recipes.length === 0}
-              className={`w-full py-3 rounded-xl font-medium text-white transition-colors mb-5 flex items-center justify-center gap-2 ${
-                recipes.length === 0
-                  ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            >
-              <Plus className="w-5 h-5" />
-              Cook New Recipe
-            </button>
-          )}
-
-          {/* Cook Form */}
-          {showForm && (
-            <div className="mb-5 bg-white border-2 border-blue-400 rounded-xl p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-blue-700">Cook a Recipe</h2>
-                <button
-                  onClick={resetForm}
-                  className="p-1 hover:bg-gray-100 rounded transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-600" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {!selectedRecipe ? (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Select Recipe *
-                    </label>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {recipes.length > 0 ? (
-                        recipes.map((recipe) => {
-                          const hasInsufficientStock = recipe.recipe_ingredients?.some(ing => {
-                            const availableStock = ing.available_stock || 0;
-                            return availableStock < ing.quantity;
-                          });
-
-                          return (
-                            <button
-                              key={recipe.id}
-                              type="button"
-                              onClick={() => handleRecipeSelect(recipe)}
-                              className="w-full p-4 border-2 border-blue-300 rounded-xl hover:bg-blue-50 hover:border-blue-400 transition text-left"
-                            >
-                              <div className="font-semibold text-base text-blue-700 mb-1">
-                                {recipe.name}
-                              </div>
-                              <div className="text-sm text-gray-600 mb-2">
-                                Result: <span className="font-medium">{recipe.item_types?.item_name || 'Unknown'}</span>
-                              </div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                                  {recipe.recipe_ingredients?.length || 0} ingredients
-                                </span>
-                                {hasInsufficientStock ? (
-                                  <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded flex items-center gap-1">
-                                    <AlertTriangle className="w-3 h-3" />
-                                    Low Stock
-                                  </span>
-                                ) : (
-                                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-1">
-                                    <CheckCircle className="w-3 h-3" />
-                                    Stock OK
-                                  </span>
-                                )}
-                                {recipe.node_id && (
-                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                    Local
-                                  </span>
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })
-                      ) : (
-                        <div className="text-center py-8 text-gray-500 text-sm">
-                          No recipes available
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {/* Selected Recipe Info */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg text-gray-800 mb-1">
-                            {selectedRecipe.name}
-                          </h3>
-                          <p className="text-sm text-gray-600">
-                            Result: <span className="font-medium text-blue-700">{selectedRecipe.item_types?.item_name}</span>
-                          </p>
-                          {selectedRecipe.instructions && (
-                            <p className="text-xs text-gray-600 mt-2">{selectedRecipe.instructions}</p>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRecipe(null)}
-                          className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                        >
-                          Change
-                        </button>
-                      </div>
-
-                      {/* Ingredients List */}
-                      {selectedRecipe.recipe_ingredients && selectedRecipe.recipe_ingredients.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-gray-300">
-                          <p className="text-sm font-medium text-gray-700 mb-2">Required Ingredients:</p>
-                          <div className="space-y-2">
-                            {selectedRecipe.recipe_ingredients.map((ing, idx) => {
-                              const availableStock = ing.available_stock || 0;
-                              const requiredForRecipe = ing.quantity * parseInt(formData.quantity || '1');
-                              const isStockSufficient = availableStock >= requiredForRecipe;
-                              
-                              return (
-                                <div key={idx} className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-200">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-sm text-gray-700 font-medium">
-                                      {ing.item_types?.item_name}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                      Need: {requiredForRecipe} {ing.note && `(${ing.note})`}
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 flex-shrink-0">
-                                    <span className="text-xs text-gray-600">
-                                      Stock: {availableStock}
-                                    </span>
-                                    {isStockSufficient ? (
-                                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs flex items-center gap-1">
-                                        <CheckCircle className="w-3 h-3" />
-                                        OK
-                                      </span>
-                                    ) : (
-                                      <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs flex items-center gap-1">
-                                        <AlertTriangle className="w-3 h-3" />
-                                        Short {requiredForRecipe - availableStock}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Form Fields */}
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
-                          Quantity (Portions) *
-                        </label>
-                        <input
-                          id="quantity"
-                          type="number"
-                          min="1"
-                          value={formData.quantity}
-                          onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                          className="w-full px-4 py-3 border-2 border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="expire_date" className="block text-sm font-medium text-gray-700 mb-2">
-                          Expire Date (Optional)
-                        </label>
-                        <input
-                          id="expire_date"
-                          type="date"
-                          value={formData.expire_date}
-                          onChange={(e) => setFormData({ ...formData, expire_date: e.target.value })}
-                          className="w-full px-4 py-3 border-2 border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Current Node
-                        </label>
-                        <input
-                          value={getUserNodeName()}
-                          disabled
-                          className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-gray-100 cursor-not-allowed text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Submit Buttons */}
-                    <div className="flex gap-3 pt-2">
-                      {(() => {
-                        const hasInsufficientStock = selectedRecipe.recipe_ingredients?.some(ing => {
-                          const availableStock = ing.available_stock || 0;
-                          const requiredStock = ing.quantity * parseInt(formData.quantity || '1');
-                          return availableStock < requiredStock;
-                        });
-
-                        return (
-                          <button
-                            type="submit"
-                            disabled={isCooking}
-                            className={`flex-1 py-3 rounded-xl font-medium text-white transition-colors ${
-                              isCooking
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : hasInsufficientStock
-                                ? 'bg-orange-600 hover:bg-orange-700'
-                                : 'bg-blue-600 hover:bg-blue-700'
-                            }`}
-                          >
-                            {isCooking ? 'Cooking...' : hasInsufficientStock ? 'Cook (Low Stock)' : 'Start Cooking'}
-                          </button>
-                        );
-                      })()}
+      {showForm && (
+        <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+          <h2 className="text-lg font-semibold mb-4">Cook a Recipe</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!selectedRecipe ? (
+              <div>
+                <Label htmlFor="recipe_id">Select Recipe *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                  {recipes.length > 0 ? (
+                    recipes.map((recipe) => (
                       <button
+                        key={recipe.id}
                         type="button"
-                        onClick={resetForm}
-                        disabled={isCooking}
-                        className="px-6 py-3 border-2 border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        onClick={() => handleRecipeSelect(recipe)}
+                        className="p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-400 transition text-left"
                       >
-                        Cancel
-                      </button>
-                    </div>
-                  </>
-                )}
-              </form>
-            </div>
-          )}
-
-          {/* Cook History */}
-          {cookHistory.length > 0 && (
-            <div className="mb-5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Recent History
-                </h3>
-                <button
-                  onClick={() => setCookHistory([])}
-                  className="text-xs text-red-600 hover:text-red-800 font-medium"
-                >
-                  Clear All
-                </button>
-              </div>
-              <div className="space-y-3">
-                {cookHistory.map((history) => (
-                  <div
-                    key={history.id}
-                    className={`border-2 rounded-xl p-4 ${
-                      history.status === 'success'
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-red-50 border-red-200'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <div className="font-semibold text-base text-gray-800 mb-1">
-                          {history.recipe_name}
-                        </div>
+                        <div className="font-medium">{recipe.name}</div>
                         <div className="text-sm text-gray-600">
-                          Result: <span className="font-medium">{history.result_item_name || '-'}</span>
+                          Result: {recipe.item_types?.item_name || 'Unknown'}
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          {new Date(history.created_at).toLocaleString()}
+                          Ingredients: {recipe.recipe_ingredients?.length || 0}
                         </div>
-                      </div>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        history.status === 'success'
-                          ? 'bg-green-200 text-green-800'
-                          : 'bg-red-200 text-red-800'
-                      }`}>
-                        {history.status === 'success' ? 'Success' : 'Failed'}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-700 mt-2">
-                      Quantity: <span className="font-medium">{history.quantity}</span>
-                      {history.expire_date && (
-                        <> • Expires: <span className="font-medium">{formatDate(history.expire_date)}</span></>
+                        {recipe.recipe_ingredients && recipe.recipe_ingredients.length > 0 && (
+                          <div className="text-xs mt-2">
+                            {recipe.recipe_ingredients.some(ing => (ing.available_stock || 0) < ing.quantity) ? (
+                              <div className="bg-red-100 text-red-800 inline-block px-2 py-0.5 rounded">
+                                ⚠ Insufficient stock
+                              </div>
+                            ) : (
+                              <div className="bg-green-100 text-green-800 inline-block px-2 py-0.5 rounded">
+                                ✓ Stock available
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {recipe.node_id && (
+                          <div className="text-xs bg-blue-100 text-blue-800 inline-block px-2 py-0.5 rounded mt-1">
+                            Local Recipe
+                          </div>
+                        )}
+                      </button>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 col-span-2">No recipes available</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="bg-white p-4 rounded border">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg">{selectedRecipe.name}</h3>
+                      <p className="text-gray-600">
+                        Result: <span className="font-medium">{selectedRecipe.item_types?.item_name}</span>
+                      </p>
+                      {selectedRecipe.instructions && (
+                        <p className="text-sm text-gray-600 mt-2">{selectedRecipe.instructions}</p>
                       )}
                     </div>
-                    {history.message && (
-                      <div className="text-xs text-red-600 mt-2">{history.message}</div>
-                    )}
-                    {history.ingredients_used.length > 0 && (
-                      <div className="text-xs text-gray-600 mt-2">
-                        Used {history.ingredients_used.length} ingredient{history.ingredients_used.length !== 1 ? 's' : ''}
-                      </div>
-                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedRecipe(null)}
+                    >
+                      Change Recipe
+                    </Button>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* Empty State */}
-          {recipes.length === 0 && !showForm && (
-            <div className="text-center py-12">
-              <ChefHat className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">No recipes available</p>
-              <p className="text-sm text-gray-500">Contact an administrator to create recipes.</p>
-            </div>
-          )}
+                  {selectedRecipe.recipe_ingredients && selectedRecipe.recipe_ingredients.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Required Ingredients:</p>
+                      <div className="space-y-2">
+                        {selectedRecipe.recipe_ingredients.map((ing, idx) => {
+                          const availableStock = ing.available_stock || 0;
+                          const requiredForRecipe = ing.quantity * parseInt(formData.quantity);
+                          const isStockSufficient = availableStock >= requiredForRecipe;
+                          
+                          return (
+                            <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div className="text-sm text-gray-700">
+                                • {ing.item_types?.item_name} - {requiredForRecipe} unit needed
+                                {ing.note && (
+                                  <span className="text-gray-500"> ({ing.note})</span>
+                                )}
+                              </div>
+                              <div className="text-xs flex items-center gap-2">
+                                <span className="text-gray-600">
+                                  Stock: {availableStock}
+                                </span>
+                                {isStockSufficient ? (
+                                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                                    ✓ OK
+                                  </span>
+                                ) : (
+                                  <span className="bg-red-100 text-red-800 px-2 py-1 rounded">
+                                    ⚠ Short {requiredForRecipe - availableStock}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="quantity">Quantity (Portions) *</Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      min="1"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="expire_date">Expire Date (Optional)</Label>
+                    <Input
+                      id="expire_date"
+                      type="date"
+                      value={formData.expire_date}
+                      onChange={(e) => setFormData({ ...formData, expire_date: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Label htmlFor="node_id" className="mb-2">Current Node</Label>
+                    <Input
+                      id="node_id"
+                      value={getUserNodeName()}
+                      disabled
+                      className="bg-gray-100 cursor-not-allowed text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  {(() => {
+                    const hasInsufficientStock = selectedRecipe.recipe_ingredients?.some(ing => {
+                      const availableStock = ing.available_stock || 0;
+                      const requiredStock = ing.quantity * parseInt(formData.quantity);
+                      return availableStock < requiredStock;
+                    });
+
+                    return (
+                      <Button 
+                        type="submit" 
+                        disabled={isCooking}
+                        className={hasInsufficientStock ? 'bg-orange-600 hover:bg-orange-700' : ''}
+                      >
+                        {isCooking ? 'Cooking...' : hasInsufficientStock ? 'Cook (Low Stock)' : 'Start Cooking'}
+                      </Button>
+                    );
+                  })()}
+                  <Button type="button" variant="outline" onClick={resetForm} disabled={isCooking}>
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            )}
+          </form>
         </div>
-      </div>
+      )}
+
+      {/* Cook History */}
+      {cookHistory.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold mb-4">Recent Cooking History</h2>
+          <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Recipe</TableHead>
+                  <TableHead>Result Item</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Expire Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Details</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {cookHistory.map((history) => (
+                  <TableRow key={history.id}>
+                    <TableCell className="font-medium">{history.recipe_name}</TableCell>
+                    <TableCell>{history.result_item_name || '-'}</TableCell>
+                    <TableCell>{history.quantity}</TableCell>
+                    <TableCell>
+                      {history.expire_date
+                        ? new Date(history.expire_date).toLocaleDateString()
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded text-xs ${history.status === 'success'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                        }`}>
+                        {history.status === 'success' ? 'Success' : 'Failed'}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {new Date(history.created_at).toLocaleTimeString()}
+                    </TableCell>
+                    <TableCell>
+                      {history.message ? (
+                        <div className="text-xs text-red-600 truncate" title={history.message}>
+                          {history.message}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-600">
+                          {history.ingredients_used.length} item{history.ingredients_used.length !== 1 ? 's' : ''} used
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
+      {recipes.length === 0 && !showForm && (
+        <div className="text-center py-12 text-gray-500">
+          <p className="mb-4">No recipes available for your node.</p>
+          <p className="text-sm">Contact an administrator to create recipes.</p>
+        </div>
+      )}
     </div>
   );
 }

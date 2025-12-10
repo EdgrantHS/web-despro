@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { InlineLoading, PageLoading } from '@/components/ui/loading';
+import { useLoading } from '@/contexts/LoadingContext';
 import {
   Table,
   TableBody,
@@ -54,6 +56,7 @@ interface ItemInstanceFormData {
 }
 
 export default function SuperAdminItemInstancesPage() {
+  const { setLoading } = useLoading();
   const [itemInstances, setItemInstances] = useState<ItemInstance[]>([]);
   const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -122,6 +125,8 @@ export default function SuperAdminItemInstancesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    setLoading(true, editingItem ? 'Updating item instance...' : 'Creating item instance...');
+
     // node_id selalu harus ada dari currentUserNode
     const payload = {
       item_type_id: formData.item_type_id,
@@ -146,11 +151,14 @@ export default function SuperAdminItemInstancesPage() {
       }
     } catch (error) {
       console.error('Error saving item instance:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (instanceId: string) => {
     if (confirm('Are you sure you want to delete this item instance?')) {
+      setLoading(true, 'Deleting item instance...');
       try {
         const response = await fetch(`/api/item-instance/${instanceId}`, {
           method: 'DELETE'
@@ -161,6 +169,8 @@ export default function SuperAdminItemInstancesPage() {
         }
       } catch (error) {
         console.error('Error deleting item instance:', error);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -188,7 +198,7 @@ export default function SuperAdminItemInstancesPage() {
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return <PageLoading message="Loading item instances..." />;
   }
 
   return (

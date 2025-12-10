@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { Search, User, QrCode, FileWarning, ChevronRight, LayoutGrid, PlusCircle, LogOut, ChefHat, ScanLine } from "lucide-react";
+import { Search, User, QrCode, FileWarning, ChevronRight, LayoutGrid, PlusCircle, LogOut, ChefHat } from "lucide-react";
 import { LoadingLink } from '@/components/LoadingLink';
 import { useAuth } from '@/lib/useAuth';
 import { useRouter } from 'next/navigation';
@@ -15,8 +15,6 @@ export default function PetugasPage() {
   const [greeting, setGreeting] = useState('Good Morning');
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [userNode, setUserNode] = useState<any>(null);
-  const [nodeLoading, setNodeLoading] = useState(true);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -30,24 +28,9 @@ export default function PetugasPage() {
     if (hour < 12) setGreeting('Good Morning');
     else if (hour < 17) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
-    
-    // Fetch user's node to check if they can access Cook recipe
-    fetchUserNode();
   }, []);
-
-  const fetchUserNode = async () => {
-    try {
-      const response = await fetch('/api/user/node');
-      const data = await response.json();
-      if (data.success && data.data.node) {
-        setUserNode(data.data.node);
-      }
-    } catch (error) {
-      console.error('Error fetching user node:', error);
-    } finally {
-      setNodeLoading(false);
-    }
-  };  const getUserName = () => {
+  
+  const getUserName = () => {
     if (user?.name) return user.name;
     if (user?.username) return user.username;
     return 'Petugas';
@@ -71,14 +54,6 @@ export default function PetugasPage() {
       loadingMessage: 'Loading QR Scan...'
     },
     {
-      id: 'scanner-interface',
-      title: 'Scanner Interface',
-      description: 'Interface for scanner input',
-      href: '/scanner-interface',
-      icon: ScanLine,
-      loadingMessage: 'Loading Scanner Interface...'
-    },
-    {
       id: 'cook-recipe',
       title: 'Cook Recipe',
       description: 'Cook items from available ingredients',
@@ -86,14 +61,14 @@ export default function PetugasPage() {
       icon: ChefHat,
       loadingMessage: 'Loading Cook Recipe...'
     },
-    // {
-    //   id: 'report',
-    //   title: 'Report',
-    //   description: 'Report discrepancies or damage',
-    //   href: '#',
-    //   icon: FileWarning,
-    //   loadingMessage: 'Loading Report...'
-    // }
+    {
+      id: 'report',
+      title: 'Report',
+      description: 'Report discrepancies or damage',
+      href: '#',
+      icon: FileWarning,
+      loadingMessage: 'Loading Report...'
+    }
   ];
 
   const filteredMenuItems = menuItems.filter(item => {
@@ -103,34 +78,6 @@ export default function PetugasPage() {
       item.description.toLowerCase().includes(query)
     );
   });
-
-  // Show loading screen while fetching node data
-  if (nodeLoading) {
-    return (
-      <div className="min-h-screen flex justify-center bg-white font-sans">
-        <div className="w-full max-w-md bg-white min-h-screen flex flex-col items-center justify-center sm:border-2 border-blue-600">
-          <style>{`
-            @keyframes spin {
-              from { transform: rotate(0deg); }
-              to { transform: rotate(360deg); }
-            }
-            .animate-spin-custom {
-              animation: spin 1s linear infinite;
-            }
-          `}</style>
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin-custom">
-              <LayoutGrid className="w-12 h-12 text-blue-600" />
-            </div>
-            <div className="text-center">
-              <p className="text-xl font-semibold text-gray-800">Loading Dashboard</p>
-              <p className="text-sm text-gray-500 mt-2">Please wait while we prepare your dashboard...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex justify-center bg-white font-sans">

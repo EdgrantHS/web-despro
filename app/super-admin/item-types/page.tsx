@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { InlineLoading, PageLoading } from '@/components/ui/loading';
+import { useLoading } from '@/contexts/LoadingContext';
 import {
   Table,
   TableBody,
@@ -31,6 +33,7 @@ interface ItemTypeFormData {
 }
 
 export default function SuperAdminItemTypesPage() {
+  const { setLoading } = useLoading();
   const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -63,6 +66,8 @@ export default function SuperAdminItemTypesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    setLoading(true, editingItem ? 'Updating item type...' : 'Creating item type...');
+
     const payload = {
       item_name: formData.item_name,
       item_type: formData.item_type,
@@ -86,11 +91,14 @@ export default function SuperAdminItemTypesPage() {
       }
     } catch (error) {
       console.error('Error saving item type:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (itemId: string) => {
     if (confirm('Are you sure you want to delete this item type?')) {
+      setLoading(true, 'Deleting item type...');
       try {
         const response = await fetch(`/api/item-type/${itemId}`, {
           method: 'DELETE'
@@ -101,6 +109,8 @@ export default function SuperAdminItemTypesPage() {
         }
       } catch (error) {
         console.error('Error deleting item type:', error);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -128,7 +138,7 @@ export default function SuperAdminItemTypesPage() {
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading...</div>;
+    return <PageLoading message="Loading item types..." />;
   }
 
   return (

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { InlineLoading, PageLoading } from '@/components/ui/loading';
+import { useLoading } from '@/contexts/LoadingContext';
 import { Grid2x2, ArrowLeft, Plus, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
@@ -51,6 +53,7 @@ interface ItemInstanceFormData {
 
 export default function NodeAdminItemInstancesPage() {
   const { user } = useAuth();
+  const { setLoading } = useLoading();
   const router = useRouter();
   const [itemInstances, setItemInstances] = useState<ItemInstance[]>([]);
   const [itemTypes, setItemTypes] = useState<ItemType[]>([]);
@@ -135,6 +138,8 @@ export default function NodeAdminItemInstancesPage() {
       return;
     }
     
+    setLoading(true, editingItem ? 'Updating item instance...' : 'Creating item instance...');
+    
     const payload = {
       item_type_id: formData.item_type_id,
       node_id: userNode.id, // Auto-select current user's node
@@ -158,11 +163,14 @@ export default function NodeAdminItemInstancesPage() {
       }
     } catch (error) {
       console.error('Error saving item instance:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (instanceId: string) => {
     if (confirm('Are you sure you want to delete this item instance?')) {
+      setLoading(true, 'Deleting item instance...');
       try {
         const response = await fetch(`/api/item-instance/${instanceId}`, {
           method: 'DELETE'
@@ -173,6 +181,8 @@ export default function NodeAdminItemInstancesPage() {
         }
       } catch (error) {
         console.error('Error deleting item instance:', error);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -217,11 +227,7 @@ export default function NodeAdminItemInstancesPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="w-full min-h-screen bg-white text-black font-sans pb-24">
-        <div className="text-center py-8 text-sm md:text-base">Loading your node information and item instances...</div>
-      </div>
-    );
+    return <PageLoading message="Loading your node information and item instances..." />;
   }
 
   if (!userNode) {
@@ -409,7 +415,9 @@ export default function NodeAdminItemInstancesPage() {
       <div className="px-4 md:px-5 mt-6">
         <h3 className="text-base md:text-lg font-semibold mb-4">Inventory Items</h3>
         {isLoading ? (
-          <div className="text-center py-8 text-sm md:text-base">Loading item instances...</div>
+          <div className="py-8">
+            <InlineLoading message="Loading item instances..." />
+          </div>
         ) : (
           <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">

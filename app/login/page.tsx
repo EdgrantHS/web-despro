@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
+import { useLoading } from '@/contexts/LoadingContext'
 import Image from 'next/image'
 import logoImage from '@/assets/public/LOGO.png'
 import { User, Lock, Eye, EyeOff } from 'lucide-react'
@@ -12,11 +13,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const { login, loading } = useAuth()
+  const { login } = useAuth()
+  const { setLoading, isLoading } = useLoading()
   const router = useRouter()
 
   const handleLogin = async (email: string, password: string) => {
     setError('')
+    setLoading(true, 'Logging in...')
     
     try {
       console.log('🌐 UI: Starting login process for:', email);
@@ -32,6 +35,8 @@ export default function LoginPage() {
           user: userName, 
           location: nodeName 
         });
+        
+        setLoading(true, 'Redirecting...')
         
         // Small delay to ensure localStorage is set
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -60,6 +65,7 @@ export default function LoginPage() {
       } else {
         console.log('❌ UI: Login failed - no result returned');
         setError('Login failed for an unknown reason. Please try again or contact support.')
+        setLoading(false)
       }
     } catch (error) {
       console.error('💥 UI: Login error caught:', error);
@@ -71,6 +77,7 @@ export default function LoginPage() {
       
       console.log('📋 UI: Displaying error to user:', errorMessage);
       setError(errorMessage)
+      setLoading(false)
     }
   }
 
@@ -178,10 +185,10 @@ export default function LoginPage() {
 
           <button 
             type="submit"
-            disabled={loading}
+            disabled={isLoading}
             className="w-full px-10 py-2.5 border-2 border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors uppercase text-sm"
           >
-            {loading ? 'Logging in...' : 'LOGIN'}
+            {isLoading ? 'Logging in...' : 'LOGIN'}
           </button>
           </form>
         </div>

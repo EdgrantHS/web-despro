@@ -5,6 +5,7 @@ import { Search, User, Grid2x2, ChevronLeft, ChevronRight, Eye } from "lucide-re
 import { useAuth } from '@/lib/useAuth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { InlineLoading } from '@/components/ui/loading';
 import Image from 'next/image';
 import adminNodeImage from '@/assets/public/admin_node.png';
 
@@ -551,7 +552,9 @@ export default function AdminDashboard() {
         </div>
 
         {isLoading ? (
-          <div className="text-center py-8 text-sm md:text-base">Loading...</div>
+          <div className="py-8">
+            <InlineLoading message="Loading data..." />
+          </div>
         ) : (
           <>
             {activeTab === 'recipes' ? (
@@ -766,13 +769,6 @@ export default function AdminDashboard() {
             )}
           </>
         )}
-      </div>
-
-      <div className="text-center mt-8 md:mt-10 px-4">
-        <p className="font-semibold text-base md:text-lg">Having trouble or found a bug?</p>
-        <p className="text-gray-700 text-sm md:text-base mt-1">
-          Tap <span className="text-blue-600 font-medium">Admin</span> to get quick help — we're here to support you.
-        </p>
       </div>
     </div>
   );

@@ -2,15 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Grid2x2, ArrowLeft, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/useAuth';
+import Image from 'next/image';
+import adminNodeImage from '@/assets/public/admin_node.png';
 
 interface ReportDetail {
   id: string;
@@ -54,6 +51,8 @@ interface Node {
 }
 
 export default function NodeAdminReportsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [reports, setReports] = useState<ReportDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<ReportDetail | null>(null);
@@ -171,6 +170,16 @@ export default function NodeAdminReportsPage() {
     }
   };
 
+  const getUserName = () => {
+    if (user?.name) return user.name;
+    if (user?.username) return user.username;
+    return 'Admin';
+  };
+
+  const getUserNodeName = () => {
+    return userNode ? `${userNode.name} (${userNode.type})` : 'Loading...';
+  };
+
   const getFilteredReports = () => {
     return reports.filter(report => {
       const statusMatch = !filterStatus || report.status === filterStatus;
@@ -179,139 +188,187 @@ export default function NodeAdminReportsPage() {
     });
   };
 
-  if (isLoading) {
-    return <div className="p-6">Loading reports...</div>;
-  }
-
-  if (!userNode) {
-    return <div className="p-6">Unable to load node information...</div>;
+  if (isLoading && !userNode) {
+    return <div className="p-6">Initializing node ID...</div>;
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Reports Management</h1>
-          <p className="text-gray-600">
-            Review and manage reports from your node
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Node: <span className="font-semibold text-blue-600">{userNode.name}</span>
+    <div className="w-full min-h-screen bg-white text-black font-sans pb-24">
+      {/* Header */}
+      <div 
+        className="bg-blue-600 text-white px-4 pt-10 pb-6 rounded-b-3xl shadow-md"
+        style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
+      >
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()} className="flex-shrink-0">
+            <ArrowLeft size={24} className="md:w-6 md:h-6 w-5 h-5" />
+          </button>
+          <Grid2x2 size={28} className="md:w-7 md:h-7 w-6 h-6" />
+          <h1 className="text-xl md:text-2xl font-semibold">Reports Management</h1>
+        </div>
+      </div>
+
+      {/* Greeting */}
+      <div className="px-4 md:px-5 mt-4 flex justify-between items-center">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl md:text-3xl font-bold truncate">
+            Hi <span className="text-blue-600">{getUserName()}!</span>
+          </h2>
+          <p className="text-gray-600 text-base md:text-lg">
+            Managing reports for: <span className="font-semibold text-blue-600">{getUserNodeName()}</span>
           </p>
         </div>
-        <Button onClick={fetchReports}>Refresh</Button>
+      </div>
+
+      {/* Welcome Card */}
+      <div className="px-4 md:px-5 mt-4">
+        <div className="border border-gray-200 rounded-xl p-3 md:p-4 flex items-center justify-between shadow-sm">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-base md:text-lg">Manage Reports</h3>
+            <p className="text-gray-600 text-sm md:text-base">Review and manage reports from your node</p>
+          </div>
+          <Image
+            src={adminNodeImage}
+            alt="Admin Node"
+            width={80}
+            height={80}
+            className="w-16 md:w-20 flex-shrink-0 ml-2 object-contain"
+          />
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="mb-6 p-4 border rounded-lg bg-gray-50 flex gap-4 items-end">
-        <div className="flex-1">
-          <label className="text-sm font-medium text-gray-600 block mb-2">Filter by Status</label>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full p-2 border rounded-md bg-white"
+      <div className="px-4 md:px-5 mt-4">
+        <div className="p-4 border rounded-lg bg-gray-50 flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1 w-full">
+            <label className="text-sm font-medium text-gray-600 block mb-2">Filter by Status</label>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="w-full p-2 border rounded-md bg-white"
+            >
+              <option value="">All Status</option>
+              <option value="IN_REVIEW">In Review</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+          <div className="flex-1 w-full">
+            <label className="text-sm font-medium text-gray-600 block mb-2">Filter by Type</label>
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="w-full p-2 border rounded-md bg-white"
+            >
+              <option value="">All Types</option>
+              <option value="STOCK_DISCREPANCY">Stock Discrepancy</option>
+              <option value="EXPIRED_ITEM">Expired Item</option>
+              <option value="OTHER_ISSUE">Other Issue</option>
+            </select>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setFilterStatus('');
+              setFilterType('');
+            }}
+            className="w-full md:w-auto"
           >
-            <option value="">All Status</option>
-            <option value="IN_REVIEW">In Review</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="RESOLVED">Resolved</option>
-            <option value="REJECTED">Rejected</option>
-          </select>
+            Clear Filters
+          </Button>
         </div>
-        <div className="flex-1">
-          <label className="text-sm font-medium text-gray-600 block mb-2">Filter by Type</label>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="w-full p-2 border rounded-md bg-white"
-          >
-            <option value="">All Types</option>
-            <option value="STOCK_DISCREPANCY">Stock Discrepancy</option>
-            <option value="EXPIRED_ITEM">Expired Item</option>
-            <option value="OTHER_ISSUE">Other Issue</option>
-          </select>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setFilterStatus('');
-            setFilterType('');
-          }}
-        >
-          Clear Filters
-        </Button>
       </div>
 
-      <div className="border rounded-lg overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Report ID</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Reporter Node</TableHead>
-              <TableHead>Item Relation</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Reported At</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {getFilteredReports().map((report) => (
-              <TableRow key={report.id} className="cursor-pointer hover:bg-gray-50">
-                <TableCell className="font-mono text-xs">
-                  {report.id.slice(0, 8)}...
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">{getTypeLabel(report.type)}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(report.status)}>
-                    {report.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-sm">
-                  {report.user?.node_id ? `${report.user.node_id.slice(0, 8)}...` : 'Unknown'}
-                </TableCell>
-                <TableCell className="text-sm">
-                  {report.item_transit?.source_node_id === userNode.id ? (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Sent from here</span>
-                  ) : (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Reported here</span>
-                  )}
-                </TableCell>
-                <TableCell className="max-w-xs truncate">
-                  {report.description || '-'}
-                </TableCell>
-                <TableCell className="text-sm text-gray-600">
-                  {new Date(report.created_at).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleRowClick(report)}
-                  >
-                    View
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-        {getFilteredReports().length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            {reports.length === 0 ? 'No reports found for your node.' : 'No reports match your filters.'}
+      <div className="px-4 md:px-5 mt-6">
+        <div className="flex justify-between items-center mb-4">
+            <h3 className="text-base md:text-lg font-semibold">Reports List</h3>
+            <Button onClick={fetchReports} size="sm" variant="outline">Refresh</Button>
+        </div>
+        
+        <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+            <table className="w-full text-left text-[9px] md:text-sm min-w-[650px]">
+              <thead>
+                <tr className="bg-blue-600 text-white">
+                  <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Report ID</th>
+                  <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Type</th>
+                  <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Status</th>
+                  <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Reporter Node</th>
+                  <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Item Relation</th>
+                  <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Description</th>
+                  <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Reported At</th>
+                  <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {getFilteredReports().length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-1.5 md:px-3 py-3 md:py-4 text-center text-gray-500 text-[9px] md:text-sm bg-white">
+                      {reports.length === 0 ? 'No reports found for your node.' : 'No reports match your filters.'}
+                    </td>
+                  </tr>
+                ) : (
+                  getFilteredReports().map((report, index) => (
+                    <tr 
+                      key={report.id} 
+                      className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} border-b border-gray-100 hover:bg-gray-100 transition-colors cursor-pointer`}
+                      onClick={() => handleRowClick(report)}
+                    >
+                      <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-mono">
+                        {report.id.slice(0, 8)}...
+                      </td>
+                      <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
+                        <Badge variant="outline" className="text-[8px] md:text-xs">{getTypeLabel(report.type)}</Badge>
+                      </td>
+                      <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
+                        <Badge className={`${getStatusColor(report.status)} text-[8px] md:text-xs`}>
+                          {report.status}
+                        </Badge>
+                      </td>
+                      <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
+                        {report.user?.node_id ? `${report.user.node_id.slice(0, 8)}...` : 'Unknown'}
+                      </td>
+                      <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
+                        {report.item_transit?.source_node_id === userNode?.id ? (
+                          <span className="px-1 md:px-2 py-0.5 md:py-1 bg-blue-100 text-blue-800 rounded text-[8px] md:text-xs">Sent from here</span>
+                        ) : (
+                          <span className="px-1 md:px-2 py-0.5 md:py-1 bg-gray-100 text-gray-800 rounded text-[8px] md:text-xs">Reported here</span>
+                        )}
+                      </td>
+                      <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm max-w-[100px] truncate">
+                        {report.description || '-'}
+                      </td>
+                      <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm text-gray-600">
+                        {new Date(report.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-1.5 md:px-3 py-1 md:py-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-6 md:h-8 text-[9px] md:text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRowClick(report);
+                          }}
+                        >
+                          View
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
+        </div>
+        
+        {pagination && (
+            <div className="mt-4 text-sm text-gray-600">
+            Showing {reports.length} report(s) for this node
+            </div>
         )}
       </div>
-
-      {pagination && (
-        <div className="mt-4 text-sm text-gray-600">
-          Showing {reports.length} report(s) for this node
-        </div>
-      )}
 
       {/* Report Detail Modal */}
       {showDetailModal && selectedReport && (

@@ -4,7 +4,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import RecipeModal from './RecipeModal';
-import { v4 as uuidv4 } from 'uuid';
+import { Grid2x2, ArrowLeft, Plus, X, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/useAuth';
+import Image from 'next/image';
+import adminNodeImage from '@/assets/public/admin_node.png';
 
 interface Recipe {
     id: string;
@@ -38,6 +42,8 @@ interface Node {
 }
 
 export default function RecipeManagementPage() {
+    const { user } = useAuth();
+    const router = useRouter();
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [userNode, setUserNode] = useState<Node | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -142,106 +148,148 @@ export default function RecipeManagementPage() {
         handleModalClose();
     };
 
-    if (isLoading) {
-        return <div className="p-6">Loading recipes...</div>;
-    }
+    const getUserName = () => {
+        if (user?.name) return user.name;
+        if (user?.username) return user.username;
+        return 'Admin';
+    };
 
-    if (!userNode) {
+    const getUserNodeName = () => {
+        return userNode ? `${userNode.name} (${userNode.type})` : 'Loading...';
+    };
+
+    if (isLoading && !userNode) {
         return <div className="p-6">Initializing node ID...</div>;
     }
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold">Recipe Management</h1>
-                    <p className="text-gray-600">
-                        Manage your cooking recipes and ingredients
-                    </p>
-                    {userNode && (
-                        <p className="text-sm text-gray-500 mt-1">
-                            Current Node: <span className="font-semibold text-blue-600">{userNode.name.slice(0, 8)}...</span>
-                        </p>
-                    )}
+        <div className="w-full min-h-screen bg-white text-black font-sans pb-24">
+            {/* Header */}
+            <div 
+                className="bg-blue-600 text-white px-4 pt-10 pb-6 rounded-b-3xl shadow-md"
+                style={{ width: '100vw', marginLeft: 'calc(-50vw + 50%)' }}
+            >
+                <div className="flex items-center gap-3">
+                    <button onClick={() => router.back()} className="flex-shrink-0">
+                        <ArrowLeft size={24} className="md:w-6 md:h-6 w-5 h-5" />
+                    </button>
+                    <Grid2x2 size={28} className="md:w-7 md:h-7 w-6 h-6" />
+                    <h1 className="text-xl md:text-2xl font-semibold">Recipe Management</h1>
                 </div>
-                <Button onClick={handleAddNew}>Add New Recipe</Button>
             </div>
 
-            <div className="border rounded-lg overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                                Recipe Name
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                                Result Item
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                                Ingredients Count
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                                Node
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                                Created
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {recipes.map((recipe) => (
-                            <tr key={recipe.id}>
-                                <td className="px-6 py-4 whitespace-nowrap font-medium">
-                                    {recipe.name}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {recipe.item_types ? recipe.item_types.item_name : 'N/A'}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {recipe.recipe_ingredients?.length || 0} ingredients
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 py-1 rounded text-xs ${recipe.node_id
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                        }`}>
-                                        {recipe.node_id ? 'Local' : 'Global'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {new Date(recipe.created_at).toLocaleDateString()}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex gap-2">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => handleEdit(recipe)}
-                                        >
-                                            Edit
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="destructive"
-                                            onClick={() => handleDelete(recipe.id)}
-                                        >
-                                            Delete
-                                        </Button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            {/* Greeting */}
+            <div className="px-4 md:px-5 mt-4 flex justify-between items-center">
+                <div className="flex-1 min-w-0">
+                    <h2 className="text-xl md:text-3xl font-bold truncate">
+                        Hi <span className="text-blue-600">{getUserName()}!</span>
+                    </h2>
+                    <p className="text-gray-600 text-base md:text-lg">
+                        Managing recipes for: <span className="font-semibold text-blue-600">{getUserNodeName()}</span>
+                    </p>
+                </div>
+            </div>
 
-                {recipes.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                        No recipes found. Click "Add New Recipe" to create one.
+            {/* Welcome Card */}
+            <div className="px-4 md:px-5 mt-4">
+                <div className="border border-gray-200 rounded-xl p-3 md:p-4 flex items-center justify-between shadow-sm">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base md:text-lg">Manage Recipes</h3>
+                        <p className="text-gray-600 text-sm md:text-base">Create and manage cooking recipes and ingredients</p>
                     </div>
-                )}
+                    <Image
+                        src={adminNodeImage}
+                        alt="Admin Node"
+                        width={80}
+                        height={80}
+                        className="w-16 md:w-20 flex-shrink-0 ml-2 object-contain"
+                    />
+                </div>
+            </div>
+
+            {/* Add New Button */}
+            <div className="px-4 md:px-5 mt-4">
+                <Button 
+                    onClick={handleAddNew}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-md flex items-center gap-2 w-full md:w-auto"
+                >
+                    <Plus size={16} />
+                    Add New Recipe
+                </Button>
+            </div>
+
+            <div className="px-4 md:px-5 mt-6">
+                <h3 className="text-base md:text-lg font-semibold mb-4">Recipes List</h3>
+                <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+                        <table className="w-full text-left text-[9px] md:text-sm min-w-[550px]">
+                            <thead>
+                                <tr className="bg-blue-600 text-white">
+                                    <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Recipe Name</th>
+                                    <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Result Item</th>
+                                    <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Ingredients Count</th>
+                                    <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Node</th>
+                                    <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Created</th>
+                                    <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recipes.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={6} className="px-1.5 md:px-3 py-3 md:py-4 text-center text-gray-500 text-[9px] md:text-sm bg-white">
+                                            No recipes found. Click "Add New Recipe" to create one.
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    recipes.map((recipe, index) => (
+                                        <tr 
+                                            key={recipe.id} 
+                                            className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} border-b border-gray-100 hover:bg-gray-100 transition-colors`}
+                                        >
+                                            <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">
+                                                {recipe.name}
+                                            </td>
+                                            <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
+                                                {recipe.item_types ? recipe.item_types.item_name : 'N/A'}
+                                            </td>
+                                            <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
+                                                {recipe.recipe_ingredients?.length || 0} ingredients
+                                            </td>
+                                            <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
+                                                <span className={`px-1 md:px-2 py-0.5 md:py-1 rounded text-[8px] md:text-xs ${recipe.node_id
+                                                    ? 'bg-blue-100 text-blue-800'
+                                                    : 'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                    {recipe.node_id ? 'Local' : 'Global'}
+                                                </span>
+                                            </td>
+                                            <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
+                                                {new Date(recipe.created_at).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-1.5 md:px-3 py-1 md:py-2">
+                                                <div className="flex gap-0.5 md:gap-2">
+                                                    <button
+                                                        onClick={() => handleEdit(recipe)}
+                                                        className="text-blue-600 hover:text-blue-800 text-[9px] md:text-sm font-medium hover:underline transition-all"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <span className="text-gray-300">|</span>
+                                                    <button
+                                                        onClick={() => handleDelete(recipe.id)}
+                                                        className="text-red-600 hover:text-red-800 text-[9px] md:text-sm font-medium hover:underline transition-all"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             {showModal && (

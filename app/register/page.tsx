@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/useAuth'
+import { useLoading } from '@/contexts/LoadingContext'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
@@ -15,11 +16,11 @@ export default function RegisterPage() {
     confirmPassword: '',
     role: ''
   })
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [mounted, setMounted] = useState(false)
   const { register } = useAuth()
+  const { setLoading } = useLoading()
   const router = useRouter()
 
   useEffect(() => {
@@ -65,7 +66,7 @@ export default function RegisterPage() {
 
     if (!validateForm()) return
 
-    setLoading(true)
+    setLoading(true, 'Creating account...')
 
     try {
       const result = await register(formData)
