@@ -11,9 +11,13 @@ import { useAuth } from '@/lib/useAuth'
 const qrRegionId = "qr-reader-region"
 
 interface Node {
-    id: string;
-    name: string;
-    type: string;
+    userId: string;
+    node: {
+        id: string;
+        name: string;
+        type: string;
+        address: string;
+    }
 }
 
 interface ScanResult {
@@ -74,39 +78,39 @@ const Page = () => {
         setIsScanning(true)
     }
 
-    const validateNodePermission = (transitData: any): boolean => {
-        if (!userNode) return false;
+    // const validateNodePermission = (transitData: any): boolean => {
+    //     if (!userNode) return false;
 
-        const normalizedStatus = transitData.status?.toLowerCase();
-        const sourceNodeId = transitData.source_node?.id || transitData.source_node_id;
-        const destNodeId = transitData.dest_node?.id || transitData.dest_node_id;
+    //     const normalizedStatus = transitData.status?.toLowerCase();
+    //     const sourceNodeId = transitData.source_node?.id || transitData.source_node_id;
+    //     const destNodeId = transitData.dest_node?.id || transitData.dest_node_id;
 
-        // If transit is inactive (delivered), only source node can scan
-        if (normalizedStatus === 'inactive') {
-            return userNode.id === sourceNodeId;
-        }
+    //     // If transit is inactive (delivered), only source node can scan
+    //     if (normalizedStatus === 'inactive') {
+    //         return userNode.id === sourceNodeId;
+    //     }
 
-        // If transit is active (in transit), only destination node can scan
-        if (normalizedStatus === 'active') {
-            return userNode.id === destNodeId;
-        }
+    //     // If transit is active (in transit), only destination node can scan
+    //     if (normalizedStatus === 'active') {
+    //         return userNode.id === destNodeId;
+    //     }
 
-        return false;
-    };
+    //     return false;
+    // };
 
-    const getNodePermissionError = (transitData: any): string => {
-        const normalizedStatus = transitData.status?.toLowerCase();
+    // const getNodePermissionError = (transitData: any): string => {
+    //     const normalizedStatus = transitData.status?.toLowerCase();
 
-        if (normalizedStatus === 'inactive') {
-            return `This item has already been delivered. Only the source node (${transitData.source_node?.name}) can rescan it.`;
-        }
+    //     if (normalizedStatus === 'inactive') {
+    //         return `This item has already been delivered. Only the source node (${transitData.source_node?.name}) can rescan it.`;
+    //     }
 
-        if (normalizedStatus === 'active') {
-            return `This item is currently in transit. Only the destination node (${transitData.dest_node?.name}) can receive it.`;
-        }
+    //     if (normalizedStatus === 'active') {
+    //         return `This item is currently in transit. Only the destination node (${transitData.dest_node?.name}) can receive it.`;
+    //     }
 
-        return 'You do not have permission to scan this QR code.';
-    };
+    //     return 'You do not have permission to scan this QR code.';
+    // };
 
     // Handle scanner initialization when isScanning becomes true
     useEffect(() => {
@@ -163,6 +167,7 @@ const Page = () => {
             mounted = false
             if (scannerRef.current) {
                 scannerRef.current.stop().catch(() => { })
+                // scannerRef.current.clear().catch(() => { })
                 scannerRef.current = null
             }
         }
@@ -234,7 +239,10 @@ const Page = () => {
         try {
             const res = await fetch(`/api/qr/scan/${qrId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" }
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    current_node: userNode?.node.id,
+                }),
             });
 
             const result = await res.json();
@@ -255,11 +263,11 @@ const Page = () => {
                 };
 
                 // Validate node permission
-                if (!validateNodePermission({ ...transitData, status: result.data.status })) {
-                    setErrorMessage(getNodePermissionError({ ...transitData, status: result.data.status }));
-                    setShowErrorModal(true);
-                    return;
-                }
+                // if (!validateNodePermission({ ...transitData, status: result.data.status })) {
+                //     setErrorMessage(getNodePermissionError({ ...transitData, status: result.data.status }));
+                //     setShowErrorModal(true);
+                //     return;
+                // }
 
                 setScanResult(transitData);
                 console.log("Result from API: ", result.data);

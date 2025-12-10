@@ -13,7 +13,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const supabase = await getSupabaseClient();
     const body = await request.json();
 
-    const { courier_name, courier_phone } = body;
+    const { current_node } = body;
+    console.log("current node: ", current_node);
+
     const { qrId } = await params;
 
     if (!qrId) {
@@ -36,10 +38,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     if (found) {
+
+      if (found.status === 'inactive' && found.source_node_id !== current_node) {
+        return createErrorResponse('This QR code is not valid for this node', 403);
+      } else if (found.status === 'active' && found.dest_node_id !== current_node) {
+        return createErrorResponse('This QR code is not valid for this node', 403);
+      }
+
       // Entry ditemukan, this is the second scan (delivery)
       if (found.status === 'active') {
         // Mark transit as delivered
-        const updateFields: any = { 
+        const updateFields: any = {
           status: 'inactive',
           time_arrival: new Date().toISOString()
         };
@@ -135,7 +144,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         return createSuccessResponse("Item successfully delivered to destination", {
           action: "item_delivered",
-          item_transit_id: updated.item_transit_id,
           item_instance: updated.item_instances ? {
             id: updated.item_instances.item_instance_id,
             item_name: updated.item_instances.item_types?.item_name,
@@ -170,6 +178,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         return createErrorResponse("QR code not found", 404);
       }
 
+      if (qrCode.source_id !== current_node) {
+        return createErrorResponse('This QR code is not valid for this node', 403);
+      }
       // --- New: check & decrement item_instances.item_count by qrCode.item_count ---
       const qty = Number(qrCode.item_count ?? 0);
       const itemInstanceId = qrCode.item_instance_id;
@@ -215,8 +226,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           source_node_id: qrCode.source_id,
           dest_node_id: qrCode.destination_id,
           time_departure: new Date().toISOString(),
-          courier_name,
-          courier_phone,
           qr_url: qrId, // Use the QR ID directly
           status: 'active',
           item_transit_count: qrCode.item_count
