@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/useAuth';
+import { createClient } from '@/utils/supabase/client';
+import { ScanLine, LogOut, LayoutGrid, ArrowLeft, CheckCircle, XCircle, Clock, Copy, Trash2, RotateCcw } from 'lucide-react';
 
 export default function ScannerInterfacePage() {
   const [scanResult, setScanResult] = useState<string>('');
@@ -14,6 +12,7 @@ export default function ScannerInterfacePage() {
   const [error, setError] = useState<string>('');
   const [scanHistory, setScanHistory] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [scanStatus, setScanStatus] = useState<'ready' | 'processing' | 'success' | 'error'>('ready');
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { user } = useAuth();
@@ -35,15 +34,24 @@ export default function ScannerInterfacePage() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
   // Process QR code result
   const processQRResult = async (qrString: string) => {
     if (!qrString.trim()) {
       setError('Empty scanner input');
+      setScanStatus('error');
       return;
     }
 
     setIsProcessing(true);
+    setScanStatus('processing');
     setScanResult('Processing...');
+    setError('');
     
     // Add to history if not already there
     setScanHistory(prev => {
@@ -86,6 +94,7 @@ export default function ScannerInterfacePage() {
       } else {
         // Just display the result
         setScanResult(`Scanner Input Received: ${qrString}`);
+        setScanStatus('success');
         console.log('Scanner content is not a URL or UUID:', qrString);
       }
     }
@@ -93,7 +102,7 @@ export default function ScannerInterfacePage() {
     setIsProcessing(false);
   };
 
-  // Handle QR scan API call (similar to the main qr-scan page)
+  // Handle QR scan API call
   const handleQRScan = async (qrId: string, originalUrl: string) => {
     try {
       setError('');
@@ -113,33 +122,34 @@ export default function ScannerInterfacePage() {
       const result = await response.json();
       
       if (result.success && result.data) {
-        // Update scan result with formatted API response
+        // Format result nicely
         const formattedResult = `QR Scan Success!
-        
-Original URL: ${originalUrl}
-QR ID: ${qrId}
 
 Item Information:
-- Name: ${result.data.item_instance?.item_name || 'N/A'}
-- Type: ${result.data.item_instance?.item_type || 'N/A'}
-- Count: ${result.data.item_transit_count || 'N/A'}
+• Name: ${result.data.item_instance?.item_name || 'N/A'}
+• Type: ${result.data.item_instance?.item_type || 'N/A'}
+• Count: ${result.data.item_transit_count || 'N/A'}
 
 Transit Information:
-- Source: ${result.data.source_node?.name || 'N/A'}
-- Destination: ${result.data.destination_node?.name || 'N/A'}
-- Status: ${result.data.status || 'N/A'}
+• Source: ${result.data.source_node?.name || 'N/A'}
+• Destination: ${result.data.destination_node?.name || 'N/A'}
+• Status: ${result.data.status || 'N/A'}
 
-API Response: ${JSON.stringify(result.data, null, 2)}`;
+QR ID: ${qrId}`;
         
         setScanResult(formattedResult);
+        setScanStatus('success');
       } else {
-        setError(`QR Scan Failed: ${result.message || 'Unknown error'}`);
-        setScanResult(`QR Scan Error: ${result.message || 'API returned unsuccessful response'}`);
+        const errorMsg = `QR Scan Failed: ${result.message || 'Unknown error'}`;
+        setError(errorMsg);
+        setScanResult(errorMsg);
+        setScanStatus('error');
       }
     } catch (err) {
-      const errorMsg = `Network error scanning QR ID ${qrId}: ${err}`;
+      const errorMsg = `Network error: ${err}`;
       setError(errorMsg);
       setScanResult(errorMsg);
+      setScanStatus('error');
     }
   };
 
@@ -173,178 +183,258 @@ API Response: ${JSON.stringify(result.data, null, 2)}`;
     }
   };
 
+  const clearResult = () => {
+    setScanResult('');
+    setError('');
+    setScanStatus('ready');
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Please log in to access Scanner Interface</p>
-          <Button onClick={() => router.push('/login')}>Go to Login</Button>
+      <div className="min-h-screen flex justify-center bg-white font-sans">
+        <div className="w-full max-w-md bg-white min-h-screen flex flex-col items-center justify-center sm:border-2 border-blue-600">
+          <div className="text-center px-5">
+            <p className="text-gray-600 mb-4">Please log in to access Scanner Interface</p>
+            <button
+              onClick={() => router.push('/login')}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium"
+            >
+              Go to Login
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Scanner Interface</h1>
-        <p className="text-gray-600">
-          Hardware barcode/QR scanner interface - scan items and press Enter
-        </p>
-        <Badge className="mt-2 bg-green-100 text-green-800">
-          🔍 Scanner Ready
-        </Badge>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-          {error}
-          <button 
-            onClick={() => setError('')}
-            className="float-right text-red-500 hover:text-red-700"
+    <div className="min-h-screen flex justify-center bg-white font-sans">
+      <div className="w-full max-w-md bg-white min-h-screen flex flex-col sm:border-2 border-blue-600 pb-12">
+        {/* Header */}
+        <div className="bg-blue-600 text-white py-4 px-5 rounded-b-3xl flex items-center justify-between gap-2.5 shadow-md">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => router.back()}
+              className="p-1 hover:bg-blue-700 rounded transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <ScanLine className="w-5 h-5" />
+            <h1 className="text-xl font-semibold">Scanner Interface</h1>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 transition-colors text-sm font-medium"
           >
-            ×
+            <LogOut className="w-4 h-4" />
+            Logout
           </button>
         </div>
-      )}
 
-      {/* Main Scanner Input Section */}
-      <div className="bg-white p-8 rounded-lg shadow-lg border-2 border-blue-200">
-        <h2 className="text-2xl font-semibold mb-6 text-center">📟 Scanner Input</h2>
-        
-        <div className="space-y-6">
-          <div>
-            <Label htmlFor="scanner-input" className="text-lg font-medium">
-              Scan or Type Code
-            </Label>
-            <Input
-              ref={inputRef}
-              id="scanner-input"
-              placeholder="Point scanner here and scan, or type manually..."
-              value={scanInput}
-              onChange={(e) => setScanInput(e.target.value)}
-              onKeyDown={handleScannerInput}
-              className="text-lg p-4 text-center font-mono"
-              autoComplete="off"
-              autoFocus
-            />
-            <div className="text-sm text-gray-500 text-center mt-2">
-              Hardware scanners will automatically input here. Press Enter to process.
-            </div>
-          </div>
-          
-          <Button 
-            onClick={handleManualProcess} 
-            disabled={!scanInput.trim() || isProcessing}
-            className="w-full text-lg py-4"
-          >
-            {isProcessing ? 'Processing...' : 'Process Code'}
-          </Button>
-
-          {/* Scanner Status Indicator */}
-          <div className="text-center">
-            <div className={`inline-flex items-center px-4 py-2 rounded-full ${
-              isProcessing ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'
+        {/* Main Content */}
+        <div className="flex-1 px-5 mt-5">
+          {/* Status Badge */}
+          <div className="mb-4 flex justify-center">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+              scanStatus === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+              scanStatus === 'success' ? 'bg-green-100 text-green-800' :
+              scanStatus === 'error' ? 'bg-red-100 text-red-800' :
+              'bg-blue-100 text-blue-800'
             }`}>
-              <div className={`w-2 h-2 rounded-full mr-2 ${
-                isProcessing ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'
-              }`}></div>
-              {isProcessing ? 'Processing...' : 'Ready to Scan'}
+              {scanStatus === 'processing' && (
+                <>
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                  Processing...
+                </>
+              )}
+              {scanStatus === 'success' && (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  Scan Success
+                </>
+              )}
+              {scanStatus === 'error' && (
+                <>
+                  <XCircle className="w-4 h-4" />
+                  Scan Error
+                </>
+              )}
+              {scanStatus === 'ready' && (
+                <>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  Ready to Scan
+                </>
+              )}
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Scan Result Section */}
-      {scanResult && (
-        <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-green-800 mb-2">✅ Scan Result</h3>
-          <div className="bg-white p-4 rounded border font-mono text-sm whitespace-pre-wrap">
-            {scanResult}
-          </div>
-          
-          <div className="mt-4 flex gap-2">
-            <Button 
-              size="sm"
-              onClick={() => navigator.clipboard.writeText(scanResult)}
-            >
-              📋 Copy
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setScanResult('')}
-            >
-              Clear
-            </Button>
-          </div>
-        </div>
-      )}
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              <div className="flex items-start justify-between">
+                <span>{error}</span>
+                <button 
+                  onClick={() => setError('')}
+                  className="ml-2 text-red-500 hover:text-red-700"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
-      {/* Scan History Section */}
-      {scanHistory.length > 0 && (
-        <div className="mt-8 bg-gray-50 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">📚 Scan History</h3>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {scanHistory.map((item, index) => (
-              <div key={index} className="flex items-center justify-between bg-white p-3 rounded border">
-                <span className="font-mono text-sm truncate flex-1 mr-4">
-                  {item}
-                </span>
-                <div className="flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setScanInput(item);
-                      if (inputRef.current) {
-                        inputRef.current.focus();
-                      }
-                    }}
+          {/* Scanner Input Section */}
+          <div className="bg-white border-2 border-blue-400 rounded-xl p-5 shadow-sm mb-5">
+            <h2 className="text-lg font-semibold text-blue-700 mb-3 text-center">Scanner Input</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="scanner-input" className="block text-sm font-medium text-gray-700 mb-2">
+                  Scan or Type Code
+                </label>
+                <input
+                  ref={inputRef}
+                  id="scanner-input"
+                  type="text"
+                  placeholder="Point scanner here and scan..."
+                  value={scanInput}
+                  onChange={(e) => setScanInput(e.target.value)}
+                  onKeyDown={handleScannerInput}
+                  className="w-full px-4 py-3 text-base text-center font-mono border-2 border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoComplete="off"
+                  autoFocus
+                />
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  Hardware scanners will automatically input here. Press Enter to process.
+                </p>
+              </div>
+              
+              <button
+                onClick={handleManualProcess}
+                disabled={!scanInput.trim() || isProcessing}
+                className={`w-full py-3 rounded-xl font-medium text-white transition-colors ${
+                  !scanInput.trim() || isProcessing
+                    ? 'bg-gray-300 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {isProcessing ? 'Processing...' : 'Process Code'}
+              </button>
+            </div>
+          </div>
+
+          {/* Scan Result Section */}
+          {scanResult && (
+            <div className={`mb-5 border-2 rounded-xl p-4 ${
+              scanStatus === 'success' ? 'bg-green-50 border-green-200' :
+              scanStatus === 'error' ? 'bg-red-50 border-red-200' :
+              'bg-gray-50 border-gray-200'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className={`text-base font-semibold ${
+                  scanStatus === 'success' ? 'text-green-800' :
+                  scanStatus === 'error' ? 'text-red-800' :
+                  'text-gray-800'
+                }`}>
+                  {scanStatus === 'success' ? '✅ Scan Result' : '📋 Result'}
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => copyToClipboard(scanResult)}
+                    className="p-2 hover:bg-white rounded-lg transition-colors"
+                    title="Copy"
                   >
-                    📝 Load
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => processQRResult(item)}
+                    <Copy className="w-4 h-4 text-gray-600" />
+                  </button>
+                  <button
+                    onClick={clearResult}
+                    className="p-2 hover:bg-white rounded-lg transition-colors"
+                    title="Clear"
                   >
-                    🔄 Rescan
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => navigator.clipboard.writeText(item)}
-                  >
-                    📋
-                  </Button>
+                    <Trash2 className="w-4 h-4 text-gray-600" />
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setScanHistory([])}
-            className="mt-4"
-          >
-            Clear History
-          </Button>
-        </div>
-      )}
+              <div className="bg-white p-3 rounded-lg border font-mono text-xs whitespace-pre-wrap break-words">
+                {scanResult}
+              </div>
+            </div>
+          )}
 
-      {/* Scanner Interface Info */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-800 mb-2">📟 Scanner Interface Guide</h3>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Point your barcode/QR scanner at the input field and scan</li>
-          <li>• Scanner input will automatically appear in the text box</li>
-          <li>• Most scanners automatically press Enter after scanning</li>
-          <li>• Input field stays focused for continuous scanning</li>
-          <li>• Manual typing is also supported - press Enter when done</li>
-          <li>• History keeps track of recent scans for reference</li>
-        </ul>
+          {/* Scan History Section */}
+          {scanHistory.length > 0 && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Scan History
+                </h3>
+                <button
+                  onClick={() => setScanHistory([])}
+                  className="text-xs text-red-600 hover:text-red-800 font-medium"
+                >
+                  Clear All
+                </button>
+              </div>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {scanHistory.map((item, index) => (
+                  <div key={index} className="bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs truncate flex-1">
+                      {item}
+                    </span>
+                    <div className="flex gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          setScanInput(item);
+                          if (inputRef.current) {
+                            inputRef.current.focus();
+                          }
+                        }}
+                        className="p-1.5 hover:bg-blue-50 rounded text-blue-600 transition-colors"
+                        title="Load"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => processQRResult(item)}
+                        className="p-1.5 hover:bg-green-50 rounded text-green-600 transition-colors"
+                        title="Rescan"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => copyToClipboard(item)}
+                        className="p-1.5 hover:bg-gray-100 rounded text-gray-600 transition-colors"
+                        title="Copy"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Info Section */}
+          <div className="mt-5 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center gap-2">
+              <ScanLine className="w-4 h-4" />
+              How to Use
+            </h3>
+            <ul className="text-xs text-blue-700 space-y-1">
+              <li>• Point your barcode/QR scanner at the input field</li>
+              <li>• Scanner input will automatically appear</li>
+              <li>• Most scanners automatically press Enter after scanning</li>
+              <li>• Input field stays focused for continuous scanning</li>
+              <li>• Manual typing is also supported</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
