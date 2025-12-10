@@ -75,7 +75,6 @@ export default function Navigation() {
           { name: 'Item Transits', href: '/node-admin/item-transits' },
           { name: 'Recipes', href: '/node-admin/recipes' },
           { name: 'Reports', href: '/node-admin/reports' },
-          { name: 'Dev Item Instances', href: '/node-admin/item-instances-dev' },
         ],
       });
     }
@@ -118,7 +117,12 @@ export default function Navigation() {
           <div className="flex justify-between w-full py-4 px-8">
             <div className="flex items-center">
               <Link 
-                href={role === 'petugas' || role === 'admin_node' || role === 'admin_pusat' || isSuperAdmin ? '/petugas' : '/'} 
+                href={
+                  role === 'petugas' ? '/petugas' :
+                  role === 'admin_node' ? '/node-admin' :
+                  role === 'admin_pusat' || isSuperAdmin ? '/super-admin' :
+                  '/'
+                }
                 className="text-xl font-bold text-gray-800"
               >
                 QR Logistic

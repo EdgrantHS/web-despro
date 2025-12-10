@@ -86,14 +86,14 @@ export default function PetugasPage() {
       icon: ChefHat,
       loadingMessage: 'Loading Cook Recipe...'
     },
-    {
-      id: 'report',
-      title: 'Report',
-      description: 'Report discrepancies or damage',
-      href: '#',
-      icon: FileWarning,
-      loadingMessage: 'Loading Report...'
-    }
+    // {
+    //   id: 'report',
+    //   title: 'Report',
+    //   description: 'Report discrepancies or damage',
+    //   href: '#',
+    //   icon: FileWarning,
+    //   loadingMessage: 'Loading Report...'
+    // }
   ];
 
   const filteredMenuItems = menuItems.filter(item => {

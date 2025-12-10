@@ -275,6 +275,7 @@ export default function SuperAdminItemInstancesPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Item Name</TableHead>
               <TableHead>Item Type</TableHead>
               <TableHead>Current Node</TableHead>
               <TableHead>Count</TableHead>
@@ -288,7 +289,10 @@ export default function SuperAdminItemInstancesPage() {
             {itemInstances.map((item, index) => (
               <TableRow key={item.id || `item-${index}`}>
                 <TableCell className="font-medium">
-                  {item.item_type ? `${item.item_type.item_name} (${item.item_type.item_type})` : 'N/A'}
+                  {item.item_type?.item_name || 'N/A'}
+                </TableCell>
+                <TableCell>
+                  {item.item_type?.item_type || 'N/A'}
                 </TableCell>
                 <TableCell>
                   {item.current_node ? `${item.current_node.node_name} (${item.current_node.node_type})` : 'In Transit'}

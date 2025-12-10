@@ -158,12 +158,17 @@ export default function SuperAdminItemTypesPage() {
             </div>
             <div>
               <Label htmlFor="item_type">Item Type *</Label>
-              <Input
+              <select
                 id="item_type"
                 value={formData.item_type}
                 onChange={(e) => setFormData({...formData, item_type: e.target.value})}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 required
-              />
+              >
+                <option value="" disabled>Select Item Type</option>
+                <option value="Bahan Mentah">Bahan Mentah</option>
+                <option value="Makanan Jadi">Makanan Jadi</option>
+              </select>
             </div>
             <div className="col-span-2">
               <Label htmlFor="item_description">Description</Label>

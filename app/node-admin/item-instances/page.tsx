@@ -416,6 +416,7 @@ export default function NodeAdminItemInstancesPage() {
               <table className="w-full text-left text-[9px] md:text-sm min-w-[550px]">
                 <thead>
                   <tr className="bg-blue-600 text-white">
+                    <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Item Name</th>
                     <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Item Type</th>
                     <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Count</th>
                     <th className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm font-medium">Expire Date</th>
@@ -427,7 +428,7 @@ export default function NodeAdminItemInstancesPage() {
                 <tbody>
                   {(!Array.isArray(itemInstances) || itemInstances.length === 0) ? (
                     <tr>
-                      <td colSpan={6} className="px-1.5 md:px-3 py-3 md:py-4 text-center text-gray-500 text-[9px] md:text-sm bg-white">
+                      <td colSpan={7} className="px-1.5 md:px-3 py-3 md:py-4 text-center text-gray-500 text-[9px] md:text-sm bg-white">
                         No item instances found for this node. Click "Add New Item Instance" to create one.
                       </td>
                     </tr>
@@ -438,7 +439,10 @@ export default function NodeAdminItemInstancesPage() {
                         className={`${index % 2 === 0 ? "bg-gray-50" : "bg-white"} border-b border-gray-100 hover:bg-gray-100 transition-colors`}
                       >
                         <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
-                          {item.item_type ? `${item.item_type.item_name} (${item.item_type.item_type})` : 'N/A'}
+                          {item.item_type?.item_name || 'N/A'}
+                        </td>
+                        <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
+                          {item.item_type?.item_type || 'N/A'}
                         </td>
                         <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">{item.item_count}</td>
                         <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">{formatDate(item.expire_date)}</td>
