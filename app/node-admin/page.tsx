@@ -79,7 +79,7 @@ interface ItemTransit {
   time_arrival?: string;
   courier_name?: string;
   courier_phone?: string;
-  status: 'Active' | 'Completed' | 'Inactive';
+  status: 'Active' | 'Completed' | 'Inactive' | 'active' | 'completed' | 'inactive';
   created_at?: string;
   updated_at?: string;
   item_instance?: {
@@ -168,6 +168,7 @@ export default function AdminDashboard() {
       
       if (!nodeData.success) {
         console.error('Error fetching user node:', nodeData.message);
+        setIsLoading(false);
         return;
       }
       
@@ -175,6 +176,7 @@ export default function AdminDashboard() {
       setUserNode(userNodeInfo);
     } catch (error) {
       console.error('Error fetching user node:', error);
+      setIsLoading(false);
     }
   };
 
@@ -207,7 +209,7 @@ export default function AdminDashboard() {
         if (transitsData.success) {
           const filteredTransits = (transitsData.data.transits || []).filter((transit: ItemTransit) => 
             (transit.source_node_id === userNode.id || transit.dest_node_id === userNode.id) &&
-            transit.status === 'active'
+            transit.status?.toLowerCase() === 'active'
           );
           setItemTransits(filteredTransits);
         }
@@ -216,7 +218,7 @@ export default function AdminDashboard() {
         const reportsData = await reportsResponse.json();
         if (reportsData.success) {
           const filteredReports = (reportsData.data.reports || []).filter((report: ReportDetail) => 
-            report.status !== 'RESOLVED' && report.status !== 'REJECTED'
+            !['resolved', 'rejected'].includes(report.status?.toLowerCase())
           );
           setReports(filteredReports);
         }

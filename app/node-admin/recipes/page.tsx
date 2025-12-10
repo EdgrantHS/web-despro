@@ -68,6 +68,7 @@ export default function RecipeManagementPage() {
 
             if (!nodeData.success) {
                 console.error('Error fetching user node:', nodeData.message);
+                setIsLoading(false);
                 return;
             }
 
@@ -76,6 +77,7 @@ export default function RecipeManagementPage() {
             
         } catch (error) {
             console.error('Error getting user node data:', error);
+            setIsLoading(false);
         }
     }
 

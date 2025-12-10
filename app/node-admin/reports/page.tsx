@@ -79,9 +79,12 @@ export default function NodeAdminReportsPage() {
       const data = await response.json();
       if (data.success && data.data.node) {
         setUserNode(data.data.node);
+      } else {
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Error fetching user node:', error);
+      setIsLoading(false);
     }
   };
 

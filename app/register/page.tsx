@@ -20,7 +20,7 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState('')
   const [mounted, setMounted] = useState(false)
   const { register } = useAuth()
-  const { setLoading } = useLoading()
+  const { isLoading, setLoading } = useLoading()
   const router = useRouter()
 
   useEffect(() => {
@@ -185,10 +185,10 @@ export default function RegisterPage() {
           
           <button
             type="submit"
-            disabled={loading}
+            disabled={isLoading}
             className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            {loading ? 'Membuat Akun...' : 'Register'}
+            {isLoading ? 'Membuat Akun...' : 'Register'}
           </button>
           
           {error && (
