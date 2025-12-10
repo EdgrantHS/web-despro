@@ -44,14 +44,6 @@ export const updateSession = async (request: NextRequest) => {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    if (request.nextUrl.pathname === "/" && !user.error) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    if (request.nextUrl.pathname === "/" && user.error) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
     // Don't interfere with super-admin and node-admin routes - let RouteGuard handle them
     if (request.nextUrl.pathname.startsWith("/super-admin") || 
         request.nextUrl.pathname.startsWith("/node-admin")) {
