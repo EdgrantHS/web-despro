@@ -11,8 +11,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Despro System - Supply Chain Management",
-  description: "Supply chain management system with CRUD operations",
+  title: "QR Based Logistics Management System",
+  description: "Manage your logistics and inventory with ease using QR codes.",
 };
 
 const geistSans = Geist({
