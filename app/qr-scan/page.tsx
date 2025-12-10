@@ -10,6 +10,12 @@ import { useAuth } from '@/lib/useAuth'
 
 const qrRegionId = "qr-reader-region"
 
+interface Node {
+    id: string;
+    name: string;
+    type: string;
+}
+
 interface ScanResult {
     item_name?: string;
     item_type?: string;
@@ -36,20 +42,71 @@ const Page = () => {
     const [scanResult, setScanResult] = useState<ScanResult | null>(null)
     const [showReportModal, setShowReportModal] = useState(false)
     const [isSubmittingReport, setIsSubmittingReport] = useState(false)
+    const [userNode, setUserNode] = useState<Node | null>(null)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [showErrorModal, setShowErrorModal] = useState(false)
     const scannerRef = useRef<Html5Qrcode | null>(null)
-
-    // temporary
-    const [courierName, setCourierName] = useState("Rahel");
-    const [courierPhone, setCourierPhone] = useState("082130330030");
 
     const [reportForm, setReportForm] = useState<ReportFormData>({
         type: 'OTHER_ISSUE',
         description: ''
     });
 
+    // Fetch user node on component mount
+    useEffect(() => {
+        const fetchUserNode = async () => {
+            try {
+                const response = await fetch('/api/user/node');
+                const data = await response.json();
+                if (data.success && data.data.node) {
+                    setUserNode(data.data.node);
+                } else {
+                    console.error('Failed to fetch user node:', data.message);
+                }
+            } catch (error) {
+                console.error('Error fetching user node:', error);
+            }
+        };
+        fetchUserNode();
+    }, []);
+
     const startScanning = () => {
         setIsScanning(true)
     }
+
+    const validateNodePermission = (transitData: any): boolean => {
+        if (!userNode) return false;
+
+        const normalizedStatus = transitData.status?.toLowerCase();
+        const sourceNodeId = transitData.source_node?.id || transitData.source_node_id;
+        const destNodeId = transitData.dest_node?.id || transitData.dest_node_id;
+
+        // If transit is inactive (delivered), only source node can scan
+        if (normalizedStatus === 'inactive') {
+            return userNode.id === sourceNodeId;
+        }
+
+        // If transit is active (in transit), only destination node can scan
+        if (normalizedStatus === 'active') {
+            return userNode.id === destNodeId;
+        }
+
+        return false;
+    };
+
+    const getNodePermissionError = (transitData: any): string => {
+        const normalizedStatus = transitData.status?.toLowerCase();
+
+        if (normalizedStatus === 'inactive') {
+            return `This item has already been delivered. Only the source node (${transitData.source_node?.name}) can rescan it.`;
+        }
+
+        if (normalizedStatus === 'active') {
+            return `This item is currently in transit. Only the destination node (${transitData.dest_node?.name}) can receive it.`;
+        }
+
+        return 'You do not have permission to scan this QR code.';
+    };
 
     // Handle scanner initialization when isScanning becomes true
     useEffect(() => {
@@ -106,7 +163,6 @@ const Page = () => {
             mounted = false
             if (scannerRef.current) {
                 scannerRef.current.stop().catch(() => { })
-                // scannerRef.current.clear().catch(() => { })
                 scannerRef.current = null
             }
         }
@@ -133,12 +189,6 @@ const Page = () => {
             } catch {
                 parsedResult = { raw: data };
             }
-        }
-
-        // Gabungkan input kurir jika parsedResult adalah object
-        if (typeof parsedResult === "object" && parsedResult !== null && !Array.isArray(parsedResult)) {
-            parsedResult.courier_name = courierName;
-            parsedResult.courier_phone = courierPhone;
         }
 
         return parsedResult;
@@ -184,29 +234,36 @@ const Page = () => {
         try {
             const res = await fetch(`/api/qr/scan/${qrId}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    courier_name: courierName,
-                    courier_phone: courierPhone
-                }),
+                headers: { "Content-Type": "application/json" }
             });
 
             const result = await res.json();
             console.log("Result from fetch:", result);
             
             if (result.success && result.data) {
-                setScanResult({
+                const transitData = {
                     item_instance_id: result.data.item_instance?.id,
                     item_name: result.data.item_instance?.item_name,
                     item_type: result.data.item_instance?.item_type,
+                    source_node: result.data.source_node,
                     source_node_name: result.data.source_node?.name,
+                    dest_node: result.data.destination_node,
                     dest_node_name: result.data.destination_node?.name,
                     item_count: result.data.item_transit_count,
                     status: result.data.status,
                     item_transit_id: result.data.item_transit_id,
-                });
+                };
+
+                // Validate node permission
+                if (!validateNodePermission({ ...transitData, status: result.data.status })) {
+                    setErrorMessage(getNodePermissionError({ ...transitData, status: result.data.status }));
+                    setShowErrorModal(true);
+                    return;
+                }
+
+                setScanResult(transitData);
                 console.log("Result from API: ", result.data);
-                console.log("Scan Result: ", scanResult);
+                console.log("Scan Result: ", transitData);
             } else {
                 setScanResult({ raw: result.message || "API Failed" });
                 console.error("API Error Result: ", result);
@@ -235,6 +292,8 @@ const Page = () => {
     const resetScan = () => {
         setScanResult(null)
         setReportForm({ type: 'OTHER_ISSUE', description: '' })
+        setErrorMessage(null)
+        setShowErrorModal(false)
     }
 
     const handleReportSubmit = async () => {
@@ -461,6 +520,66 @@ const Page = () => {
                                     Report Issue
                                 </a>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Modal - Node Permission Error */}
+            {showErrorModal && errorMessage && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-sm mx-auto shadow-xl">
+                        {/* Header */}
+                        <div className="bg-red-600 text-white py-4 px-6 rounded-t-2xl">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-xl font-bold">Access Denied</h2>
+                                    <p className="text-sm text-red-50 mt-1">Unauthorized scan attempt</p>
+                                </div>
+                                <button
+                                    className="text-white hover:text-red-100 text-2xl leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-red-700 transition-colors"
+                                    onClick={() => {
+                                        setShowErrorModal(false);
+                                        setErrorMessage(null);
+                                    }}
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-6">
+                            <div className="flex items-start gap-4 mb-6">
+                                <div className="flex-shrink-0">
+                                    <div className="flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                                        <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-700">{errorMessage}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                                <p className="text-xs text-yellow-800">
+                                    <span className="font-semibold">Reason:</span> You are not authorized to scan this QR code from your current location.
+                                </p>
+                            </div>
+
+                            {/* Buttons */}
+                            <button
+                                className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium text-base hover:bg-blue-700 transition-colors"
+                                onClick={() => {
+                                    setShowErrorModal(false);
+                                    setErrorMessage(null);
+                                    resetScan();
+                                }}
+                            >
+                                Scan Again
+                            </button>
                         </div>
                     </div>
                 </div>
