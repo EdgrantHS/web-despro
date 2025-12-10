@@ -114,7 +114,8 @@ export async function POST(request: NextRequest) {
                     .from('item_types')
                     .insert([
                         {
-                            item_name: result_name
+                            item_name: result_name,
+                            item_type: 'Makanan Jadi'
                         }
                     ])
                     .select('item_id, item_name')

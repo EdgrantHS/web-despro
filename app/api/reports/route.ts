@@ -54,11 +54,20 @@ export async function GET(request: NextRequest) {
           ),
           source_node_id,
           dest_node_id,
-          status
+          status,
+          source_nodes:nodes!source_node_id (
+            node_name
+          ),
+          dest_nodes:nodes!dest_node_id (
+            node_name
+          )
         ),
         users:user_id (
           user_id,
-          node_id
+          node_id,
+          nodes:node_id (
+            node_name
+          )
         )
       `, { count: 'exact' });
 
@@ -92,13 +101,16 @@ export async function GET(request: NextRequest) {
       created_at: report.created_at,
       user: report.users ? {
         id: report.users.user_id,
-        node_id: report.users.node_id
+        node_id: report.users.node_id,
+        node_name: report.users.nodes?.node_name
       } : null,
       item_transit: report.item_transits ? {
         id: report.item_transits.item_transit_id,
         item_id: report.item_transits.item_instance_id,
         source_node_id: report.item_transits.source_node_id,
+        source_node_name: report.item_transits.source_nodes?.node_name,
         destination_node_id: report.item_transits.dest_node_id,
+        destination_node_name: report.item_transits.dest_nodes?.node_name,
         status: report.item_transits.status,
         item_instance: report.item_transits.item_instances ? {
           item_name: report.item_transits.item_instances.item_types?.item_name || null,

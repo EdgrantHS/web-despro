@@ -135,6 +135,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         return createSuccessResponse("Item successfully delivered to destination", {
           action: "item_delivered",
+          item_transit_id: updated.item_transit_id,
           item_instance: updated.item_instances ? {
             id: updated.item_instances.item_instance_id,
             item_name: updated.item_instances.item_types?.item_name,

@@ -23,12 +23,15 @@ interface ReportDetail {
   user?: {
     id: string;
     node_id: string;
+    node_name?: string;
   };
   item_transit?: {
     id: string;
     item_id: string;
     source_node_id: string;
+    source_node_name?: string;
     destination_node_id: string;
+    destination_node_name?: string;
     status: string;
     item_instance?: {
       item_name: string | null;
@@ -330,7 +333,7 @@ export default function NodeAdminReportsPage() {
                         </Badge>
                       </td>
                       <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
-                        {report.user?.node_id ? `${report.user.node_id.slice(0, 8)}...` : 'Unknown'}
+                        {report.user?.node_name || (report.user?.node_id ? `${report.user.node_id.slice(0, 8)}...` : 'Unknown')}
                       </td>
                       <td className="px-1.5 md:px-3 py-1 md:py-2 text-[9px] md:text-sm">
                         {report.item_transit?.source_node_id === userNode?.id ? (
@@ -400,7 +403,7 @@ export default function NodeAdminReportsPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Reporter Node</label>
-                  <p className="font-mono text-sm">{selectedReport.user?.node_id || 'Unknown'}</p>
+                  <p className="font-mono text-sm">{selectedReport.user?.node_name || selectedReport.user?.node_id || 'Unknown'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Reported At</label>
@@ -462,7 +465,9 @@ export default function NodeAdminReportsPage() {
                         <p>Item Type: <span className="font-medium">{selectedReport.item_transit.item_instance.item_type || '-'}</span></p>
                       </>
                     )}
-                    <p className="text-xs text-gray-600">From: {selectedReport.item_transit.source_node_id} → To: {selectedReport.item_transit.destination_node_id}</p>
+                    <p className="text-xs text-gray-600">
+                      From: {selectedReport.item_transit.source_node_name || selectedReport.item_transit.source_node_id} → To: {selectedReport.item_transit.destination_node_name || selectedReport.item_transit.destination_node_id}
+                    </p>
                   </div>
                 </div>
               )}

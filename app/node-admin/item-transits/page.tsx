@@ -114,10 +114,16 @@ export default function NodeAdminItemTransitsPage() {
 
     // If this node is the source
     if (transit.source_node_id === userNode.id) {
+      if (normalizedStatus === 'inactive') {
+        return {
+          label: 'Inactive',
+          received: true
+        };
+      }
       const sent = normalizedStatus === 'active';
       return {
         label: sent ? 'Sudah Dikirim' : 'Belum Dikirim',
-        received: sent
+        received: false
       };
     }
 
